@@ -1,0 +1,23 @@
+{
+  "name": "vector-table",
+  "version": "0.0.0",
+  "description": "Vector display and manipulation element",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dustin Moore",
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "5.10.1",
+    "gulp": "3.8.7",
+    "gulp-browserify": "0.5.0",
+    "gulp-util": "3.0.0",
+    "node-static": "0.7.4",
+    "vinyl-source-stream": "0.1.1",
+    "watchify": "1.0.2"
+  },
+  "dependencies": {
+    "ampersand-view": "6.0.11"
+  }
+}
