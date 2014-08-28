@@ -2,6 +2,8 @@ An SVG editor
 
 Build once
 ```
+npm install
+
 gulp scripts
 ```
 
