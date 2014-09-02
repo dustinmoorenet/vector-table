@@ -1,4 +1,4 @@
-var View = require('ampersand-view');
+var View = require('./view');
 var fs = require('fs');
 var html = fs.readFileSync(__dirname + '/layer.html', 'utf8');
 

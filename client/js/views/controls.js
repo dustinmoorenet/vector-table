@@ -1,12 +1,12 @@
-var View = require('ampersand-view');
+var View = require('./view');
 var fs = require('fs');
 var html = fs.readFileSync(__dirname + '/controls.html', 'utf8');
 
 module.exports = View.extend({
     template: html,
     events: {
-        'click [role="square"]': 'drawSquare',
-        'click [role="circle"]': 'drawCircle'
+        'click [data-hook="square"]': 'drawSquare',
+        'click [data-hook="circle"]': 'drawCircle'
     },
     initialize: function () {
     },
