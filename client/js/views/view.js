@@ -1,5 +1,5 @@
 var AmpersandView = require('ampersand-view');
-var events = require('events-mixin');
+var events = require('../libs/events');
 
 module.exports = AmpersandView.extend({
     _handleElementChange: function (element, delegate) {

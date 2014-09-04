@@ -6,7 +6,8 @@ module.exports = View.extend({
     template: html,
     events: {
         'click [data-hook="square"]': 'drawSquare',
-        'click [data-hook="circle"]': 'drawCircle'
+        'click [data-hook="circle"]': 'drawCircle',
+        'click [data-hook="unbind"]': 'unbind'
     },
     initialize: function () {
     },
@@ -15,5 +16,8 @@ module.exports = View.extend({
     },
     drawCircle: function() {
         global.app.mode = 'draw:circle';
+    },
+    unbind: function() {
+        global.app.trigger('unbind');
     }
 });
