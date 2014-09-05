@@ -17,5 +17,3 @@ var controls = new Controls();
 controls.render();
 
 body.appendChild(controls.el);
-
-console.log('hey we are here', body, table);
