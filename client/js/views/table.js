@@ -30,19 +30,35 @@ module.exports = View.extend({
     },
     touchSVG: function(event) {
         var pointer = event.pointers[0];
-
         var element;
 
         if (global.app.mode === 'draw:circle') {
             element = this.svg.circle(100);
+
+            element.move(pointer.offsetX, pointer.offsetY);
         }
         else if (global.app.mode === 'draw:square') {
             element = this.svg.rect(100, 100);
-        }
 
-        element.x(pointer.offsetX).y(pointer.offsetY);
-    },
-    swipeSVG: function() {
-        console.log('swiped SVG element', arguments);
+            element.move(pointer.offsetX, pointer.offsetY);
+        }
+        else if (global.app.mode === 'draw:polygon') {
+            var position = [pointer.offsetX, pointer.offsetY];
+
+            if (!this.lastPolygon) {
+                element = this.svg.polygon([position]).fill('none').stroke({width: 1});
+
+                this.lastPolygon = element;
+            }
+            else {
+                element = this.lastPolygon;
+
+                var array = element._array.value;
+
+                array.push(position);
+
+                element.plot(array);
+            }
+        }
     }
 });

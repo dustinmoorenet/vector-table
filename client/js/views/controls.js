@@ -7,7 +7,7 @@ module.exports = View.extend({
     events: {
         'click [data-hook="square"]': 'drawSquare',
         'click [data-hook="circle"]': 'drawCircle',
-        'click [data-hook="unbind"]': 'unbind'
+        'click [data-hook="polygon"]': 'drawPolygon'
     },
     initialize: function () {
     },
@@ -17,7 +17,7 @@ module.exports = View.extend({
     drawCircle: function() {
         global.app.mode = 'draw:circle';
     },
-    unbind: function() {
-        global.app.trigger('unbind');
+    drawPolygon: function() {
+        global.app.mode = 'draw:polygon';
     }
 });
