@@ -17,6 +17,7 @@
     "events-mixin": "1.1.0",
     "gulp": "3.8.7",
     "gulp-browserify": "0.5.0",
+    "gulp-sass": "0.7.3",
     "gulp-util": "3.0.1",
     "hammerjs": "2.0.2",
     "node-static": "0.7.4",
