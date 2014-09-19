@@ -1,3 +1,5 @@
 node_modules
 client/app.bundle.js
 client/css
+client/fonts
+.DS_Store
