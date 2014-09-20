@@ -2,4 +2,5 @@ node_modules
 client/app.bundle.js
 client/css
 client/fonts
+client/sass/iconFonts.scss
 .DS_Store

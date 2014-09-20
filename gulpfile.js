@@ -4,4 +4,4 @@ require('./gulp/fonts');
 require('./gulp/watch');
 var gulp = require('gulp');
 
-gulp.task('default', ['scripts', 'styles', 'watch']);
+gulp.task('default', ['iconfont', 'scripts', 'styles', 'watch']);
