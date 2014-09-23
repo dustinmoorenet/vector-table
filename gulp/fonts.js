@@ -22,7 +22,7 @@ gulp.task('iconfont', function(){
     gulp.src(['./icons/*.svg'])
         .pipe(iconfont({
             fontName: fontName,
-            fontHeight: 1600
+            fontHeight: 2048
         }))
         .on('codepoints', function(codepoints) {
             gulp.src('./icons/template.scss')

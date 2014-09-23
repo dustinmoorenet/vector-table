@@ -2,6 +2,7 @@ var View = require('./view');
 var Layer = require('./layer.js');
 var fs = require('fs');
 var html = fs.readFileSync(__dirname + '/table.html', 'utf8');
+var CollectionRenderer = require('ampersand-collection-view');
 var SVG = require('../libs/svg.js');
 
 
@@ -9,12 +10,6 @@ module.exports = View.extend({
     template: html,
     events: {
         'tap svg': 'touchSVG'
-    },
-    subviews: {
-        layer: {
-            container: '[data-hook=layers]',
-            constructor: Layer
-        }
     },
     initialize: function () {
         this.listenTo(global.app, 'change:mode', function(app, mode) {
@@ -24,7 +19,17 @@ module.exports = View.extend({
     render: function() {
         this.renderWithTemplate(this);
 
-        this.svg = SVG(this.queryByHook('svg-holder'));
+        this.svg = SVG(this.queryByHook('area'));
+
+        this.renderCollection(
+            this.model.layers,
+            Layer,
+            this.svg.node,
+            {viewOptions: {
+                parent: this,
+                parentElement: this.svg
+            }}
+        );
 
         return this;
     },
