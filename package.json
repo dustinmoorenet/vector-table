@@ -9,31 +9,31 @@
   "author": "Dustin Moore",
   "license": "MIT",
   "devDependencies": {
-    "ampersand-collection-view": "1.1.2",
-    "ampersand-model": "4.0.2",
-    "ampersand-rest-collection": "2.0.3",
+    "ampersand-collection-view": "1.1.3",
+    "ampersand-model": "4.0.3",
+    "ampersand-rest-collection": "2.0.4",
     "brfs": "1.2.0",
-    "browserify": "5.12.0",
+    "browserify": "6.3.3",
     "closest": "0.0.1",
     "component-event": "0.1.4",
     "delegate-events": "1.1.0",
     "events-mixin": "1.1.0",
-    "gulp": "3.8.8",
+    "gulp": "3.8.10",
     "gulp-browserify": "0.5.0",
     "gulp-consolidate": "0.1.2",
-    "gulp-iconfont": "0.1.2",
+    "gulp-iconfont": "1.0.0",
     "gulp-rename": "1.2.0",
-    "gulp-sass": "0.7.3",
+    "gulp-sass": "1.1.0",
     "gulp-util": "3.0.1",
-    "hammerjs": "2.0.3",
+    "hammerjs": "2.0.4",
     "lodash": "2.4.1",
     "node-static": "0.7.5",
     "vinyl-source-stream": "1.0.0",
-    "watchify": "1.0.2"
+    "watchify": "2.1.1"
   },
   "dependencies": {
-    "ampersand-state": "4.3.11",
-    "ampersand-view": "7.1.3"
+    "ampersand-state": "4.4.0",
+    "ampersand-view": "7.1.7"
   },
   "browserify": {
     "transform": [
