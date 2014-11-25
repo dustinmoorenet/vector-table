@@ -19,13 +19,14 @@ var gulp = require('gulp');
 var fontName = 'iconFonts';
 
 gulp.task('iconfont', function(){
-    gulp.src(['./icons/*.svg'])
+    var stream = gulp.src(['./icons/*.svg'])
         .pipe(iconfont({
             fontName: fontName,
-            fontHeight: 2048
+            fontHeight: 2048,
+            appendCodepoints: true
         }))
         .on('codepoints', function(codepoints) {
-            gulp.src('./icons/template.scss')
+            var stream = gulp.src('./icons/template.scss')
                 .pipe(consolidate('lodash', {
                     glyphs: codepoints,
                     fontName: fontName,
@@ -34,6 +35,10 @@ gulp.task('iconfont', function(){
                 }))
                 .pipe(rename({basename: fontName}))
                 .pipe(gulp.dest('./client/sass/')); // set path to export your CSS
+
+            return stream;
         })
         .pipe(gulp.dest('./client/fonts/')); // set path to export your fonts
+
+    return stream;
 });
