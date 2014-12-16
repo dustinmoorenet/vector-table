@@ -1,0 +1,19 @@
+{
+    "undef": true,
+    "unused": true,
+    "expr": true,
+    "browser": true,
+    "node": true,
+    "expr": true,
+    "predef": [
+        "describe",
+        "xdescribe",
+        "beforeEach",
+        "afterEach",
+        "it",
+        "xit",
+        "expect",
+        "jasmine",
+        "spyOn"
+    ]
+}
