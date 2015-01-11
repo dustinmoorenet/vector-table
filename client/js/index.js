@@ -16,13 +16,13 @@ var body = document.querySelector('body');
 
 global.app = new App();
 
-var table = new Table({model: project});
+var table = new Table({model: project, packageWorker: packageWorker});
 
 table.render();
 
 body.appendChild(table.el);
 
-var controls = new Controls();
+var controls = new Controls({packageWorker: packageWorker});
 
 controls.render();
 

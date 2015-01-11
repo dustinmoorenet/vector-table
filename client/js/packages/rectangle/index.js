@@ -1,20 +1,8 @@
-
 var Package = require('../../libs/Package');
 var _ = require('underscore');
 
-function RectangleTool(data) {
-    this.data = data;
-
-console.log(this, Package.prototype);
-    this.on('tool-start', this.onStart.bind(this));
-    this.on('tool-move', this.onMove.bind(this));
-    this.on('tool-end', this.onEnd.bind(this));
+function RectangleTool() {
 }
-
-var config = {
-    type: 'RectangleTool',
-
-};
 
 /*
 We need to be able to:
@@ -25,10 +13,10 @@ We need to be able to:
  - Position (change in x,y)
 */
 _.extend(RectangleTool.prototype, Package.prototype, {
-    onStart: function(event) {
+    onCreate: function(event) {
         // Here we get the base rectangle
         // Does this need to x,y,width,height? or 4 points?
-        this.rect = {
+        var object = {
             type: 'Rectangle',
             attr: {
                 x: event.x,
@@ -44,7 +32,8 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                         cx: event.x,
                         cy: event.y,
                         r: 10
-                    }
+                    },
+                    action: 'onTransform'
                 },
                 {
                     id: 'ne',
@@ -53,7 +42,8 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                         cx: event.x,
                         cy: event.y,
                         r: 10
-                    }
+                    },
+                    action: 'onTransform'
                 },
                 {
                     id: 'se',
@@ -62,7 +52,8 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                         cx: event.x,
                         cy: event.y,
                         r: 10
-                    }
+                    },
+                    action: 'onTransform'
                 },
                 {
                     id: 'sw',
@@ -71,32 +62,36 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                         cx: event.x,
                         cy: event.y,
                         r: 10
-                    }
+                    },
+                    action: 'onTransform'
                 }
             ],
         };
 
-        this.rect.activeHandle = this.rect.handles[3]; // se
+        object.activeHandle = object.handles[3]; // se
 
-        this.trigger('create-object', this.rect);
+        this.trigger('create-object', object);
     },
-    onMove: function(event) {
+    onTransform: function(event) {
         var object = event.selection[0];
+
+        // Find handle buddy
         var attr;
+        switch (object.activeHandle.id) {
+            case 'se':
+                attr = object.handles[0].attr; // nw
+                break;
+            case 'sw':
+                attr = object.handles[1].attr; // ne
+                break;
+            case 'sw':
+                attr = object.handles[2].attr; // se
+                break;
+            default: // ne
+                attr = object.handles[3].attr; // sw
+        }
 
-        if (object.activeHandle.id === 'se') {
-            attr = object.handles[0].attr; // nw
-        }
-        else if (object.activeHandle.id == 'sw') {
-            attr = object.handles[1].attr; // ne
-        }
-        else if (object.activeHandle.id == 'nw') {
-            attr = object.handles[2].attr; // se
-        }
-        else { // ne
-            attr = object.handles[3].attr; // sw
-        }
-
+        // Determine new rectangle from current position and handle buddy
         object.attr = {
             x: Math.min(event.x, attr.cx),
             y: Math.min(event.y, attr.cy),
@@ -104,6 +99,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             height: Math.abs(event.y - attr.cy)
         };
 
+        // Determine new handle locations
         object.handles[0].attr.cx = object.attr.x;
         object.handles[0].attr.cy = object.attr.y;
         object.handles[1].attr.cx = object.attr.x + object.attr.width;
@@ -113,6 +109,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         object.handles[3].attr.cx = object.attr.x;
         object.handles[3].attr.cy = object.attr.y + object.attr.height;
 
+        // Determine new active handle
         object.handles.forEach(function(handle) {
             if (handle.attr.cx === event.x && handle.attr.cy === event.y) {
                 object.activeHandle = handle;
