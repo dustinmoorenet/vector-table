@@ -109,7 +109,8 @@ module.exports = View.extend({
         object.handles.forEach(function(handle) {
             var circle = this.svg.circle(handle.attr.r * 2);
 
-            circle.move(handle.attr.cx, handle.attr.cy);
+            circle.attr('cx', handle.attr.cx);
+            circle.attr('cy', handle.attr.cy);
             circle.fill('red');
             circle.attr('id', object.id + '-' + handle.id);
 
@@ -131,7 +132,8 @@ module.exports = View.extend({
 
         object.handles.forEach(function(handle) {
             var circle = element._handles[handle.id];
-            circle.move(handle.attr.cx, handle.attr.cy);
+            circle.attr('cx', handle.attr.cx);
+            circle.attr('cy', handle.attr.cy);
         }, this);
     }
 });

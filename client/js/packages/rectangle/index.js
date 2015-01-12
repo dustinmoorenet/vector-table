@@ -85,7 +85,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             case 'sw':
                 attr = object.handles[1].attr; // ne
                 break;
-            case 'sw':
+            case 'nw':
                 attr = object.handles[2].attr; // se
                 break;
             default: // ne
