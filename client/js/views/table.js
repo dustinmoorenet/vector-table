@@ -8,24 +8,19 @@ var _ = require('lodash');
 module.exports = View.extend({
     template: html,
     events: {
-        'tap svg': 'touchSVG',
+        'panstart svg': 'touchSVG',
         'panmove svg': 'moveSVG',
     },
     initialize: function (options) {
+        this.objects = {};
         this.packageWorker = options.packageWorker;
 
-        this.listenTo(global.app, 'change:mode', function(app, mode) {
-            console.log('mode changed to ', mode);
-        });
-
         this.packageWorker.addEventListener('message', function (event) {
-            console.log('Called back by the worker: ', event.data);
-
             if (event.data.message === 'create-object') {
-                this.create(event.data);
+                this.create(event.data.object);
             }
             else if (event.data.message === 'transform-object') {
-                this.transform(event.data);
+                this.transform(event.data.object);
             }
         }.bind(this), false);
     },
@@ -88,9 +83,8 @@ module.exports = View.extend({
         this.packageWorker.postMessage(evt);
     },
     moveSVG: function(event) {
-        // Need to see if all this is wired up right, prob not.
         var pointer = event.pointers[0];
-        var element = this.objects[0];
+        var element = this.objects[this.activeElement.attr('id')];
 
         var evt = {
             message: 'transform-object',
@@ -103,20 +97,41 @@ module.exports = View.extend({
 
         this.packageWorker.postMessage(evt);
     },
-    create: function(event) {
-        var element = this.svg.rect(event.attr.width, event.attr.height);
-        var id = _.uniqueId('obj-');
+    create: function(object) {
+        var element = this.svg.rect(object.attr.width, object.attr.height);
+        object.id = _.uniqueId('obj-');
 
-        element.attr('id', id);
-        element.move(event.attr.x, event.attr.y);
-        element._meta = event;
+        element.attr('id', object.id);
+        element.move(object.attr.x, object.attr.y);
+        element._meta = object;
 
-        this.objects[id] = element;
+        var handles = {};
+        object.handles.forEach(function(handle) {
+            var circle = this.svg.circle(handle.attr.r * 2);
+
+            circle.move(handle.attr.cx, handle.attr.cy);
+            circle.fill('red');
+            circle.attr('id', object.id + '-' + handle.id);
+
+            handles[handle.id] = circle;
+        }, this);
+
+        element._handles = handles;
+
+        this.objects[object.id] = element;
+
+        this.activeElement = element;
     },
-    transform: function(event) {
-        var element = this.objects[event.id];
+    transform: function(object) {
+        var element = this.objects[object.id];
 
-        element.move(element.x, element.y);
-        element.size(element.width, element.height);
+        element.move(object.attr.x, object.attr.y);
+        element.size(object.attr.width, object.attr.height);
+        element._meta = object;
+
+        object.handles.forEach(function(handle) {
+            var circle = element._handles[handle.id];
+            circle.move(handle.attr.cx, handle.attr.cy);
+        }, this);
     }
 });

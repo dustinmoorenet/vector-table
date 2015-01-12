@@ -14,8 +14,6 @@ We need to be able to:
 */
 _.extend(RectangleTool.prototype, Package.prototype, {
     onCreate: function(event) {
-        // Here we get the base rectangle
-        // Does this need to x,y,width,height? or 4 points?
         var object = {
             type: 'Rectangle',
             attr: {
@@ -70,7 +68,10 @@ _.extend(RectangleTool.prototype, Package.prototype, {
 
         object.activeHandle = object.handles[3]; // se
 
-        this.trigger('create-object', object);
+        this.trigger('create-object', {
+            message: 'create-object',
+            object: object
+        });
     },
     onTransform: function(event) {
         var object = event.selection[0];
@@ -116,13 +117,13 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             }
         });
 
-        this.trigger('transform-object', object);
+        this.trigger('transform-object', {
+            message: 'transform-object',
+            object: object
+        });
     },
     onEnd: function() {
         this.trigger('finish-object', this.rect);
-    },
-    toJSON: function() {
-        return {message: 'got it: ' + this.data.message, type: this.data.type, x: this.data.x};
     }
 });
 

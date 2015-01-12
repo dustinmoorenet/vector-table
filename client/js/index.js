@@ -29,9 +29,3 @@ controls.render();
 body.appendChild(controls.el);
 
 global.app.table = table;
-
-packageWorker.addEventListener('message', function (event) {
-    console.log('Called back by the worker: ', event.data);
-}, false);
-
-packageWorker.postMessage({message: 'hello', type: 'draw', x: 23}); // start the worker.

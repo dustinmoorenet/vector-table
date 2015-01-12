@@ -11,7 +11,6 @@ var gulp = require('gulp');
 //     }))
 //       .on('codepoints', function(codepoints, options) {
 //         // CSS templating, e.g.
-//         console.log(codepoints, options);
 //       })
 //     .pipe(gulp.dest('./client/fonts/'));
 // });

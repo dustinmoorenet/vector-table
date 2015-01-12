@@ -10,7 +10,6 @@ module.exports = View.extend({
         return context._element.node;
     },
     initialize: function(options) {
-        console.log('layer init', options);
         this._parentElement = options.parentElement;
     }
 });

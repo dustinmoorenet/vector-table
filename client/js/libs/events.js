@@ -9,7 +9,7 @@ var events = require('component-event');
 var delegate = require('delegate-events');
 var closest = require('closest');
 var forceCaptureEvents = ['focus', 'blur'];
-var touchEvents = ['pan', 'pinch', 'press', 'rotate', 'swipe', 'tap'];
+var touchEvents = ['pan', 'panstart', 'panmove', 'panend', 'pancancel', 'pinch', 'press', 'rotate', 'swipe', 'tap'];
 
 
 /**
