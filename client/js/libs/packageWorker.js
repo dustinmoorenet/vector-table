@@ -1,16 +1,31 @@
 /* jshint worker:true */
 var rectangleTool = new (require('../packages/rectangle'))();
+var circleTool = new (require('../packages/CircleTool'))();
 
 rectangleTool.on('create-object', postMessage.bind(self));
 rectangleTool.on('transform-object', postMessage.bind(self));
+circleTool.on('create-object', postMessage.bind(self));
+circleTool.on('transform-object', postMessage.bind(self));
 
 self.onmessage = function(event) {
-    if (event.data.message == 'create-object') {
-        rectangleTool.onCreate(event.data);
-    }
-    else if (event.data.message == 'transform-object') {
-        var object = event.data.selection[0];
+    var data = event.data;
+    var tool;
 
-        rectangleTool[object.activeHandle.action](event.data);
+    switch (data.tool) {
+        case 'RectangleTool':
+            tool = rectangleTool;
+            break;
+        case 'CircleTool':
+            tool = circleTool;
+            break;
+    }
+
+    if (data.message == 'create-object') {
+        tool.onCreate(data);
+    }
+    else if (data.message == 'transform-object') {
+        var object = data.selection[0];
+
+        tool[object.activeHandle.action](data);
     }
 };

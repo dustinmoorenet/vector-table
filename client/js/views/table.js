@@ -74,8 +74,20 @@ module.exports = View.extend({
         //     }
         // }
 
+        var tool;
+
+        switch (global.app.mode) {
+            case 'draw:square':
+                tool = 'RectangleTool';
+                break;
+            case 'draw:circle':
+                tool = 'CircleTool';
+                break;
+        }
+
         var evt = {
             message: 'create-object',
+            tool: tool,
             x: pointer.offsetX,
             y: pointer.offsetY
         };
@@ -86,8 +98,20 @@ module.exports = View.extend({
         var pointer = event.pointers[0];
         var element = this.objects[this.activeElement.attr('id')];
 
+        var tool;
+
+        switch (global.app.mode) {
+            case 'draw:square':
+                tool = 'RectangleTool';
+                break;
+            case 'draw:circle':
+                tool = 'CircleTool';
+                break;
+        }
+
         var evt = {
             message: 'transform-object',
+            tool: tool,
             x: pointer.offsetX,
             y: pointer.offsetY,
             selection: [
@@ -98,6 +122,16 @@ module.exports = View.extend({
         this.packageWorker.postMessage(evt);
     },
     create: function(object) {
+        switch (object.type) {
+            case 'Rectangle':
+                this.createRectangle(object);
+                break;
+            case 'Circle':
+                this.createCircle(object);
+                break;
+        }
+    },
+    createRectangle: function(object) {
         var element = this.svg.rect(object.attr.width, object.attr.height);
         object.id = _.uniqueId('obj-');
 
@@ -123,7 +157,43 @@ module.exports = View.extend({
 
         this.activeElement = element;
     },
+    createCircle: function(object) {
+        var element = this.svg.circle(object.attr.width, object.attr.height);
+        object.id = _.uniqueId('obj-');
+
+        element.attr('id', object.id);
+        element.move(object.attr.x, object.attr.y);
+        element._meta = object;
+
+        var handles = {};
+        object.handles.forEach(function(handle) {
+            var circle = this.svg.circle(handle.attr.r * 2);
+
+            circle.attr('cx', handle.attr.cx);
+            circle.attr('cy', handle.attr.cy);
+            circle.fill('red');
+            circle.attr('id', object.id + '-' + handle.id);
+
+            handles[handle.id] = circle;
+        }, this);
+
+        element._handles = handles;
+
+        this.objects[object.id] = element;
+
+        this.activeElement = element;
+    },
     transform: function(object) {
+        switch (object.type) {
+            case 'Rectangle':
+                this.transformRectangle(object);
+                break;
+            case 'Circle':
+                this.transformCircle(object);
+                break;
+        }
+    },
+    transformRectangle: function(object) {
         var element = this.objects[object.id];
 
         element.move(object.attr.x, object.attr.y);
@@ -135,5 +205,19 @@ module.exports = View.extend({
             circle.attr('cx', handle.attr.cx);
             circle.attr('cy', handle.attr.cy);
         }, this);
+    },
+    transformCircle: function(object) {
+        var element = this.objects[object.id];
+
+        element.move(object.attr.x, object.attr.y);
+        element.size(object.attr.width, object.attr.height);
+        element._meta = object;
+
+        object.handles.forEach(function(handle) {
+            var circle = element._handles[handle.id];
+            circle.attr('cx', handle.attr.cx);
+            circle.attr('cy', handle.attr.cy);
+        }, this);
+
     }
 });
