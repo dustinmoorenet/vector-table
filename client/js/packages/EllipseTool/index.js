@@ -1,10 +1,10 @@
 var Package = require('../../libs/Package');
 var _ = require('underscore');
 
-function CircleTool() {
+function EllipseTool() {
 }
 
-_.extend(CircleTool.prototype, Package.prototype, {
+_.extend(EllipseTool.prototype, Package.prototype, {
     onCreate: function(event) {
         var object = {
             type: 'Circle',
@@ -119,4 +119,4 @@ _.extend(CircleTool.prototype, Package.prototype, {
     }
 });
 
-module.exports = CircleTool;
+module.exports = EllipseTool;

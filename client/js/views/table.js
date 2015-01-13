@@ -81,7 +81,7 @@ module.exports = View.extend({
                 tool = 'RectangleTool';
                 break;
             case 'draw:circle':
-                tool = 'CircleTool';
+                tool = 'EllipseTool';
                 break;
         }
 
@@ -105,7 +105,7 @@ module.exports = View.extend({
                 tool = 'RectangleTool';
                 break;
             case 'draw:circle':
-                tool = 'CircleTool';
+                tool = 'EllipseTool';
                 break;
         }
 
@@ -127,7 +127,7 @@ module.exports = View.extend({
                 this.createRectangle(object);
                 break;
             case 'Circle':
-                this.createCircle(object);
+                this.createEllipse(object);
                 break;
         }
     },
@@ -157,8 +157,8 @@ module.exports = View.extend({
 
         this.activeElement = element;
     },
-    createCircle: function(object) {
-        var element = this.svg.circle(object.attr.width, object.attr.height);
+    createEllipse: function(object) {
+        var element = this.svg.ellipse(object.attr.width, object.attr.height);
         object.id = _.uniqueId('obj-');
 
         element.attr('id', object.id);

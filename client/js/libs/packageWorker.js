@@ -1,6 +1,6 @@
 /* jshint worker:true */
-var rectangleTool = new (require('../packages/rectangle'))();
-var circleTool = new (require('../packages/CircleTool'))();
+var rectangleTool = new (require('../packages/RectangleTool'))();
+var circleTool = new (require('../packages/EllipseTool'))();
 
 rectangleTool.on('create-object', postMessage.bind(self));
 rectangleTool.on('transform-object', postMessage.bind(self));
@@ -15,7 +15,7 @@ self.onmessage = function(event) {
         case 'RectangleTool':
             tool = rectangleTool;
             break;
-        case 'CircleTool':
+        case 'EllipseTool':
             tool = circleTool;
             break;
     }
