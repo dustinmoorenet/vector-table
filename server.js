@@ -7,3 +7,5 @@ require('http').createServer(function (request, response) {
         fileServer.serve(request, response);
     }).resume();
 }).listen(8077);
+
+console.log('listening on port 8077');

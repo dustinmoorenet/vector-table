@@ -16,13 +16,20 @@ var body = document.querySelector('body');
 
 global.app = new App();
 
+global.app.on('change:mode', function(app, mode) {
+    packageWorker.postMessage({
+        message: 'set-package',
+        packageName: mode,
+    });
+});
+
 var table = new Table({model: project, packageWorker: packageWorker});
 
 table.render();
 
 body.appendChild(table.el);
 
-var controls = new Controls({packageWorker: packageWorker});
+var controls = new Controls();
 
 controls.render();
 

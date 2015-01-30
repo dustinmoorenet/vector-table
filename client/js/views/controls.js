@@ -9,15 +9,16 @@ module.exports = View.extend({
         'click [data-hook="circle"]': 'drawCircle',
         'click [data-hook="polygon"]': 'drawPolygon'
     },
-    initialize: function () {
+    initialize: function() {
+        this.drawSquare();
     },
     drawSquare: function() {
-        global.app.mode = 'draw:square';
+        global.app.mode = 'RectangleTool';
     },
     drawCircle: function() {
-        global.app.mode = 'draw:circle';
+        global.app.mode = 'EllipseTool';
     },
     drawPolygon: function() {
-        global.app.mode = 'draw:polygon';
+        global.app.mode = 'PolygonTool';
     }
 });

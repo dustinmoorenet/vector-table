@@ -74,20 +74,8 @@ module.exports = View.extend({
         //     }
         // }
 
-        var tool;
-
-        switch (global.app.mode) {
-            case 'draw:square':
-                tool = 'RectangleTool';
-                break;
-            case 'draw:circle':
-                tool = 'EllipseTool';
-                break;
-        }
-
         var evt = {
-            message: 'create-object',
-            tool: tool,
+            message: 'pointer-start',
             x: pointer.offsetX,
             y: pointer.offsetY
         };
@@ -98,20 +86,8 @@ module.exports = View.extend({
         var pointer = event.pointers[0];
         var element = this.objects[this.activeElement.attr('id')];
 
-        var tool;
-
-        switch (global.app.mode) {
-            case 'draw:square':
-                tool = 'RectangleTool';
-                break;
-            case 'draw:circle':
-                tool = 'EllipseTool';
-                break;
-        }
-
         var evt = {
-            message: 'transform-object',
-            tool: tool,
+            message: 'pointer-move',
             x: pointer.offsetX,
             y: pointer.offsetY,
             selection: [

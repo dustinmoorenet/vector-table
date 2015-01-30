@@ -2,6 +2,8 @@ var Package = require('../../libs/Package');
 var _ = require('underscore');
 
 function RectangleTool() {
+    this.on('pointer-start', this.onCreate, this);
+    this.on('pointer-move', this.onTransform, this);
 }
 
 /*
@@ -68,7 +70,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
 
         object.activeHandle = object.handles[3]; // se
 
-        this.trigger('create-object', {
+        this.trigger('export', {
             message: 'create-object',
             object: object
         });
@@ -117,13 +119,10 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             }
         });
 
-        this.trigger('transform-object', {
+        this.trigger('export', {
             message: 'transform-object',
             object: object
         });
-    },
-    onEnd: function() {
-        this.trigger('finish-object', this.rect);
     }
 });
 
