@@ -2,14 +2,14 @@ var Package = require('../../libs/Package');
 var _ = require('underscore');
 
 function EllipseTool() {
-    this.on('pointer-start', this.onCreate, this);
-    this.on('pointer-move', this.onTransform, this);
+    this.on('pan-start', this.onCreate, this);
+    this.on('pan-move', this.onTransform, this);
 }
 
 _.extend(EllipseTool.prototype, Package.prototype, {
     onCreate: function(event) {
         var object = {
-            type: 'Circle',
+            type: 'Ellipse',
             attr: {
                 x: event.x,
                 y: event.y,

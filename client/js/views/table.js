@@ -8,8 +8,9 @@ var _ = require('lodash');
 module.exports = View.extend({
     template: html,
     events: {
-        'panstart svg': 'touchSVG',
-        'panmove svg': 'moveSVG',
+        'panstart svg': 'panStart',
+        'panmove svg': 'panMove',
+        'tap svg': 'tap',
     },
     initialize: function (options) {
         this.objects = {};
@@ -41,53 +42,40 @@ module.exports = View.extend({
 
         return this;
     },
-    touchSVG: function(event) {
+    tap: function(event) {
         var pointer = event.pointers[0];
-        // var element;
-        //
-        // if (global.app.mode === 'draw:circle') {
-        //     element = this.svg.circle(100);
-        //
-        //     element.move(pointer.offsetX, pointer.offsetY);
-        // }
-        // else if (global.app.mode === 'draw:square') {
-        //     element = this.svg.rect(100, 100);
-        //
-        //     element.move(pointer.offsetX, pointer.offsetY);
-        // }
-        // else if (global.app.mode === 'draw:polygon') {
-        //     var position = [pointer.offsetX, pointer.offsetY];
-        //
-        //     if (!this.lastPolygon) {
-        //         element = this.svg.polygon([position]).fill('none').stroke({width: 1});
-        //
-        //         this.lastPolygon = element;
-        //     }
-        //     else {
-        //         element = this.lastPolygon;
-        //
-        //         var array = element._array.value;
-        //
-        //         array.push(position);
-        //
-        //         element.plot(array);
-        //     }
-        // }
 
         var evt = {
-            message: 'pointer-start',
+            message: 'tap',
+            x: pointer.offsetX,
+            y: pointer.offsetY
+        };
+
+        if (this.activeElement && this.activeElement._meta.type === 'Polygon') {
+            evt.selection = [
+                this.activeElement._meta
+            ];
+        }
+
+        this.packageWorker.postMessage(evt);
+    },
+    panStart: function(event) {
+        var pointer = event.pointers[0];
+
+        var evt = {
+            message: 'pan-start',
             x: pointer.offsetX,
             y: pointer.offsetY
         };
 
         this.packageWorker.postMessage(evt);
     },
-    moveSVG: function(event) {
+    panMove: function(event) {
         var pointer = event.pointers[0];
         var element = this.objects[this.activeElement.attr('id')];
 
         var evt = {
-            message: 'pointer-move',
+            message: 'pan-move',
             x: pointer.offsetX,
             y: pointer.offsetY,
             selection: [
@@ -102,8 +90,11 @@ module.exports = View.extend({
             case 'Rectangle':
                 this.createRectangle(object);
                 break;
-            case 'Circle':
+            case 'Ellipse':
                 this.createEllipse(object);
+                break;
+            case 'Polygon':
+                this.createPolygon(object);
                 break;
         }
     },
@@ -159,13 +150,25 @@ module.exports = View.extend({
 
         this.activeElement = element;
     },
+    createPolygon: function(object) {
+        var position = object.attr.path[object.attr.path.length - 1];
+        var element = this.svg.polygon([position]).fill('none').stroke({width: 1});
+        element._meta = object;
+
+        this.objects[object.id] = element;
+
+        this.activeElement = element;
+    },
     transform: function(object) {
         switch (object.type) {
             case 'Rectangle':
                 this.transformRectangle(object);
                 break;
-            case 'Circle':
+            case 'Ellipse':
                 this.transformCircle(object);
+                break;
+            case 'Polygon':
+                this.transformPolygon(object);
                 break;
         }
     },
@@ -195,5 +198,15 @@ module.exports = View.extend({
             circle.attr('cy', handle.attr.cy);
         }, this);
 
+    },
+    transformPolygon: function(object) {
+        var element = this.objects[object.id];
+        var position = object.attr.path[object.attr.path.length - 1];
+
+        var array = element._array.value;
+
+        array.push(position);
+
+        element.plot(array);
     }
 });
