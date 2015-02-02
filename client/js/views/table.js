@@ -155,6 +155,19 @@ module.exports = View.extend({
         var element = this.svg.polygon([position]).fill('none').stroke({width: 1});
         element._meta = object;
 
+        var handles = {};
+        var handle = object.handles[0];
+        var circle = this.svg.circle(handle.attr.r * 2);
+
+        circle.attr('cx', handle.attr.cx);
+        circle.attr('cy', handle.attr.cy);
+        circle.fill('red');
+        circle.attr('id', object.id + '-' + handle.id);
+
+        handles[handle.id] = circle;
+
+        element._handles = handles;
+
         this.objects[object.id] = element;
 
         this.activeElement = element;
@@ -200,6 +213,7 @@ module.exports = View.extend({
 
     },
     transformPolygon: function(object) {
+        //FIXME this is not transforming a poloygon this is adding to
         var element = this.objects[object.id];
         var position = object.attr.path[object.attr.path.length - 1];
 
@@ -208,5 +222,16 @@ module.exports = View.extend({
         array.push(position);
 
         element.plot(array);
+
+        var handles = element._handles;
+        var handle = object.handles[object.handles.length - 1];
+        var circle = this.svg.circle(handle.attr.r * 2);
+
+        circle.attr('cx', handle.attr.cx);
+        circle.attr('cy', handle.attr.cy);
+        circle.fill('red');
+        circle.attr('id', object.id + '-' + handle.id);
+
+        handles[handle.id] = circle;
     }
 });
