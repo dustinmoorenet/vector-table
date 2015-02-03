@@ -3,7 +3,11 @@ var Layer = require('./layer.js');
 var fs = require('fs');
 var html = fs.readFileSync(__dirname + '/table.html', 'utf8');
 var SVG = require('../libs/svg.js');
-var _ = require('lodash');
+var shapes = {
+    Rectangle: require('../Shapes/Rectangle'),
+    Ellipse: require('../Shapes/Ellipse'),
+    Polygon: require('../Shapes/Polygon')
+};
 
 module.exports = View.extend({
     template: html,
@@ -72,7 +76,7 @@ module.exports = View.extend({
     },
     panMove: function(event) {
         var pointer = event.pointers[0];
-        var element = this.objects[this.activeElement.attr('id')];
+        var element = this.objects[this.activeElement.id];
 
         var evt = {
             message: 'pan-move',
@@ -86,152 +90,21 @@ module.exports = View.extend({
         this.packageWorker.postMessage(evt);
     },
     create: function(object) {
-        switch (object.type) {
-            case 'Rectangle':
-                this.createRectangle(object);
-                break;
-            case 'Ellipse':
-                this.createEllipse(object);
-                break;
-            case 'Polygon':
-                this.createPolygon(object);
-                break;
+        var Shape = shapes[object.type];
+
+        if (!Shape) {
+            return;
         }
-    },
-    createRectangle: function(object) {
-        var element = this.svg.rect(object.attr.width, object.attr.height);
-        object.id = _.uniqueId('obj-');
 
-        element.attr('id', object.id);
-        element.move(object.attr.x, object.attr.y);
-        element._meta = object;
-
-        var handles = {};
-        object.handles.forEach(function(handle) {
-            var circle = this.svg.circle(handle.attr.r * 2);
-
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-            circle.fill('red');
-            circle.attr('id', object.id + '-' + handle.id);
-
-            handles[handle.id] = circle;
-        }, this);
-
-        element._handles = handles;
-
-        this.objects[object.id] = element;
-
-        this.activeElement = element;
-    },
-    createEllipse: function(object) {
-        var element = this.svg.ellipse(object.attr.width, object.attr.height);
-        object.id = _.uniqueId('obj-');
-
-        element.attr('id', object.id);
-        element.move(object.attr.x, object.attr.y);
-        element._meta = object;
-
-        var handles = {};
-        object.handles.forEach(function(handle) {
-            var circle = this.svg.circle(handle.attr.r * 2);
-
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-            circle.fill('red');
-            circle.attr('id', object.id + '-' + handle.id);
-
-            handles[handle.id] = circle;
-        }, this);
-
-        element._handles = handles;
-
-        this.objects[object.id] = element;
-
-        this.activeElement = element;
-    },
-    createPolygon: function(object) {
-        var position = object.attr.path[object.attr.path.length - 1];
-        var element = this.svg.polygon([position]).fill('none').stroke({width: 1});
-        element._meta = object;
-
-        var handles = {};
-        var handle = object.handles[0];
-        var circle = this.svg.circle(handle.attr.r * 2);
-
-        circle.attr('cx', handle.attr.cx);
-        circle.attr('cy', handle.attr.cy);
-        circle.fill('red');
-        circle.attr('id', object.id + '-' + handle.id);
-
-        handles[handle.id] = circle;
-
-        element._handles = handles;
+        var element = new Shape(object, this.svg);
 
         this.objects[object.id] = element;
 
         this.activeElement = element;
     },
     transform: function(object) {
-        switch (object.type) {
-            case 'Rectangle':
-                this.transformRectangle(object);
-                break;
-            case 'Ellipse':
-                this.transformCircle(object);
-                break;
-            case 'Polygon':
-                this.transformPolygon(object);
-                break;
-        }
-    },
-    transformRectangle: function(object) {
         var element = this.objects[object.id];
 
-        element.move(object.attr.x, object.attr.y);
-        element.size(object.attr.width, object.attr.height);
-        element._meta = object;
-
-        object.handles.forEach(function(handle) {
-            var circle = element._handles[handle.id];
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-        }, this);
-    },
-    transformCircle: function(object) {
-        var element = this.objects[object.id];
-
-        element.move(object.attr.x, object.attr.y);
-        element.size(object.attr.width, object.attr.height);
-        element._meta = object;
-
-        object.handles.forEach(function(handle) {
-            var circle = element._handles[handle.id];
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-        }, this);
-
-    },
-    transformPolygon: function(object) {
-        //FIXME this is not transforming a poloygon this is adding to
-        var element = this.objects[object.id];
-        var position = object.attr.path[object.attr.path.length - 1];
-
-        var array = element._array.value;
-
-        array.push(position);
-
-        element.plot(array);
-
-        var handles = element._handles;
-        var handle = object.handles[object.handles.length - 1];
-        var circle = this.svg.circle(handle.attr.r * 2);
-
-        circle.attr('cx', handle.attr.cx);
-        circle.attr('cy', handle.attr.cy);
-        circle.fill('red');
-        circle.attr('id', object.id + '-' + handle.id);
-
-        handles[handle.id] = circle;
+        element.transform(object);
     }
 });
