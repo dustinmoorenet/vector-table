@@ -1,8 +1,8 @@
 var View = require('./view');
-var Layer = require('./layer.js');
+var Layer = require('./layer');
 var fs = require('fs');
 var html = fs.readFileSync(__dirname + '/table.html', 'utf8');
-var SVG = require('../libs/svg.js');
+var SVG = require('../libs/svg');
 var shapes = {
     Rectangle: require('../Shapes/Rectangle'),
     Ellipse: require('../Shapes/Ellipse'),
@@ -34,7 +34,7 @@ module.exports = View.extend({
 
         this.svg = SVG(this.queryByHook('area'));
 
-        this.renderCollection(
+        this.layers = this.renderCollection(
             this.model.layers,
             Layer,
             this.svg.node,
@@ -96,7 +96,7 @@ module.exports = View.extend({
             return;
         }
 
-        var element = new Shape(object, this.svg);
+        var element = new Shape({object: object, parentElement: this.layers.views[0]._element});
 
         this.objects[object.id] = element;
 

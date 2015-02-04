@@ -1,23 +1,34 @@
-var _ = require('underscore');
+var View = require('../views/view');
+var _ = require('lodash');
 
-function Ellipse(object, svg) {
-    this.svg = svg;
+module.exports = View.extend({
+    autoRender: true,
+    template: function(context) {
+        context._element = context._parentElement.group();
 
-    this.create(object);
-}
+        return context._element.node;
+    },
+    initialize: function(options) {
+        this._meta = options.object;
+        this._parentElement = options.parentElement;
+    },
+    render: function() {
+        this.renderWithTemplate(this);
 
-_.extend(Ellipse.prototype, {
-    create: function(object) {
-        this.element = this.svg.ellipse(object.attr.width, object.attr.height);
+        if (this.ellipse) {
+            return this;
+        }
+
+        var object = this._meta;
+        this.ellipse = this._element.ellipse(object.attr.width, object.attr.height);
         this.id = object.id = _.uniqueId('obj-');
 
-        this.element.attr('id', object.id);
-        this.element.move(object.attr.x, object.attr.y);
-        this._meta = object;
+        this.ellipse.attr('id', object.id);
+        this.ellipse.move(object.attr.x, object.attr.y);
 
         var handles = {};
         object.handles.forEach(function(handle) {
-            var circle = this.svg.circle(handle.attr.r * 2);
+            var circle = this._element.circle(handle.attr.r * 2);
 
             circle.attr('cx', handle.attr.cx);
             circle.attr('cy', handle.attr.cy);
@@ -28,10 +39,12 @@ _.extend(Ellipse.prototype, {
         }, this);
 
         this._handles = handles;
+
+        return this;
     },
     transform: function(object) {
-        this.element.move(object.attr.x, object.attr.y);
-        this.element.size(object.attr.width, object.attr.height);
+        this.ellipse.move(object.attr.x, object.attr.y);
+        this.ellipse.size(object.attr.width, object.attr.height);
         this._meta = object;
 
         object.handles.forEach(function(handle) {
@@ -41,5 +54,3 @@ _.extend(Ellipse.prototype, {
         }, this);
     }
 });
-
-module.exports = Ellipse;

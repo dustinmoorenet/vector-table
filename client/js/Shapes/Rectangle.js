@@ -1,23 +1,37 @@
-var _ = require('underscore');
+var View = require('../views/view');
+var _ = require('lodash');
 
-function Rectangle(object, svg) {
-    this.svg = svg;
+module.exports = View.extend({
+    events: {
+        'tap g': 'tap',
+    },
+    autoRender: true,
+    template: function(context) {
+        context._element = context._parentElement.group();
 
-    this.create(object);
-}
+        return context._element.node;
+    },
+    initialize: function(options) {
+        this._meta = options.object;
+        this._parentElement = options.parentElement;
+    },
+    render: function() {
+        this.renderWithTemplate(this);
 
-_.extend(Rectangle.prototype, {
-    create: function(object) {
-        this.element = this.svg.rect(object.attr.width, object.attr.height);
+        if (this.rect) {
+            return this;
+        }
+
+        var object = this._meta;
+        this.rect = this._element.rect(object.attr.width, object.attr.height);
         this.id = object.id = _.uniqueId('obj-');
 
-        this.element.attr('id', object.id);
-        this.element.move(object.attr.x, object.attr.y);
-        this._meta = object;
+        this.rect.attr('id', object.id);
+        this.rect.move(object.attr.x, object.attr.y);
 
         var handles = {};
         object.handles.forEach(function(handle) {
-            var circle = this.svg.circle(handle.attr.r * 2);
+            var circle = this._element.circle(handle.attr.r * 2);
 
             circle.attr('cx', handle.attr.cx);
             circle.attr('cy', handle.attr.cy);
@@ -28,10 +42,12 @@ _.extend(Rectangle.prototype, {
         }, this);
 
         this._handles = handles;
+
+        return this;
     },
     transform: function(object) {
-        this.element.move(object.attr.x, object.attr.y);
-        this.element.size(object.attr.width, object.attr.height);
+        this.rect.move(object.attr.x, object.attr.y);
+        this.rect.size(object.attr.width, object.attr.height);
         this._meta = object;
 
         object.handles.forEach(function(handle) {
@@ -39,7 +55,8 @@ _.extend(Rectangle.prototype, {
             circle.attr('cx', handle.attr.cx);
             circle.attr('cy', handle.attr.cy);
         }, this);
+    },
+    tap: function() {
+        console.log('selected!!!');
     }
 });
-
-module.exports = Rectangle;
