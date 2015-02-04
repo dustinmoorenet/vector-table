@@ -43,6 +43,10 @@ module.exports = View.extend({
 
         this._handles = handles;
 
+        this.model = new (global.app.items.model)(object);
+        global.app.items.add(this.model);
+
+        this.listenTo(this.model, 'change:selected', this.select.bind(this));
         return this;
     },
     transform: function(object) {
@@ -57,6 +61,9 @@ module.exports = View.extend({
         }, this);
     },
     tap: function() {
-        console.log('selected!!!');
+        this.model.selected = !this.model.selected;
+    },
+    select: function(model, isSelected) {
+        this.el.classList.toggle('selected', isSelected);
     }
 });
