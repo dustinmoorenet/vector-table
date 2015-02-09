@@ -3,11 +3,7 @@ var Layer = require('./layer');
 var fs = require('fs');
 var html = fs.readFileSync(__dirname + '/table.html', 'utf8');
 var SVG = require('../libs/svg');
-var shapes = {
-    Rectangle: require('../Shapes/Rectangle'),
-    Ellipse: require('../Shapes/Ellipse'),
-    Polygon: require('../Shapes/Polygon')
-};
+var Item = require('./item');
 
 module.exports = View.extend({
     template: html,
@@ -90,13 +86,9 @@ module.exports = View.extend({
         this.packageWorker.postMessage(evt);
     },
     create: function(object) {
-        var Shape = shapes[object.type];
 
-        if (!Shape) {
-            return;
-        }
-
-        var element = new Shape({object: object, parentElement: this.layers.views[0]._element});
+console.log('create', this.layers.views[0]._element.group, Item.prototype.initialize);
+        var element = new Item({object: object, parentElement: this.layers.views[0]._element});
 
         this.objects[object.id] = element;
 

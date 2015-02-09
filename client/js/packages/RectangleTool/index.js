@@ -17,13 +17,17 @@ We need to be able to:
 _.extend(RectangleTool.prototype, Package.prototype, {
     onCreate: function(event) {
         var object = {
-            type: 'Rectangle',
-            attr: {
-                x: event.x,
-                y: event.y,
-                width: 0,
-                height: 0
-            },
+            shapes: [
+                {
+                    type: 'Rectangle',
+                    attr: {
+                        x: event.x,
+                        y: event.y,
+                        width: 0,
+                        height: 0
+                    }
+                }
+            ],
             handles: [
                 {
                     id: 'nw',
@@ -95,7 +99,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         }
 
         // Determine new rectangle from current position and handle buddy
-        object.attr = {
+        attr = object.shapes[0].attr = {
             x: Math.min(event.x, attr.cx),
             y: Math.min(event.y, attr.cy),
             width: Math.abs(event.x - attr.cx),
@@ -103,14 +107,14 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         };
 
         // Determine new handle locations
-        object.handles[0].attr.cx = object.attr.x;
-        object.handles[0].attr.cy = object.attr.y;
-        object.handles[1].attr.cx = object.attr.x + object.attr.width;
-        object.handles[1].attr.cy = object.attr.y;
-        object.handles[2].attr.cx = object.attr.x + object.attr.width;
-        object.handles[2].attr.cy = object.attr.y + object.attr.height;
-        object.handles[3].attr.cx = object.attr.x;
-        object.handles[3].attr.cy = object.attr.y + object.attr.height;
+        object.handles[0].attr.cx = attr.x;
+        object.handles[0].attr.cy = attr.y;
+        object.handles[1].attr.cx = attr.x + attr.width;
+        object.handles[1].attr.cy = attr.y;
+        object.handles[2].attr.cx = attr.x + attr.width;
+        object.handles[2].attr.cy = attr.y + attr.height;
+        object.handles[3].attr.cx = attr.x;
+        object.handles[3].attr.cy = attr.y + attr.height;
 
         // Determine new active handle
         object.handles.forEach(function(handle) {

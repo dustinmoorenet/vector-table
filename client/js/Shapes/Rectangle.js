@@ -1,6 +1,21 @@
 var View = require('../views/view');
 var _ = require('lodash');
 
+function Rectangle(shape, parentElement) {
+
+}
+
+_.extend(Rectangle.prototype, {
+    render: function() {
+
+    },
+    transform: function() {
+
+    }
+});
+
+module.exports = Rectangle;
+
 module.exports = View.extend({
     events: {
         'tap g': 'tap',
