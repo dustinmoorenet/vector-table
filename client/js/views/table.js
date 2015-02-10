@@ -51,7 +51,7 @@ module.exports = View.extend({
             y: pointer.offsetY
         };
 
-        if (this.activeItem && this.activeItem._meta.type === 'Polygon') {
+        if (this.activeItem && this.activeItem._meta.shapes[0].type === 'Polygon') {
             evt.selection = [
                 this.activeItem._meta
             ];

@@ -7,57 +7,56 @@ function EllipseTool() {
 }
 
 _.extend(EllipseTool.prototype, Package.prototype, {
+    HANDLE_WIDTH: 10,
     onCreate: function(event) {
+        var handleAttr = {
+            x: event.x - (this.HANDLE_WIDTH / 2),
+            y: event.y - (this.HANDLE_WIDTH / 2),
+            width: this.HANDLE_WIDTH,
+            height: this.HANDLE_WIDTH,
+            fill: 'red'
+        };
+
         var object = {
-            type: 'Ellipse',
-            attr: {
-                x: event.x,
-                y: event.y,
-                width: 0,
-                height: 0
-            },
+            shapes: [
+                {
+                    type: 'Ellipse',
+                    attr: {
+                        x: event.x,
+                        y: event.y,
+                        width: 0,
+                        height: 0,
+                        fill: 'none',
+                        stroke: 'black'
+                    }
+                }
+            ],
             handles: [
                 {
                     id: 'nw',
-                    shape: 'circle',
-                    attr: {
-                        cx: event.x,
-                        cy: event.y,
-                        r: 10
-                    },
+                    type: 'Ellipse',
+                    attr: _.clone(handleAttr),
                     action: 'onTransform'
                 },
                 {
                     id: 'ne',
-                    shape: 'circle',
-                    attr: {
-                        cx: event.x,
-                        cy: event.y,
-                        r: 10
-                    },
+                    type: 'Ellipse',
+                    attr: _.clone(handleAttr),
                     action: 'onTransform'
                 },
                 {
                     id: 'se',
-                    shape: 'circle',
-                    attr: {
-                        cx: event.x,
-                        cy: event.y,
-                        r: 10
-                    },
+                    type: 'Ellipse',
+                    attr: _.clone(handleAttr),
                     action: 'onTransform'
                 },
                 {
                     id: 'sw',
-                    shape: 'circle',
-                    attr: {
-                        cx: event.x,
-                        cy: event.y,
-                        r: 10
-                    },
+                    type: 'Ellipse',
+                    attr: _.clone(handleAttr),
                     action: 'onTransform'
                 }
-            ]
+            ],
         };
 
         object.activeHandle = object.handles[3]; // se
@@ -83,30 +82,40 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 attr = object.handles[2].attr; // se
                 break;
             default: // ne
-            attr = object.handles[3].attr; // sw
+                attr = object.handles[3].attr; // sw
         }
 
+        attr = {
+            x: attr.x + (this.HANDLE_WIDTH / 2),
+            y: attr.y + (this.HANDLE_WIDTH / 2)
+        };
+
         // Determine new rectangle from current position and handle buddy
-        object.attr = {
-            x: Math.min(event.x, attr.cx),
-            y: Math.min(event.y, attr.cy),
-            width: Math.abs(event.x - attr.cx),
-            height: Math.abs(event.y - attr.cy)
+        var rect = object.shapes[0].attr = {
+            x: Math.min(event.x, attr.x),
+            y: Math.min(event.y, attr.y),
+            width: Math.abs(event.x - attr.x),
+            height: Math.abs(event.y - attr.y)
+        };
+
+        attr = {
+            x: rect.x - (this.HANDLE_WIDTH / 2),
+            y: rect.y - (this.HANDLE_WIDTH / 2)
         };
 
         // Determine new handle locations
-        object.handles[0].attr.cx = object.attr.x;
-        object.handles[0].attr.cy = object.attr.y;
-        object.handles[1].attr.cx = object.attr.x + object.attr.width;
-        object.handles[1].attr.cy = object.attr.y;
-        object.handles[2].attr.cx = object.attr.x + object.attr.width;
-        object.handles[2].attr.cy = object.attr.y + object.attr.height;
-        object.handles[3].attr.cx = object.attr.x;
-        object.handles[3].attr.cy = object.attr.y + object.attr.height;
+        object.handles[0].attr.x = attr.x;
+        object.handles[0].attr.y = attr.y;
+        object.handles[1].attr.x = attr.x + rect.width;
+        object.handles[1].attr.y = attr.y;
+        object.handles[2].attr.x = attr.x + rect.width;
+        object.handles[2].attr.y = attr.y + rect.height;
+        object.handles[3].attr.x = attr.x;
+        object.handles[3].attr.y = attr.y + rect.height;
 
         // Determine new active handle
         object.handles.forEach(function(handle) {
-            if (handle.attr.cx === event.x && handle.attr.cy === event.y) {
+            if (handle.attr.x === event.x && handle.attr.y === event.y) {
                 object.activeHandle = handle;
             }
         });

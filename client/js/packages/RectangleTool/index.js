@@ -23,7 +23,8 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             width: this.HANDLE_WIDTH,
             height: this.HANDLE_WIDTH,
             fill: 'red'
-        }
+        };
+
         var object = {
             shapes: [
                 {

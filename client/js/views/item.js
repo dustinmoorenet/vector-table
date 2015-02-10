@@ -35,7 +35,6 @@ module.exports = View.extend({
         global.app.items.add(this.model);
 
         object.id = this.model.id;
-        console.log('what id?', object.id);
 
         this.listenTo(this.model, 'change:selected', this.select.bind(this));
         return this;

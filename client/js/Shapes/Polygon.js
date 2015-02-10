@@ -1,63 +1,34 @@
-var View = require('../views/view');
 var _ = require('lodash');
 
-module.exports = View.extend({
-    autoRender: true,
-    template: function(context) {
-        context._element = context._parentElement.group();
+function Polygon(shape, parentElement) {
+    this.shape = shape;
+    this.parentElement = parentElement;
 
-        return context._element.node;
-    },
-    initialize: function(options) {
-        this._meta = options.object;
-        this._parentElement = options.parentElement;
-    },
+    this.render();
+}
+
+_.extend(Polygon.prototype, {
     render: function() {
-        this.renderWithTemplate(this);
+        var shape = this.shape;
 
-        if (this.polygon) {
-            return this;
-        }
+        var position = shape.attr.path[shape.attr.path.length - 1];
+        this.element = this.parentElement.polygon([position]).fill('none').stroke({width: 1});
+        this.id = shape.id = _.uniqueId('obj-');
 
-        var object = this._meta;
-        var position = object.attr.path[object.attr.path.length - 1];
-        this.polygon = this._element.polygon([position]).fill('none').stroke({width: 1});
-        this.id = object.id = _.uniqueId('obj-');
-
-        var handles = {};
-        var handle = object.handles[0];
-        var circle = this._element.circle(handle.attr.r * 2);
-
-        circle.attr('cx', handle.attr.cx);
-        circle.attr('cy', handle.attr.cy);
-        circle.fill('red');
-        circle.attr('id', object.id + '-' + handle.id);
-
-        handles[handle.id] = circle;
-
-        this._handles = handles;
-
-        return this;
+        this.element.attr('id', shape.id);
     },
-    transform: function(object) {
+    transform: function(shape) {
         //FIXME this is not transforming a poloygon this is adding to
-        this._meta = object;
-        var position = object.attr.path[object.attr.path.length - 1];
+        this.shape = shape;
 
-        var array = this.polygon._array.value;
+        var position = shape.attr.path[shape.attr.path.length - 1];
+
+        var array = this.element._array.value;
 
         array.push(position);
 
-        this.polygon.plot(array);
-
-        var handle = object.handles[object.handles.length - 1];
-        var circle = this._element.circle(handle.attr.r * 2);
-
-        circle.attr('cx', handle.attr.cx);
-        circle.attr('cy', handle.attr.cy);
-        circle.fill('red');
-        circle.attr('id', object.id + '-' + handle.id);
-
-        this._handles[handle.id] = circle;
+        this.element.plot(array);
     }
 });
+
+module.exports = Polygon;

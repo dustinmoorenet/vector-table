@@ -6,6 +6,7 @@ function PolygonTool() {
 }
 
 _.extend(PolygonTool.prototype, Package.prototype, {
+    HANDLE_WIDTH: 10,
     onHardAnchor: function(event) {
         var exportEvent;
         var point = [event.x, event.y];
@@ -13,7 +14,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
         if (event.selection) {
             var object = event.selection[0];
 
-            object.attr.path.push(point);
+            object.shapes[0].attr.path.push(point);
 
             exportEvent = {
                 message: 'transform-object',
@@ -24,10 +25,14 @@ _.extend(PolygonTool.prototype, Package.prototype, {
             exportEvent = {
                 message: 'create-object',
                 object: {
-                    type: 'Polygon',
-                    attr: {
-                        path: [point]
-                    },
+                    shapes: [
+                        {
+                            type: 'Polygon',
+                            attr: {
+                                path: [point]
+                            }
+                        }
+                    ],
                     handles: []
                 }
             };
@@ -35,11 +40,13 @@ _.extend(PolygonTool.prototype, Package.prototype, {
 
         exportEvent.object.handles.push({
             id: 'handle-' + exportEvent.object.handles.length,
-            shape: 'circle',
+            type: 'Ellipse',
             attr: {
-                cx: event.x,
-                cy: event.y,
-                r: 10
+                x: event.x - (this.HANDLE_WIDTH / 2),
+                y: event.y - (this.HANDLE_WIDTH / 2),
+                width: this.HANDLE_WIDTH,
+                height: this.HANDLE_WIDTH,
+                fill: 'red'
             },
             action: 'onTransform'
         });
