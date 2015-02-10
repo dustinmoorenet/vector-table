@@ -1,84 +1,30 @@
-var View = require('../views/view');
 var _ = require('lodash');
 
 function Rectangle(shape, parentElement) {
+    this.shape = shape;
+    this.parentElement = parentElement;
 
+    this.render();
 }
 
 _.extend(Rectangle.prototype, {
     render: function() {
+        var shape = this.shape;
 
+        this.element = this.parentElement.rect(shape.attr.width, shape.attr.height);
+        this.id = shape.id = _.uniqueId('obj-');
+
+        this.element.attr('id', shape.id);
+        this.element.attr('fill', shape.attr.fill);
+        this.element.attr('stroke', shape.attr.stroke);
+        this.element.move(shape.attr.x, shape.attr.y);
     },
-    transform: function() {
+    transform: function(shape) {
+        this.shape = shape;
 
+        this.element.move(shape.attr.x, shape.attr.y);
+        this.element.size(shape.attr.width, shape.attr.height);
     }
 });
 
 module.exports = Rectangle;
-
-module.exports = View.extend({
-    events: {
-        'tap g': 'tap',
-    },
-    autoRender: true,
-    template: function(context) {
-        context._element = context._parentElement.group();
-
-        return context._element.node;
-    },
-    initialize: function(options) {
-        this._meta = options.object;
-        this._parentElement = options.parentElement;
-    },
-    render: function() {
-        this.renderWithTemplate(this);
-
-        if (this.rect) {
-            return this;
-        }
-
-        var object = this._meta;
-        this.rect = this._element.rect(object.attr.width, object.attr.height);
-        this.id = object.id = _.uniqueId('obj-');
-
-        this.rect.attr('id', object.id);
-        this.rect.move(object.attr.x, object.attr.y);
-
-        var handles = {};
-        object.handles.forEach(function(handle) {
-            var circle = this._element.circle(handle.attr.r * 2);
-
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-            circle.fill('red');
-            circle.attr('id', object.id + '-' + handle.id);
-
-            handles[handle.id] = circle;
-        }, this);
-
-        this._handles = handles;
-
-        this.model = new (global.app.items.model)(object);
-        global.app.items.add(this.model);
-
-        this.listenTo(this.model, 'change:selected', this.select.bind(this));
-        return this;
-    },
-    transform: function(object) {
-        this.rect.move(object.attr.x, object.attr.y);
-        this.rect.size(object.attr.width, object.attr.height);
-        this._meta = object;
-
-        object.handles.forEach(function(handle) {
-            var circle = this._handles[handle.id];
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-        }, this);
-    },
-    tap: function() {
-        this.model.selected = !this.model.selected;
-    },
-    select: function(model, isSelected) {
-        this.el.classList.toggle('selected', isSelected);
-    }
-});

@@ -1,56 +1,30 @@
-var View = require('../views/view');
 var _ = require('lodash');
 
-module.exports = View.extend({
-    autoRender: true,
-    template: function(context) {
-        context._element = context._parentElement.group();
+function Ellipse(shape, parentElement) {
+    this.shape = shape;
+    this.parentElement = parentElement;
 
-        return context._element.node;
-    },
-    initialize: function(options) {
-        this._meta = options.object;
-        this._parentElement = options.parentElement;
-    },
+    this.render();
+}
+
+_.extend(Ellipse.prototype, {
     render: function() {
-        this.renderWithTemplate(this);
+        var shape = this.shape;
 
-        if (this.ellipse) {
-            return this;
-        }
+        this.element = this.parentElement.ellipse(shape.attr.width, shape.attr.height);
+        this.id = shape.id = _.uniqueId('obj-');
 
-        var object = this._meta;
-        this.ellipse = this._element.ellipse(object.attr.width, object.attr.height);
-        this.id = object.id = _.uniqueId('obj-');
-
-        this.ellipse.attr('id', object.id);
-        this.ellipse.move(object.attr.x, object.attr.y);
-
-        var handles = {};
-        object.handles.forEach(function(handle) {
-            var circle = this._element.circle(handle.attr.r * 2);
-
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-            circle.fill('red');
-            circle.attr('id', object.id + '-' + handle.id);
-
-            handles[handle.id] = circle;
-        }, this);
-
-        this._handles = handles;
-
-        return this;
+        this.element.attr('id', shape.id);
+        this.element.attr('fill', shape.attr.fill);
+        this.element.attr('stroke', shape.attr.stroke);
+        this.element.move(shape.attr.x, shape.attr.y);
     },
-    transform: function(object) {
-        this.ellipse.move(object.attr.x, object.attr.y);
-        this.ellipse.size(object.attr.width, object.attr.height);
-        this._meta = object;
+    transform: function(shape) {
+        this.shape = shape;
 
-        object.handles.forEach(function(handle) {
-            var circle = this._handles[handle.id];
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
-        }, this);
+        this.element.move(shape.attr.x, shape.attr.y);
+        this.element.size(shape.attr.width, shape.attr.height);
     }
 });
+
+module.exports = Ellipse;

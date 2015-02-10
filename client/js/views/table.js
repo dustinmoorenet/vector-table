@@ -13,7 +13,7 @@ module.exports = View.extend({
         'tap svg': 'tap',
     },
     initialize: function (options) {
-        this.objects = {};
+        this.items = {};
         this.packageWorker = options.packageWorker;
 
         this.packageWorker.addEventListener('message', function (event) {
@@ -51,9 +51,9 @@ module.exports = View.extend({
             y: pointer.offsetY
         };
 
-        if (this.activeElement && this.activeElement._meta.type === 'Polygon') {
+        if (this.activeItem && this.activeItem._meta.type === 'Polygon') {
             evt.selection = [
-                this.activeElement._meta
+                this.activeItem._meta
             ];
         }
 
@@ -72,31 +72,29 @@ module.exports = View.extend({
     },
     panMove: function(event) {
         var pointer = event.pointers[0];
-        var element = this.objects[this.activeElement.id];
+        var item = this.items[this.activeItem.model.id];
 
         var evt = {
             message: 'pan-move',
             x: pointer.offsetX,
             y: pointer.offsetY,
             selection: [
-                element._meta
+                item._meta
             ]
         };
 
         this.packageWorker.postMessage(evt);
     },
     create: function(object) {
+        var item = new Item({object: object, parentElement: this.layers.views[0]._element});
 
-console.log('create', this.layers.views[0]._element.group, Item.prototype.initialize);
-        var element = new Item({object: object, parentElement: this.layers.views[0]._element});
+        this.items[item.model.id] = item;
 
-        this.objects[object.id] = element;
-
-        this.activeElement = element;
+        this.activeItem = item;
     },
     transform: function(object) {
-        var element = this.objects[object.id];
+        var item = this.items[object.id];
 
-        element.transform(object);
+        item.transform(object);
     }
 });

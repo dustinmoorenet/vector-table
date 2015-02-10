@@ -1,8 +1,9 @@
 var AmpModel = require('ampersand-model');
+var _ = require('lodash');
 
 module.exports = AmpModel.extend({
     props: {
-        id: ['string'],
+        id: ['string', true, function() { return _.uniqueId('item-'); }],
         selected: ['boolean']
     }
 });

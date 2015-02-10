@@ -34,6 +34,9 @@ module.exports = View.extend({
         this.model = new (global.app.items.model)(object);
         global.app.items.add(this.model);
 
+        object.id = this.model.id;
+        console.log('what id?', object.id);
+
         this.listenTo(this.model, 'change:selected', this.select.bind(this));
         return this;
     },
@@ -72,15 +75,16 @@ module.exports = View.extend({
         }, this);
     },
     transform: function(object) {
-        var shape = object.shapes[0];
-        this.rect.move(shape.attr.x, shape.attr.y);
-        this.rect.size(shape.attr.width, shape.attr.height);
-        this._meta = object;
+        object.shapes.forEach(function(shape) {
+            var shapeElement = this._shapes[shape.id];
 
-        object.handles.forEach(function(handle) {
-            var circle = this._handles[handle.id];
-            circle.attr('cx', handle.attr.cx);
-            circle.attr('cy', handle.attr.cy);
+            shapeElement.transform(shape);
+        }, this);
+
+        object.handles.forEach(function(shape) {
+            var shapeElement = this._handles[shape.id];
+
+            shapeElement.transform(shape);
         }, this);
     },
     tap: function() {
