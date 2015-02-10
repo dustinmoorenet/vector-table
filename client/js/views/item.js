@@ -44,47 +44,70 @@ module.exports = View.extend({
         this.shapeGroup = this._element.group();
 
         this._shapes = {};
-        object.shapes.forEach(function(shape) {
-            var Shape = shapes[shape.type];
-
-            if (!Shape) {
-                return;
-            }
-
-            shape = new Shape(shape, this.shapeGroup);
-
-            this._shapes[shape.id] = shape;
-        }, this);
+        object.shapes.forEach(this.addShape, this);
     },
     renderHandles: function() {
         var object = this._meta;
         this.handleGroup = this._element.group();
 
         this._handles = {};
-        object.handles.forEach(function(shape) {
-            var Shape = shapes[shape.type];
-
-            if (!Shape) {
-                return;
-            }
-
-            shape = new Shape(shape, this.handleGroup);
-
-            this._handles[shape.id] = shape;
-        }, this);
+        object.handles.forEach(this.addHandle, this);
     },
     transform: function(object) {
-        object.shapes.forEach(function(shape) {
-            var shapeElement = this._shapes[shape.id];
+        object.shapes.forEach(this.transformShape, this);
 
-            shapeElement.transform(shape);
-        }, this);
+        object.handles.forEach(this.transformHandle, this);
+    },
+    delta: function(object) {
+        (object.addShapes || []).forEach(this.addShape, this);
+        (object.removeShapes || []).forEach(this.removeShape, this);
+        (object.transformShapes || []).forEach(this.transformShape, this);
 
-        object.handles.forEach(function(shape) {
-            var shapeElement = this._handles[shape.id];
+        (object.addHandles || []).forEach(this.addHandle, this);
+        (object.removeHandles || []).forEach(this.removeHandle, this);
+        (object.transformHandles || []).forEach(this.transformHandle, this);
+    },
+    addShape: function(shape) {
+        var Shape = shapes[shape.type];
 
-            shapeElement.transform(shape);
-        }, this);
+        if (!Shape) {
+            return;
+        }
+
+        shape = new Shape(shape, this.shapeGroup);
+
+        this._shapes[shape.id] = shape;
+    },
+    removeShape: function(shape) {
+        var shapeElement = this._shapes[shape.id];
+
+        shapeElement.remove();
+    },
+    transformShape: function(shape) {
+        var shapeElement = this._shapes[shape.id];
+
+        shapeElement.transform(shape);
+    },
+    addHandle: function(shape) {
+        var Shape = shapes[shape.type];
+
+        if (!Shape) {
+            return;
+        }
+
+        shape = new Shape(shape, this.handleGroup);
+
+        this._handles[shape.id] = shape;
+    },
+    removeHandle: function(shape) {
+        var shapeElement = this._handles[shape.id];
+
+        shapeElement.remove();
+    },
+    transformHandle: function(shape) {
+        var shapeElement = this._handles[shape.id];
+
+        shapeElement.transform(shape);
     },
     tap: function() {
         this.model.selected = !this.model.selected;

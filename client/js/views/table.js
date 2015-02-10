@@ -23,6 +23,9 @@ module.exports = View.extend({
             else if (event.data.message === 'transform-object') {
                 this.transform(event.data.object);
             }
+            else if (event.data.message === 'delta-object') {
+                this.delta(event.data.object);
+            }
         }.bind(this), false);
     },
     render: function() {
@@ -96,5 +99,10 @@ module.exports = View.extend({
         var item = this.items[object.id];
 
         item.transform(object);
+    },
+    delta: function(object) {
+        var item = this.items[object.id];
+
+        item.delta(object);
     }
 });
