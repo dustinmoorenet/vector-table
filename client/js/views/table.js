@@ -14,9 +14,8 @@ module.exports = View.extend({
     },
     initialize: function (options) {
         this.items = {};
-        this.packageWorker = options.packageWorker;
 
-        this.packageWorker.addEventListener('message', function (event) {
+        global.packageWorker.addEventListener('message', function (event) {
             if (event.data.message === 'create-object') {
                 this.create(event.data.object);
             }
@@ -60,7 +59,7 @@ module.exports = View.extend({
             ];
         }
 
-        this.packageWorker.postMessage(evt);
+        global.packageWorker.postMessage(evt);
     },
     panStart: function(event) {
         var pointer = event.pointers[0];
@@ -71,7 +70,7 @@ module.exports = View.extend({
             y: pointer.offsetY
         };
 
-        this.packageWorker.postMessage(evt);
+        global.packageWorker.postMessage(evt);
     },
     panMove: function(event) {
         var pointer = event.pointers[0];
@@ -86,7 +85,7 @@ module.exports = View.extend({
             ]
         };
 
-        this.packageWorker.postMessage(evt);
+        global.packageWorker.postMessage(evt);
     },
     create: function(object) {
         var item = new Item({object: object, parentElement: this.layers.views[0]._element});

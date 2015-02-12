@@ -4,6 +4,7 @@ var _ = require('underscore');
 function RectangleTool() {
     this.on('pan-start', this.onCreate, this);
     this.on('pan-move', this.onTransform, this);
+    this.on('object-selected', this.onSelected, this);
 }
 
 /*
@@ -34,7 +35,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                         y: event.y,
                         width: 0,
                         height: 0,
-                        fill: 'none',
+                        fill: 'blue',
                         stroke: 'black'
                     }
                 }
@@ -132,6 +133,10 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             message: 'transform-object',
             object: object
         });
+    },
+    onSelected: function(object, isSelected) {
+        // Need to pass in the right things
+        // then we can report the state we want our object to be in
     }
 });
 

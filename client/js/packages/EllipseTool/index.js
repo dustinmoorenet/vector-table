@@ -26,7 +26,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                         y: event.y,
                         width: 0,
                         height: 0,
-                        fill: 'none',
+                        fill: 'blue',
                         stroke: 'black'
                     }
                 }

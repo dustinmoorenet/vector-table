@@ -2,7 +2,7 @@ var App = require('./state/app');
 var Table = require('./views/table');
 var Controls = require('./views/controls');
 var Project = require('./models/project');
-var packageWorker = new Worker('./libs/packageWorker.js');
+global.packageWorker = new Worker('./libs/packageWorker.js');
 
 var project = new Project({
     layers: [
@@ -17,13 +17,13 @@ var body = document.querySelector('body');
 global.app = new App();
 
 global.app.on('change:mode', function(app, mode) {
-    packageWorker.postMessage({
+    global.packageWorker.postMessage({
         message: 'set-package',
         packageName: mode,
     });
 });
 
-var table = new Table({model: project, packageWorker: packageWorker});
+var table = new Table({model: project});
 
 table.render();
 

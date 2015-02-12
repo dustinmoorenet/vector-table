@@ -114,5 +114,12 @@ module.exports = View.extend({
     },
     select: function(model, isSelected) {
         this.el.classList.toggle('selected', isSelected);
+
+        var evt = {
+            message: 'object-selected',
+            isSelected: isSelected
+        };
+
+        global.packageWorker.postMessage(evt);
     }
 });
