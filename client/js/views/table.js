@@ -3,6 +3,7 @@ var Layer = require('./layer');
 var fs = require('fs');
 var html = fs.readFileSync(__dirname + '/table.html', 'utf8');
 var SVG = require('../libs/svg');
+var ItemCollection = require('../models/ItemCollection');
 var Item = require('./item');
 
 module.exports = View.extend({
@@ -12,7 +13,7 @@ module.exports = View.extend({
         'panmove svg': 'panMove',
         'tap svg': 'tap',
     },
-    initialize: function (options) {
+    initialize: function () {
         this.items = {};
 
         global.packageWorker.addEventListener('message', function (event) {
@@ -24,6 +25,9 @@ module.exports = View.extend({
             }
             else if (event.data.message === 'delta-object') {
                 this.delta(event.data.object);
+            }
+            else if (event.data.message === 'object-mode-change') {
+                this.modeChanged(event.data.object);
             }
         }.bind(this), false);
     },
@@ -103,5 +107,12 @@ module.exports = View.extend({
         var item = this.items[object.id];
 
         item.delta(object);
+    },
+    modeChanged: function(object) {
+        console.log('table.modeChanged', object);
+        var item = this.items[object.id];
+
+        item.model.mode = object.mode;
+        console.log('what happened', item.model.mode);
     }
 });

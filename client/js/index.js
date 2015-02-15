@@ -23,6 +23,36 @@ global.app.on('change:mode', function(app, mode) {
     });
 });
 
+global.app.items.on('change:selected', function(model, isSelected) {
+    if (isSelected) {
+        global.app.selection.add(model);
+    }
+    else {
+        global.app.selection.remove(model);
+    }
+});
+
+global.app.selection.on('add remove', function(item, selection) {
+    global.packageWorker.postMessage({
+        message: 'selection',
+        selection: selection.toJSON()
+    });
+});
+
+global.app.selection.on('add', function(item) {
+    global.packageWorker.postMessage({
+        message: 'selected',
+        object: item.toJSON()
+    });
+});
+
+global.app.selection.on('remove', function(item) {
+    global.packageWorker.postMessage({
+        message: 'unselected',
+        object: item.toJSON()
+    });
+});
+
 var table = new Table({model: project});
 
 table.render();

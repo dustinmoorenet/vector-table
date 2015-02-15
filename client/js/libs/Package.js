@@ -1,11 +1,9 @@
-var _ = require('underscore');
-var BackboneEvents = require("backbone-events-standalone");
+var _ = require('lodash');
+var Events = require('ampersand-events');
 
 function Package() { }
 
-BackboneEvents.mixin(Package.prototype);
-
-_.extend(Package.prototype, {
+_.extend(Package.prototype, Events, {
 
 });
 

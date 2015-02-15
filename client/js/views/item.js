@@ -7,7 +7,7 @@ var shapes = {
 
 module.exports = View.extend({
     events: {
-        'tap g': 'tap',
+        //'tap g': 'tap',
     },
     autoRender: true,
     template: function(context) {
@@ -37,6 +37,8 @@ module.exports = View.extend({
         object.id = this.model.id;
 
         this.listenTo(this.model, 'change:selected', this.select.bind(this));
+        this.listenTo(this.model, 'change:mode', this.modeChanged.bind(this));
+
         return this;
     },
     renderShapes: function() {
@@ -114,12 +116,9 @@ module.exports = View.extend({
     },
     select: function(model, isSelected) {
         this.el.classList.toggle('selected', isSelected);
-
-        var evt = {
-            message: 'object-selected',
-            isSelected: isSelected
-        };
-
-        global.packageWorker.postMessage(evt);
+    },
+    modeChanged: function(model, mode) {
+        console.log('modeChange', model, mode);
+        this.el.setAttribute('data-mode', mode);
     }
 });

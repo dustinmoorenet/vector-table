@@ -1,10 +1,11 @@
 var Package = require('../../libs/Package');
-var _ = require('underscore');
+var _ = require('lodash');
 
 function RectangleTool() {
     this.on('pan-start', this.onCreate, this);
     this.on('pan-move', this.onTransform, this);
-    this.on('object-selected', this.onSelected, this);
+    this.on('tap', this.onTap, this);
+    this.on('unselected', this.onUnselected, this);
 }
 
 /*
@@ -17,52 +18,76 @@ We need to be able to:
 */
 _.extend(RectangleTool.prototype, Package.prototype, {
     HANDLE_WIDTH: 10,
+    DEFAULT: {
+        width: 100,
+        height: 50
+    },
     onCreate: function(event) {
-        var handleAttr = {
-            x: event.x - (this.HANDLE_WIDTH / 2),
-            y: event.y - (this.HANDLE_WIDTH / 2),
-            width: this.HANDLE_WIDTH,
-            height: this.HANDLE_WIDTH,
-            fill: 'red'
-        };
+        this.create({
+            x: event.x,
+            y: event.y,
+            width: 0,
+            height: 0,
+            fill: 'blue',
+            stroke: 'black'
+        });
+    },
+    create: function(attr) {
 
         var object = {
             shapes: [
                 {
                     type: 'Rectangle',
-                    attr: {
-                        x: event.x,
-                        y: event.y,
-                        width: 0,
-                        height: 0,
-                        fill: 'blue',
-                        stroke: 'black'
-                    }
+                    attr: attr
                 }
             ],
             handles: [
                 {
                     id: 'nw',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        x: attr.x - (this.HANDLE_WIDTH / 2),
+                        y: attr.y - (this.HANDLE_WIDTH / 2),
+                        width: this.HANDLE_WIDTH,
+                        height: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 },
                 {
                     id: 'ne',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        x: attr.x + attr.width - (this.HANDLE_WIDTH / 2),
+                        y: attr.y - (this.HANDLE_WIDTH / 2),
+                        width: this.HANDLE_WIDTH,
+                        height: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 },
                 {
                     id: 'se',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        x: attr.x + attr.width - (this.HANDLE_WIDTH / 2),
+                        y: attr.y + attr.height - (this.HANDLE_WIDTH / 2),
+                        width: this.HANDLE_WIDTH,
+                        height: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 },
                 {
                     id: 'sw',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        x: attr.x - (this.HANDLE_WIDTH / 2),
+                        y: attr.y + attr.height - (this.HANDLE_WIDTH / 2),
+                        width: this.HANDLE_WIDTH,
+                        height: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 }
             ],
@@ -134,9 +159,47 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             object: object
         });
     },
-    onSelected: function(object, isSelected) {
-        // Need to pass in the right things
-        // then we can report the state we want our object to be in
+    onTap: function(event) {
+        var object = event.object;
+
+        if (object) {
+            this.objectTapped(object);
+        }
+        else {
+            this.create({
+                x: event.x,
+                y: event.y,
+                width: this.DEFAULT.width,
+                height: this.DEFAULT.height,
+                fill: 'blue',
+                stroke: 'black'
+            });
+        }
+
+    },
+    objectTapped: function(object) {
+        object.mode = object.mode === 'transform' ? 'rotate' : 'transform';
+        object.selected = true;
+
+        this.trigger('export', {
+            message: 'update-object',
+            object: object
+        });
+    },
+    onUnselected: function(event) {
+        console.log('onUnselected', event);
+        var object = event.object;
+
+        if (!object) {
+            return;
+        }
+
+        object.mode = '';
+
+        this.trigger('export', {
+            message: 'update-object',
+            object: object
+        });
     }
 });
 

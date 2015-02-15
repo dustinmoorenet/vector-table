@@ -1,5 +1,5 @@
 var Package = require('../../libs/Package');
-var _ = require('underscore');
+var _ = require('lodash');
 
 function PolygonTool() {
     this.on('tap', this.onHardAnchor, this);

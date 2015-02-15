@@ -1,5 +1,5 @@
 var Package = require('../../libs/Package');
-var _ = require('underscore');
+var _ = require('lodash');
 
 function EllipseTool() {
     this.on('pan-start', this.onCreate, this);

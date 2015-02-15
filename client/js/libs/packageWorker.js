@@ -1,5 +1,5 @@
 /* jshint worker:true */
-var eventExport = require('backbone-events-standalone').mixin({});
+var eventExport = require('ampersand-events').createEmitter({});
 var packages = {
     RectangleTool: new (require('../packages/RectangleTool'))(),
     EllipseTool: new (require('../packages/EllipseTool'))(),

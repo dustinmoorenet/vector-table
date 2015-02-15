@@ -1,4 +1,5 @@
 var State = require('ampersand-state');
+var AmpCollection = require('ampersand-rest-collection');
 var ItemCollection = require('../models/ItemCollection');
 
 module.exports = State.extend({
@@ -6,6 +7,7 @@ module.exports = State.extend({
         mode: ['string', true, '']
     },
     collections: {
-        items: ItemCollection
+        items: ItemCollection,
+        selection: AmpCollection
     }
 });
