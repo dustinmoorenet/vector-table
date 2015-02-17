@@ -56,7 +56,6 @@ module.exports = View.extend({
         return this;
     },
     initShapeView: function(options) {
-        console.log('options', options);
         var Shape = shapes[options.model.type];
 
         if (!Shape) {
@@ -133,7 +132,6 @@ module.exports = View.extend({
         shapeElement.transform(shape);
     },
     tap: function(event) {
-        console.log('hey tapped item');
         var pointer = event.pointers[0];
 
         var evt = {

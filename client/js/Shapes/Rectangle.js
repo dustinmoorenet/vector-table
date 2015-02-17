@@ -7,7 +7,6 @@ module.exports = View.extend({
         return context._element.node;
     },
     initialize: function(options) {
-        console.log('Rect.init', options);
         this._parentElement = options.parentElement;
     },
     bindings: {

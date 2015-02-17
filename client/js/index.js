@@ -22,10 +22,7 @@ global.app.on('change:mode', function(app, mode) {
     });
 });
 
-
-global.app.project.on('all', function() { console.log('app.project', arguments); });
 global.app.project.on('change:activeLayer', function(product, layerIndex) {
-
     var previousLayer = global.app.project.layers.at(global.app.project.previousAttributes.activeLayer);
 
     if (previousLayer) {
@@ -34,11 +31,9 @@ global.app.project.on('change:activeLayer', function(product, layerIndex) {
 
     var layer = global.app.project.layers.at(layerIndex);
 
-console.log('activeLayer change', layerIndex, previousLayer);
     if (layer) {
-        console.log('have layer', layer.items);
         global.app.project.listenTo(layer.items, 'change:selected', function(model, isSelected) {
-            console.log('change:selected', model, isSelected);
+
             if (isSelected) {
                 global.app.selection.add(model);
             }

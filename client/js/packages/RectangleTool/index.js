@@ -156,7 +156,6 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             }
         });
 
-console.log('RectTool', object);
         this.trigger('export', {
             message: 'transform-object',
             object: object
@@ -181,7 +180,6 @@ console.log('RectTool', object);
 
     },
     objectTapped: function(object) {
-        console.log('objectTapped', object, object.mode);
         object.mode = object.mode === 'transform' ? 'rotate' : 'transform';
         object.selected = true;
 
@@ -191,7 +189,6 @@ console.log('RectTool', object);
         });
     },
     onUnselected: function(event) {
-        console.log('onUnselected', event);
         var object = event.object;
 
         if (!object) {

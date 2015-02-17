@@ -75,14 +75,12 @@ module.exports = View.extend({
         global.packageWorker.postMessage(evt);
     },
     panMove: function(event) {
-console.log('panMove');
         var pointer = event.pointers[0];
         var item = global.app.selection.at(0);
 
         if (!item) {
             return;
         }
-console.log('panMove really?', item.toJSON());
 
         var evt = {
             message: 'pan-move',
@@ -100,15 +98,12 @@ console.log('panMove really?', item.toJSON());
 
         var item = this.model.layers.at(this.model.activeLayer).items.add(object);
 
-console.log('create', object, item);
         item.selected = true;
     },
     transform: function(object) {
         var item = this.model.layers.at(this.model.activeLayer).items.get(object.id);
 
         item.set(object);
-
-        console.log('transform', item);
     },
     delta: function(object) {
         var item = this.items[object.id];
@@ -116,11 +111,9 @@ console.log('create', object, item);
         item.delta(object);
     },
     update: function(object) {
-        console.log('table.modeChanged', object);
         var item = this.items[object.id];
 
         item.model.mode = object.mode;
         item.model.selected = object.selected;
-        console.log('what happened', item.model.mode);
     }
 });
