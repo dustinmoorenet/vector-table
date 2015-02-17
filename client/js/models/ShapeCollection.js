@@ -1,7 +1,7 @@
 var AmpCollection = require('ampersand-rest-collection');
-var layer = require('./layer');
+var Shape = require('./Shape');
 
 module.exports = AmpCollection.extend({
-    model: layer,
-    url: '/api/layer'
+    model: Shape,
+    url: '/api/shape'
 });

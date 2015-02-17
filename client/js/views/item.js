@@ -7,53 +7,74 @@ var shapes = {
 
 module.exports = View.extend({
     events: {
-        //'tap g': 'tap',
+        'tap': 'tap',
+    },
+    bindings: {
+        'model.id': {
+            type: 'attribute',
+            name: 'id'
+        },
+        'model.selected': {
+            type: 'booleanClass',
+            name: 'selected'
+        },
+        'model.mode': {
+            type: 'attribute',
+            name: 'data-mode'
+        }
     },
     autoRender: true,
     template: function(context) {
         context._element = context._parentElement.group();
 
+        context._shapes = context._element.group();
+        context._shapes.attr('data-hook', 'shapes');
+
+        context._handles = context._element.group();
+        context._handles.attr('data-hook', 'handles');
+
         return context._element.node;
     },
     initialize: function(options) {
-        this._meta = options.object;
         this._parentElement = options.parentElement;
     },
     render: function() {
         this.renderWithTemplate(this);
 
-        if (this.rect) {
-            return this;
-        }
+        this.renderCollection(
+            this.model.shapes,
+            this.initShapeView,
+            '[data-hook="shapes"]',
+            {viewOptions: {
+                parent: this,
+                parentElement: this._shapes
+            }}
+        );
 
-        var object = this._meta;
-
-        this.renderShapes();
-        this.renderHandles();
-
-        this.model = new (global.app.items.model)(object);
-        global.app.items.add(this.model);
-
-        object.id = this.model.id;
-
-        this.listenTo(this.model, 'change:selected', this.select.bind(this));
-        this.listenTo(this.model, 'change:mode', this.modeChanged.bind(this));
+        //this.renderCollection(this.model.handles, this.initShapeView, '[data-hook="handles"]');
 
         return this;
     },
+    initShapeView: function(options) {
+        console.log('options', options);
+        var Shape = shapes[options.model.type];
+
+        if (!Shape) {
+            return;
+        }
+
+        return new Shape(options);
+    },
     renderShapes: function() {
-        var object = this._meta;
         this.shapeGroup = this._element.group();
 
-        this._shapes = {};
-        object.shapes.forEach(this.addShape, this);
+        this.model.shapes.forEach(this.addShape, this);
     },
     renderHandles: function() {
-        var object = this._meta;
         this.handleGroup = this._element.group();
 
         this._handles = {};
-        object.handles.forEach(this.addHandle, this);
+        this.model.handles.forEach(this.addHandle, this);
     },
     transform: function(object) {
         object.shapes.forEach(this.transformShape, this);
@@ -111,14 +132,17 @@ module.exports = View.extend({
 
         shapeElement.transform(shape);
     },
-    tap: function() {
-        this.model.selected = !this.model.selected;
-    },
-    select: function(model, isSelected) {
-        this.el.classList.toggle('selected', isSelected);
-    },
-    modeChanged: function(model, mode) {
-        console.log('modeChange', model, mode);
-        this.el.setAttribute('data-mode', mode);
+    tap: function(event) {
+        console.log('hey tapped item');
+        var pointer = event.pointers[0];
+
+        var evt = {
+            message: 'tap',
+            x: pointer.offsetX,
+            y: pointer.offsetY,
+            object: this.model.toJSON()
+        };
+
+        global.packageWorker.postMessage(evt);
     }
 });

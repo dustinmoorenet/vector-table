@@ -93,7 +93,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             ],
         };
 
-        object.activeHandle = object.handles[3]; // se
+        object.activeHandle = object.handles[3].id; // se
 
         this.trigger('export', {
             message: 'create-object',
@@ -105,7 +105,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
 
         // Find handle buddy
         var attr;
-        switch (object.activeHandle.id) {
+        switch (object.activeHandle) {
             case 'se':
                 attr = object.handles[0].attr; // nw
                 break;
@@ -129,7 +129,9 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             x: Math.min(event.x, attr.x),
             y: Math.min(event.y, attr.y),
             width: Math.abs(event.x - attr.x),
-            height: Math.abs(event.y - attr.y)
+            height: Math.abs(event.y - attr.y),
+            stroke: object.shapes[0].attr.stroke,
+            fill: object.shapes[0].attr.fill
         };
 
         attr = {
@@ -150,10 +152,11 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         // Determine new active handle
         object.handles.forEach(function(handle) {
             if (handle.attr.x === event.x && handle.attr.y === event.y) {
-                object.activeHandle = handle;
+                object.activeHandle = handle.id;
             }
         });
 
+console.log('RectTool', object);
         this.trigger('export', {
             message: 'transform-object',
             object: object
@@ -178,6 +181,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
 
     },
     objectTapped: function(object) {
+        console.log('objectTapped', object, object.mode);
         object.mode = object.mode === 'transform' ? 'rotate' : 'transform';
         object.selected = true;
 

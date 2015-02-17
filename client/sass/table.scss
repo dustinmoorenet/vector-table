@@ -7,9 +7,13 @@
     [data-hook="area"] {
         height: 100%;
         width: 100%;
+    }
 
-        svg {
-            position: absolute;
-        }
+    svg {
+        position: absolute;
+    }
+
+    .background {
+        fill: white;
     }
 }

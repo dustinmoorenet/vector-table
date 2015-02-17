@@ -5,7 +5,8 @@ var LayerCollection = require('./layer-collection');
 
 module.exports = AmpModel.extend({
     props: {
-        id: ['string']
+        id: ['string'],
+        activeLayer: ['number', true, -1]
     },
     collections: {
         layers: LayerCollection

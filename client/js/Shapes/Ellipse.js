@@ -1,30 +1,42 @@
-var _ = require('lodash');
+var View = require('../views/view');
 
-function Ellipse(shape, parentElement) {
-    this.shape = shape;
-    this.parentElement = parentElement;
+module.exports = View.extend({
+    template: function(context) {
+        context._element = context._parentElement.ellipse(0, 0);
 
-    this.render();
-}
-
-_.extend(Ellipse.prototype, {
-    render: function() {
-        var shape = this.shape;
-
-        this.element = this.parentElement.ellipse(shape.attr.width, shape.attr.height);
-        this.id = shape.id = _.uniqueId('obj-');
-
-        this.element.attr('id', shape.id);
-        this.element.attr('fill', shape.attr.fill);
-        this.element.attr('stroke', shape.attr.stroke);
-        this.element.move(shape.attr.x, shape.attr.y);
+        return context._element.node;
     },
-    transform: function(shape) {
-        this.shape = shape;
-
-        this.element.move(shape.attr.x, shape.attr.y);
-        this.element.size(shape.attr.width, shape.attr.height);
+    initialize: function(options) {
+        this._parentElement = options.parentElement;
+    },
+    bindings: {
+        'model.id': {
+            type: 'attribute',
+            name: 'id'
+        },
+        'model.attr.fill': {
+            type: 'attribute',
+            name: 'fill'
+        },
+        'model.attr.stroke': {
+            type: 'attribute',
+            name: 'stroke'
+        },
+        'model.attr.cx': {
+            type: 'attribute',
+            name: 'cx'
+        },
+        'model.attr.cy': {
+            type: 'attribute',
+            name: 'cy'
+        },
+        'model.attr.rx': {
+            type: 'attribute',
+            name: 'rx'
+        },
+        'model.attr.ry': {
+            type: 'attribute',
+            name: 'ry'
+        }
     }
 });
-
-module.exports = Ellipse;
