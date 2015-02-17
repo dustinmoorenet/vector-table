@@ -46,10 +46,10 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     id: 'nw',
                     type: 'Ellipse',
                     attr: {
-                        x: attr.x - (this.HANDLE_WIDTH / 2),
-                        y: attr.y - (this.HANDLE_WIDTH / 2),
-                        width: this.HANDLE_WIDTH,
-                        height: this.HANDLE_WIDTH,
+                        cx: attr.x,
+                        cy: attr.y,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
                         fill: 'red'
                     },
                     action: 'onTransform'
@@ -58,10 +58,10 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     id: 'ne',
                     type: 'Ellipse',
                     attr: {
-                        x: attr.x + attr.width - (this.HANDLE_WIDTH / 2),
-                        y: attr.y - (this.HANDLE_WIDTH / 2),
-                        width: this.HANDLE_WIDTH,
-                        height: this.HANDLE_WIDTH,
+                        cx: attr.x + attr.width,
+                        cy: attr.y,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
                         fill: 'red'
                     },
                     action: 'onTransform'
@@ -70,10 +70,10 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     id: 'se',
                     type: 'Ellipse',
                     attr: {
-                        x: attr.x + attr.width - (this.HANDLE_WIDTH / 2),
-                        y: attr.y + attr.height - (this.HANDLE_WIDTH / 2),
-                        width: this.HANDLE_WIDTH,
-                        height: this.HANDLE_WIDTH,
+                        cx: attr.x + attr.width,
+                        cy: attr.y + attr.height,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
                         fill: 'red'
                     },
                     action: 'onTransform'
@@ -82,10 +82,10 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     id: 'sw',
                     type: 'Ellipse',
                     attr: {
-                        x: attr.x - (this.HANDLE_WIDTH / 2),
-                        y: attr.y + attr.height - (this.HANDLE_WIDTH / 2),
-                        width: this.HANDLE_WIDTH,
-                        height: this.HANDLE_WIDTH,
+                        cx: attr.x,
+                        cy: attr.y + attr.height,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
                         fill: 'red'
                     },
                     action: 'onTransform'
@@ -119,39 +119,29 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                 attr = object.handles[3].attr; // sw
         }
 
-        attr = {
-            x: attr.x + (this.HANDLE_WIDTH / 2),
-            y: attr.y + (this.HANDLE_WIDTH / 2)
-        };
-
         // Determine new rectangle from current position and handle buddy
         var rect = object.shapes[0].attr = {
-            x: Math.min(event.x, attr.x),
-            y: Math.min(event.y, attr.y),
-            width: Math.abs(event.x - attr.x),
-            height: Math.abs(event.y - attr.y),
+            x: Math.min(event.x, attr.cx),
+            y: Math.min(event.y, attr.cy),
+            width: Math.abs(event.x - attr.cx),
+            height: Math.abs(event.y - attr.cy),
             stroke: object.shapes[0].attr.stroke,
             fill: object.shapes[0].attr.fill
         };
 
-        attr = {
-            x: rect.x - (this.HANDLE_WIDTH / 2),
-            y: rect.y - (this.HANDLE_WIDTH / 2)
-        };
-
         // Determine new handle locations
-        object.handles[0].attr.x = attr.x;
-        object.handles[0].attr.y = attr.y;
-        object.handles[1].attr.x = attr.x + rect.width;
-        object.handles[1].attr.y = attr.y;
-        object.handles[2].attr.x = attr.x + rect.width;
-        object.handles[2].attr.y = attr.y + rect.height;
-        object.handles[3].attr.x = attr.x;
-        object.handles[3].attr.y = attr.y + rect.height;
+        object.handles[0].attr.cx = rect.x;
+        object.handles[0].attr.cy = rect.y;
+        object.handles[1].attr.cx = rect.x + rect.width;
+        object.handles[1].attr.cy = rect.y;
+        object.handles[2].attr.cx = rect.x + rect.width;
+        object.handles[2].attr.cy = rect.y + rect.height;
+        object.handles[3].attr.cx = rect.x;
+        object.handles[3].attr.cy = rect.y + rect.height;
 
         // Determine new active handle
         object.handles.forEach(function(handle) {
-            if (handle.attr.x === event.x && handle.attr.y === event.y) {
+            if (handle.attr.cx === event.x && handle.attr.cy === event.y) {
                 object.activeHandle = handle.id;
             }
         });

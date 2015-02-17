@@ -51,7 +51,15 @@ module.exports = View.extend({
             }}
         );
 
-        //this.renderCollection(this.model.handles, this.initShapeView, '[data-hook="handles"]');
+        this.renderCollection(
+            this.model.handles,
+            this.initShapeView,
+            '[data-hook="handles"]',
+            {viewOptions: {
+                parent: this,
+                parentElement: this._handles
+            }}
+        );
 
         return this;
     },
