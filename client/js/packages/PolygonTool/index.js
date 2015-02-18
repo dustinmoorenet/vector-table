@@ -6,34 +6,30 @@ function PolygonTool() {
 }
 
 _.extend(PolygonTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 10,
+    HANDLE_WIDTH: 5,
     onHardAnchor: function(event) {
         var exportEvent;
         var object = event.selection && event.selection[0];
-        var point = [event.x, event.y];
         var handle = {
             id: 'handle-' + (object && object.handles.length + 1 || 1),
             type: 'Ellipse',
             attr: {
-                x: event.x - (this.HANDLE_WIDTH / 2),
-                y: event.y - (this.HANDLE_WIDTH / 2),
-                width: this.HANDLE_WIDTH,
-                height: this.HANDLE_WIDTH,
+                cx: event.x,
+                cy: event.y,
+                rx: this.HANDLE_WIDTH,
+                ry: this.HANDLE_WIDTH,
                 fill: 'red'
             },
             action: 'onTransform'
         };
 
         if (object) {
-            object.shapes[0].attr.path.push(point);
+            object.shapes[0].attr.d += ' L' + event.x + ',' + event.y;
+            object.handles.push(handle);
 
             exportEvent = {
-                message: 'delta-object',
-                object: {
-                    id: object.id,
-                    transformShapes: [object.shapes[0]],
-                    addHandles: [handle]
-                }
+                message: 'transform-object',
+                object: object
             };
         }
         else {
@@ -44,7 +40,9 @@ _.extend(PolygonTool.prototype, Package.prototype, {
                         {
                             type: 'Polygon',
                             attr: {
-                                path: [point]
+                                d: 'M' + event.x + ',' + event.y,
+                                stroke: 'black',
+                                fill: 'none'
                             }
                         }
                     ],

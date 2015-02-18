@@ -21,9 +21,6 @@ module.exports = View.extend({
             else if (event.data.message === 'transform-object') {
                 this.transform(event.data.object);
             }
-            else if (event.data.message === 'delta-object') {
-                this.delta(event.data.object);
-            }
             else if (event.data.message === 'update-object') {
                 this.update(event.data.object);
             }
@@ -33,6 +30,8 @@ module.exports = View.extend({
         this.renderWithTemplate(this);
 
         this.svg = SVG(this.queryByHook('area'));
+
+        this.svg.rect('100%', '100%').attr('class', 'background');
 
         this.layers = this.renderCollection(
             this.model.layers,
@@ -55,9 +54,11 @@ module.exports = View.extend({
             y: pointer.offsetY
         };
 
-        if (this.activeItem && this.activeItem._meta.shapes[0].type === 'Polygon') {
+
+        var item = global.app.selection.at(0);
+        if (item && item.shapes.at(0).type === 'Polygon') {
             evt.selection = [
-                this.activeItem._meta
+                item.toJSON()
             ];
         }
 
@@ -104,11 +105,6 @@ module.exports = View.extend({
         var item = this.model.layers.at(this.model.activeLayer).items.get(object.id);
 
         item.set(object);
-    },
-    delta: function(object) {
-        var item = this.items[object.id];
-
-        item.delta(object);
     },
     update: function(object) {
         var item = this.items[object.id];

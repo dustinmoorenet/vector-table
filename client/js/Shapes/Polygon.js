@@ -1,34 +1,39 @@
-var _ = require('lodash');
+var View = require('../views/view');
 
-function Polygon(shape, parentElement) {
-    this.shape = shape;
-    this.parentElement = parentElement;
+module.exports = View.extend({
+    template: function(context) {
+        context._element = context._parentElement.path('M0,0');
 
-    this.render();
-}
-
-_.extend(Polygon.prototype, {
-    render: function() {
-        var shape = this.shape;
-
-        var position = shape.attr.path[shape.attr.path.length - 1];
-        this.element = this.parentElement.polygon([position]).fill('none').stroke({width: 1});
-        this.id = shape.id = _.uniqueId('obj-');
-
-        this.element.attr('id', shape.id);
+        return context._element.node;
     },
-    transform: function(shape) {
-        //FIXME this is not transforming a poloygon this is adding to
-        this.shape = shape;
-
+    initialize: function(options) {
+        this._parentElement = options.parentElement;
+    },
+    bindings: {
+        'model.id': {
+            type: 'attribute',
+            name: 'id'
+        },
+        'model.attr.fill': {
+            type: 'attribute',
+            name: 'fill'
+        },
+        'model.attr.stroke': {
+            type: 'attribute',
+            name: 'stroke'
+        },
+        'model.attr.d': {
+            type: 'attribute',
+            name: 'd'
+        }
+    },
+    addPoint: function(shape) {
         var position = shape.attr.path[shape.attr.path.length - 1];
 
-        var array = this.element._array.value;
+        var array = this._element._array.value;
 
         array.push(position);
 
-        this.element.plot(array);
+        this._element.plot(array);
     }
 });
-
-module.exports = Polygon;

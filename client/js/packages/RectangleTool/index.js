@@ -17,7 +17,7 @@ We need to be able to:
  - Position (change in x,y)
 */
 _.extend(RectangleTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 10,
+    HANDLE_WIDTH: 5,
     DEFAULT: {
         width: 100,
         height: 50

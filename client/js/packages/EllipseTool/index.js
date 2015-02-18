@@ -9,7 +9,7 @@ function EllipseTool() {
 }
 
 _.extend(EllipseTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 10,
+    HANDLE_WIDTH: 5,
     DEFAULT: {
         rx: 50,
         ry: 50
