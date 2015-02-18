@@ -120,14 +120,12 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         }
 
         // Determine new rectangle from current position and handle buddy
-        var rect = object.shapes[0].attr = {
+        var rect = _.extend(object.shapes[0].attr, {
             x: Math.min(event.x, attr.cx),
             y: Math.min(event.y, attr.cy),
             width: Math.abs(event.x - attr.cx),
-            height: Math.abs(event.y - attr.cy),
-            stroke: object.shapes[0].attr.stroke,
-            fill: object.shapes[0].attr.fill
-        };
+            height: Math.abs(event.y - attr.cy)
+        });
 
         // Determine new handle locations
         object.handles[0].attr.cx = rect.x;

@@ -4,62 +4,94 @@ var _ = require('lodash');
 function EllipseTool() {
     this.on('pan-start', this.onCreate, this);
     this.on('pan-move', this.onTransform, this);
+    this.on('tap', this.onTap, this);
+    this.on('unselected', this.onUnselected, this);
 }
 
 _.extend(EllipseTool.prototype, Package.prototype, {
     HANDLE_WIDTH: 10,
+    DEFAULT: {
+        rx: 50,
+        ry: 50
+    },
     onCreate: function(event) {
-        var handleAttr = {
-            x: event.x - (this.HANDLE_WIDTH / 2),
-            y: event.y - (this.HANDLE_WIDTH / 2),
-            width: this.HANDLE_WIDTH,
-            height: this.HANDLE_WIDTH,
-            fill: 'red'
+        this.create({
+            cx: event.x,
+            cy: event.y,
+            rx: 0,
+            ry: 0,
+            fill: 'blue',
+            stroke: 'black'
+        });
+    },
+    create: function(attr) {
+        var rect = {
+            x: attr.cx - attr.rx,
+            y: attr.cy - attr.ry,
+            width: attr.rx * 2,
+            height: attr.ry * 2
         };
 
         var object = {
             shapes: [
                 {
                     type: 'Ellipse',
-                    attr: {
-                        x: event.x,
-                        y: event.y,
-                        width: 0,
-                        height: 0,
-                        fill: 'blue',
-                        stroke: 'black'
-                    }
+                    attr: attr
                 }
             ],
             handles: [
                 {
                     id: 'nw',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        cx: rect.x,
+                        cy: rect.y,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 },
                 {
                     id: 'ne',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        cx: rect.x + rect.width,
+                        cy: rect.y,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 },
                 {
                     id: 'se',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        cx: rect.x + rect.width,
+                        cy: rect.y + rect.height,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 },
                 {
                     id: 'sw',
                     type: 'Ellipse',
-                    attr: _.clone(handleAttr),
+                    attr: {
+                        cx: rect.x,
+                        cy: rect.y + rect.height,
+                        rx: this.HANDLE_WIDTH,
+                        ry: this.HANDLE_WIDTH,
+                        fill: 'red'
+                    },
                     action: 'onTransform'
                 }
             ],
         };
 
-        object.activeHandle = object.handles[3]; // se
+        object.activeHandle = object.handles[3].id; // se
 
         this.trigger('export', {
             message: 'create-object',
@@ -71,7 +103,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
 
         // Find handle buddy
         var attr;
-        switch (object.activeHandle.id) {
+        switch (object.activeHandle) {
             case 'se':
                 attr = object.handles[0].attr; // nw
                 break;
@@ -85,43 +117,81 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 attr = object.handles[3].attr; // sw
         }
 
-        attr = {
-            x: attr.x + (this.HANDLE_WIDTH / 2),
-            y: attr.y + (this.HANDLE_WIDTH / 2)
-        };
-
         // Determine new rectangle from current position and handle buddy
-        var rect = object.shapes[0].attr = {
-            x: Math.min(event.x, attr.x),
-            y: Math.min(event.y, attr.y),
-            width: Math.abs(event.x - attr.x),
-            height: Math.abs(event.y - attr.y)
+        var rect = {
+            x: Math.min(event.x, attr.cx),
+            y: Math.min(event.y, attr.cy),
+            width: Math.abs(event.x - attr.cx),
+            height: Math.abs(event.y - attr.cy)
         };
 
-        attr = {
-            x: rect.x - (this.HANDLE_WIDTH / 2),
-            y: rect.y - (this.HANDLE_WIDTH / 2)
-        };
+        _.extend(object.shapes[0].attr, {
+            cx: rect.x + (rect.width / 2),
+            cy: rect.y + (rect.height / 2),
+            rx: rect.width / 2,
+            ry: rect.height / 2
+        });
 
         // Determine new handle locations
-        object.handles[0].attr.x = attr.x;
-        object.handles[0].attr.y = attr.y;
-        object.handles[1].attr.x = attr.x + rect.width;
-        object.handles[1].attr.y = attr.y;
-        object.handles[2].attr.x = attr.x + rect.width;
-        object.handles[2].attr.y = attr.y + rect.height;
-        object.handles[3].attr.x = attr.x;
-        object.handles[3].attr.y = attr.y + rect.height;
+        object.handles[0].attr.cx = rect.x;
+        object.handles[0].attr.cy = rect.y;
+        object.handles[1].attr.cx = rect.x + rect.width;
+        object.handles[1].attr.cy = rect.y;
+        object.handles[2].attr.cx = rect.x + rect.width;
+        object.handles[2].attr.cy = rect.y + rect.height;
+        object.handles[3].attr.cx = rect.x;
+        object.handles[3].attr.cy = rect.y + rect.height;
 
         // Determine new active handle
         object.handles.forEach(function(handle) {
-            if (handle.attr.x === event.x && handle.attr.y === event.y) {
-                object.activeHandle = handle;
+            if (handle.attr.cx === event.x && handle.attr.cy === event.y) {
+                object.activeHandle = handle.id;
             }
         });
 
         this.trigger('export', {
             message: 'transform-object',
+            object: object
+        });
+    },
+    onTap: function(event) {
+        var object = event.object;
+
+        if (object) {
+            this.objectTapped(object);
+        }
+        else {
+            this.create({
+                cx: event.x + this.DEFAULT.rx,
+                cy: event.y + this.DEFAULT.ry,
+                rx: this.DEFAULT.rx,
+                ry: this.DEFAULT.ry,
+                fill: 'blue',
+                stroke: 'black'
+            });
+        }
+
+    },
+    objectTapped: function(object) {
+        object.mode = object.mode === 'transform' ? 'rotate' : 'transform';
+        object.selected = true;
+
+        this.trigger('export', {
+            message: 'update-object',
+            object: object
+        });
+    },
+    onUnselected: function(event) {
+        var object = event.object;
+
+        if (!object) {
+            return;
+        }
+
+        object.mode = '';
+
+        this.trigger('export', {
+            message: 'update-object',
             object: object
         });
     }
