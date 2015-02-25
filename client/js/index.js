@@ -33,8 +33,6 @@ global.app.project.on('change:activeLayer', function(product, layerIndex) {
 
     if (layer) {
         global.app.project.listenTo(layer.items, 'change:selected', function(model, isSelected) {
-
-console.log('we have an object', model.toJSON(), isSelected);
             if (isSelected) {
                 global.app.selection.add(model);
             }
@@ -49,6 +47,12 @@ global.app.selection.on('add remove', function(item, selection) {
     global.packageWorker.postMessage({
         message: 'selection',
         selection: selection.toJSON()
+    });
+});
+
+global.app.selection.on('reset', function(collection, options) {
+    options.previousModels.forEach(function(item) {
+        item.selected = false;
     });
 });
 

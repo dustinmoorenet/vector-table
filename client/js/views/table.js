@@ -100,14 +100,11 @@ module.exports = View.extend({
         var handle = this.findHandle(event.target);
 
         if (handle) {
-console.log('what handle', handle.item.id, handle.handle.id);
             var item = this.model.layers.at(this.model.activeLayer).items.get(handle.item.id);
 
             if (item) {
 
                 global.app.selection.reset();
-                // FIXME reset() does not unselect each item, we need a better solution
-                // maybe an index of item.selected based on item.selected changes on items list?
 
                 item.selected = true;
 
@@ -115,7 +112,6 @@ console.log('what handle', handle.item.id, handle.handle.id);
 
                 object.activeHandle = handle.handle.id;
 
-console.log('what object', object);
                 evt.selection = [
                     object
                 ];
@@ -131,7 +127,6 @@ console.log('what object', object);
 
         var item = global.app.selection.at(0);
 
-console.log('do we have an item', item && item.toJSON());
         if (!item) {
             return;
         }
