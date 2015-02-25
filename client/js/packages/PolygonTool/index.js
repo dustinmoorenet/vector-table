@@ -3,10 +3,12 @@ var _ = require('lodash');
 
 function PolygonTool() {
     this.on('tap', this.onHardAnchor, this);
+    this.on('pointer-start', this.onTransform, this);
+    this.on('pointer-move', this.onTransform, this);
 }
 
 _.extend(PolygonTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 5,
+    HANDLE_WIDTH: 10,
     onHardAnchor: function(event) {
         var exportEvent;
         var object = event.selection && event.selection[0];
@@ -52,6 +54,40 @@ _.extend(PolygonTool.prototype, Package.prototype, {
         }
 
         this.trigger('export', exportEvent);
+    },
+    onTransform: function(event) {
+        if (!event.selection) {
+            return;
+        }
+
+        var object = event.selection[0];
+        var d = '';
+
+        object.handles.forEach(function(handle, index) {
+            var point = {};
+
+            if (object.activeHandle === handle.id) {
+                point = {x: event.x, y: event.y};
+                handle.attr.cx = event.x;
+                handle.attr.cy = event.y;
+            }
+            else {
+                point = {x: handle.attr.cx, y: handle.attr.cy};
+            }
+
+            if (index === 0) {
+                d = 'M' + point.x + ',' + point.y;
+            } else {
+                d += ' L' + point.x + ',' + point.y;
+            }
+        });
+
+        object.shapes[0].attr.d = d;
+
+        this.trigger('export', {
+            message: 'transform-object',
+            object: object
+        });
     }
 });
 

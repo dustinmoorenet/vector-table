@@ -2,27 +2,32 @@ var Package = require('../../libs/Package');
 var _ = require('lodash');
 
 function EllipseTool() {
-    this.on('pointer-start', this.onCreate, this);
+    this.on('pointer-start', this.onPointerStart, this);
     this.on('pointer-move', this.onTransform, this);
     this.on('tap', this.onTap, this);
     this.on('unselected', this.onUnselected, this);
 }
 
 _.extend(EllipseTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 5,
+    HANDLE_WIDTH: 10,
     DEFAULT: {
         rx: 50,
         ry: 50
     },
-    onCreate: function(event) {
-        this.create({
-            cx: event.x,
-            cy: event.y,
-            rx: 0,
-            ry: 0,
-            fill: 'blue',
-            stroke: 'black'
-        });
+    onPointerStart: function(event) {
+        if (event.selection) {
+            this.onTransform(event);
+        }
+        else {
+            this.create({
+                cx: event.x,
+                cy: event.y,
+                rx: 0,
+                ry: 0,
+                fill: 'blue',
+                stroke: 'black'
+            });
+        }
     },
     create: function(attr) {
         var rect = {

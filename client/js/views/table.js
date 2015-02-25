@@ -69,8 +69,8 @@ module.exports = View.extend({
             y: pointer.offsetY
         };
 
-
         var item = global.app.selection.at(0);
+
         if (item && item.shapes.at(0).type === 'Polygon') {
             evt.selection = [
                 item.toJSON()
