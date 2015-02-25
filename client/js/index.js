@@ -34,6 +34,7 @@ global.app.project.on('change:activeLayer', function(product, layerIndex) {
     if (layer) {
         global.app.project.listenTo(layer.items, 'change:selected', function(model, isSelected) {
 
+console.log('we have an object', model.toJSON(), isSelected);
             if (isSelected) {
                 global.app.selection.add(model);
             }

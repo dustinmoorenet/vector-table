@@ -2,8 +2,8 @@ var Package = require('../../libs/Package');
 var _ = require('lodash');
 
 function EllipseTool() {
-    this.on('pan-start', this.onCreate, this);
-    this.on('pan-move', this.onTransform, this);
+    this.on('pointer-start', this.onCreate, this);
+    this.on('pointer-move', this.onTransform, this);
     this.on('tap', this.onTap, this);
     this.on('unselected', this.onUnselected, this);
 }

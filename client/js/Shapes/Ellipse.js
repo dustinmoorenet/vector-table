@@ -1,6 +1,7 @@
 var View = require('../views/view');
 
 module.exports = View.extend({
+    autoRender: true,
     template: function(context) {
         context._element = context._parentElement.ellipse(0, 0);
 

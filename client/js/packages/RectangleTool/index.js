@@ -2,8 +2,8 @@ var Package = require('../../libs/Package');
 var _ = require('lodash');
 
 function RectangleTool() {
-    this.on('pan-start', this.onCreate, this);
-    this.on('pan-move', this.onTransform, this);
+    this.on('pointer-start', this.onPointerStart, this);
+    this.on('pointer-move', this.onTransform, this);
     this.on('tap', this.onTap, this);
     this.on('unselected', this.onUnselected, this);
 }
@@ -17,20 +17,25 @@ We need to be able to:
  - Position (change in x,y)
 */
 _.extend(RectangleTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 5,
+    HANDLE_WIDTH: 10,
     DEFAULT: {
         width: 100,
         height: 50
     },
-    onCreate: function(event) {
-        this.create({
-            x: event.x,
-            y: event.y,
-            width: 0,
-            height: 0,
-            fill: 'blue',
-            stroke: 'black'
-        });
+    onPointerStart: function(event) {
+        if (event.selection) {
+            this.onTransform(event);
+        }
+        else {
+            this.create({
+                x: event.x,
+                y: event.y,
+                width: 0,
+                height: 0,
+                fill: 'blue',
+                stroke: 'black'
+            });
+        }
     },
     create: function(attr) {
 

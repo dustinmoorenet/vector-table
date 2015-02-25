@@ -4,11 +4,9 @@ var shapes = {
     Ellipse: require('../Shapes/Ellipse'),
     Polygon: require('../Shapes/Polygon')
 };
+var Handle = require('./Handle');
 
 module.exports = View.extend({
-    events: {
-        'tap': 'tap',
-    },
     bindings: {
         'model.id': {
             type: 'attribute',
@@ -33,6 +31,8 @@ module.exports = View.extend({
         context._handles = context._element.group();
         context._handles.attr('data-hook', 'handles');
 
+        context._element.node.classList.add('item');
+
         return context._element.node;
     },
     initialize: function(options) {
@@ -53,7 +53,7 @@ module.exports = View.extend({
 
         this.renderCollection(
             this.model.handles,
-            this.initShapeView,
+            Handle,
             '[data-hook="handles"]',
             {viewOptions: {
                 parent: this,

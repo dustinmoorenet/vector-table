@@ -6,10 +6,25 @@ var SVG = require('../libs/svg');
 
 module.exports = View.extend({
     template: html,
-    events: {
-        'panstart svg': 'panStart',
-        'panmove svg': 'panMove',
-        'tap svg .background': 'tap',
+    events: function() {
+        var isTouchDevice = 'ontouchstart' in document.documentElement;
+
+        var events = {
+            'tap svg .background': 'tap'
+        };
+
+        if (isTouchDevice) {
+            events['touchstart svg'] = 'pointerStart';
+            events['touchmove svg'] = 'pointerMove';
+            events['touchend svg'] = 'pointerEnd';
+        }
+        else {
+            events['mousedown svg'] = 'pointerStart';
+            events['mousemove svg'] = 'pointerMove';
+            events['mouseup svg'] = 'pointerEnd';
+        }
+
+        return events;
     },
     initialize: function () {
         this.items = {};
@@ -31,7 +46,7 @@ module.exports = View.extend({
 
         this.svg = SVG(this.queryByHook('area'));
 
-        this.svg.rect('100%', '100%').attr('class', 'background');
+        this.background = this.svg.rect('100%', '100%').attr('class', 'background');
 
         this.layers = this.renderCollection(
             this.model.layers,
@@ -64,27 +79,73 @@ module.exports = View.extend({
 
         global.packageWorker.postMessage(evt);
     },
-    panStart: function(event) {
-        var pointer = event.pointers[0];
+    pointerStart: function(event) {
+        this.pointerAction = true;
+
+        var pointer;
+        if (event.pointers) {
+            pointer = event.pointers[0];
+        }
+        else {
+            pointer = {offsetX: event.offsetX, offsetY: event.offsetY};
+        }
+        // Need to get handle id and active item
 
         var evt = {
-            message: 'pan-start',
+            message: 'pointer-start',
             x: pointer.offsetX,
             y: pointer.offsetY
         };
 
+        var handle = this.findHandle(event.target);
+
+        if (handle) {
+console.log('what handle', handle.item.id, handle.handle.id);
+            var item = this.model.layers.at(this.model.activeLayer).items.get(handle.item.id);
+
+            if (item) {
+
+                global.app.selection.reset();
+                // FIXME reset() does not unselect each item, we need a better solution
+                // maybe an index of item.selected based on item.selected changes on items list?
+
+                item.selected = true;
+
+                var object = item.toJSON();
+
+                object.activeHandle = handle.handle.id;
+
+console.log('what object', object);
+                evt.selection = [
+                    object
+                ];
+            }
+        }
+
         global.packageWorker.postMessage(evt);
     },
-    panMove: function(event) {
-        var pointer = event.pointers[0];
+    pointerMove: function(event) {
+        if (!this.pointerAction) {
+            return;
+        }
+
         var item = global.app.selection.at(0);
 
+console.log('do we have an item', item && item.toJSON());
         if (!item) {
             return;
         }
 
+        var pointer;
+        if (event.pointers) {
+            pointer = event.pointers[0];
+        }
+        else {
+            pointer = {offsetX: event.offsetX, offsetY: event.offsetY};
+        }
+
         var evt = {
-            message: 'pan-move',
+            message: 'pointer-move',
             x: pointer.offsetX,
             y: pointer.offsetY,
             selection: [
@@ -93,6 +154,9 @@ module.exports = View.extend({
         };
 
         global.packageWorker.postMessage(evt);
+    },
+    pointerEnd: function(event) {
+        delete this.pointerAction;
     },
     create: function(object) {
         global.app.selection.reset();
@@ -111,5 +175,34 @@ module.exports = View.extend({
 
         item.model.mode = object.mode;
         item.model.selected = object.selected;
+    },
+    findHandle: function(node) {
+        while (true) {
+            if (node === this.svg.node) {
+                return null;
+            }
+
+            if (node.classList.contains('handle')) {
+                return {
+                    item: this.findItem(node),
+                    handle: node
+                };
+            }
+
+            node = node.parentNode;
+        }
+    },
+    findItem: function(node) {
+        while (true) {
+            if (node === this.svg.node) {
+                return null;
+            }
+
+            if (node.classList.contains('item')) {
+                return node;
+            }
+
+            node = node.parentNode;
+        }
     }
 });
