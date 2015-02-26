@@ -10,7 +10,6 @@ module.exports = View.extend({
         var isTouchDevice = 'ontouchstart' in document.documentElement;
 
         var events = {
-            'tap svg .background': 'tap'
         };
 
         if (isTouchDevice) {
@@ -60,27 +59,8 @@ module.exports = View.extend({
 
         return this;
     },
-    tap: function(event) {
-        var pointer = event.pointers[0];
-
-        var evt = {
-            message: 'tap',
-            x: pointer.offsetX,
-            y: pointer.offsetY
-        };
-
-        var item = global.app.selection.at(0);
-
-        if (item && item.shapes.at(0).type === 'Polygon') {
-            evt.selection = [
-                item.toJSON()
-            ];
-        }
-
-        global.packageWorker.postMessage(evt);
-    },
     pointerStart: function(event) {
-        this.pointerAction = true;
+        this.activeSelection = [];
 
         var pointer;
         if (event.pointers) {
@@ -89,7 +69,6 @@ module.exports = View.extend({
         else {
             pointer = {offsetX: event.offsetX, offsetY: event.offsetY};
         }
-        // Need to get handle id and active item
 
         var evt = {
             message: 'pointer-start',
@@ -97,10 +76,12 @@ module.exports = View.extend({
             y: pointer.offsetY
         };
 
+        var item;
+
         var handle = this.findHandle(event.target);
 
         if (handle) {
-            var item = this.model.layers.at(this.model.activeLayer).items.get(handle.item.id);
+            item = this.model.layers.at(this.model.activeLayer).items.get(handle.item.id);
 
             if (item) {
 
@@ -108,20 +89,22 @@ module.exports = View.extend({
 
                 item.selected = true;
 
-                var object = item.toJSON();
-
-                object.activeHandle = handle.handle.id;
-
-                evt.selection = [
-                    object
-                ];
+                item.activeHandle = handle.handle.id;
             }
+        }
+        else if (global.app.selection.length) {
+            item = global.app.selection.at(0);
+        }
+
+        if (item) {
+            this.activeSelection.push(item);
+            evt.selection = [item.toJSON()];
         }
 
         global.packageWorker.postMessage(evt);
     },
     pointerMove: function(event) {
-        if (!this.pointerAction) {
+        if (!this.activeSelection) {
             return;
         }
 
@@ -150,13 +133,25 @@ module.exports = View.extend({
 
         global.packageWorker.postMessage(evt);
     },
-    pointerEnd: function(event) {
-        delete this.pointerAction;
+    pointerEnd: function() {
+        if (!this.activeSelection) {
+            return;
+        }
+
+        this.activeSelection.forEach(function(item) {
+            item.activeHandle = '';
+        });
+
+        delete this.activeSelection;
     },
     create: function(object) {
         global.app.selection.reset();
 
         var item = this.model.layers.at(this.model.activeLayer).items.add(object);
+
+        if (this.activeSelection) {
+            this.activeSelection = [item];
+        }
 
         item.selected = true;
     },

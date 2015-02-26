@@ -7,7 +7,8 @@ module.exports = AmpModel.extend({
         id: ['string', true, function() { return _.uniqueId('item-'); }],
         selected: ['boolean', true, false],
         mode: ['string', true, ''],
-        activeHandle: ['string']
+        activeHandle: ['string'],
+        tool: ['string']
     },
     collections: {
         shapes: ShapeCollection,

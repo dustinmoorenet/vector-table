@@ -23,7 +23,8 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         height: 50
     },
     onPointerStart: function(event) {
-        if (event.selection) {
+        var selection = event.selection;
+        if (selection && selection.length && selection[0].activeHandle) {
             this.onTransform(event);
         }
         else {
@@ -40,6 +41,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
     create: function(attr) {
 
         var object = {
+            tool: 'RectangleTool',
             shapes: [
                 {
                     type: 'Rectangle',

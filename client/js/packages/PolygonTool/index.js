@@ -2,16 +2,25 @@ var Package = require('../../libs/Package');
 var _ = require('lodash');
 
 function PolygonTool() {
-    this.on('tap', this.onHardAnchor, this);
-    this.on('pointer-start', this.onTransform, this);
-    this.on('pointer-move', this.onTransform, this);
+    this.on('pointer-start', this.addHandle, this);
+    this.on('pointer-move', this.transform, this);
 }
 
 _.extend(PolygonTool.prototype, Package.prototype, {
     HANDLE_WIDTH: 10,
-    onHardAnchor: function(event) {
+    addHandle: function(event) {
         var exportEvent;
         var object = event.selection && event.selection[0];
+
+        // its moving a handle
+        if (object && object.activeHandle) {
+            return;
+        }
+
+        if (object && object.tool !== 'PolygonTool') {
+            object = undefined;
+        }
+
         var handle = {
             id: 'handle-' + (object && object.handles.length + 1 || 1),
             type: 'Ellipse',
@@ -38,6 +47,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
             exportEvent = {
                 message: 'create-object',
                 object: {
+                    tool: 'PolygonTool',
                     shapes: [
                         {
                             type: 'Polygon',
@@ -55,7 +65,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
 
         this.trigger('export', exportEvent);
     },
-    onTransform: function(event) {
+    transform: function(event) {
         if (!event.selection) {
             return;
         }

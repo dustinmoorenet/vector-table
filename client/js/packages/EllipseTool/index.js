@@ -15,7 +15,8 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         ry: 50
     },
     onPointerStart: function(event) {
-        if (event.selection) {
+        var selection = event.selection;
+        if (selection && selection.length && selection[0].activeHandle) {
             this.onTransform(event);
         }
         else {
@@ -38,6 +39,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         };
 
         var object = {
+            tool: 'EllipseTool',
             shapes: [
                 {
                     type: 'Ellipse',
