@@ -13,7 +13,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
         var object = event.selection && event.selection[0];
 
         // its moving a handle
-        if (object && object.activeHandle) {
+        if (object && object.complete) {
             return;
         }
 
@@ -34,16 +34,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
             action: 'onTransform'
         };
 
-        if (object) {
-            object.shapes[0].attr.d += ' L' + event.x + ',' + event.y;
-            object.handles.push(handle);
-
-            exportEvent = {
-                message: 'transform-object',
-                object: object
-            };
-        }
-        else {
+        if (!object) {
             exportEvent = {
                 message: 'create-object',
                 object: {
@@ -61,6 +52,23 @@ _.extend(PolygonTool.prototype, Package.prototype, {
                     ],
                     handles: [handle]
                 }
+            };
+        }
+        else {
+
+            if (object.activeHandle) {
+                object.shapes[0].attr.d += ' Z';
+                object.complete = true;
+                object.shapes[0].attr.fill = 'blue';
+            }
+            else {
+                object.shapes[0].attr.d += ' L' + event.x + ',' + event.y;
+                object.handles.push(handle);
+            }
+
+            exportEvent = {
+                message: 'transform-object',
+                object: object
             };
         }
 
@@ -92,6 +100,10 @@ _.extend(PolygonTool.prototype, Package.prototype, {
                 d += ' L' + point.x + ',' + point.y;
             }
         });
+
+        if (object.shapes[0].attr.d.match(/z$/i)) {
+            d += ' Z';
+        }
 
         object.shapes[0].attr.d = d;
 
