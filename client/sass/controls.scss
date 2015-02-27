@@ -5,4 +5,12 @@
     left: 0;
     width: 75px;
     height: 100%;
+
+    button {
+        background: $button-background;
+
+        &.selected {
+            background: $button-background-selected;
+        }
+    }
 }

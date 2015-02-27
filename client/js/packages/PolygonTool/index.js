@@ -48,6 +48,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
                 message: 'create-object',
                 object: {
                     tool: 'PolygonTool',
+                    complete: false,
                     shapes: [
                         {
                             type: 'Polygon',

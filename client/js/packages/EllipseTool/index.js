@@ -4,8 +4,6 @@ var _ = require('lodash');
 function EllipseTool() {
     this.on('pointer-start', this.onPointerStart, this);
     this.on('pointer-move', this.onTransform, this);
-    this.on('tap', this.onTap, this);
-    this.on('unselected', this.onUnselected, this);
 }
 
 _.extend(EllipseTool.prototype, Package.prototype, {
@@ -16,8 +14,13 @@ _.extend(EllipseTool.prototype, Package.prototype, {
     },
     onPointerStart: function(event) {
         var selection = event.selection;
-        if (selection && selection.length && selection[0].activeHandle) {
-            this.onTransform(event);
+        if (selection && selection.length) {
+            if (selection[0].activeHandle) {
+                this.onTransform(event);
+            }
+            else {
+                this.objectTapped(event);
+            }
         }
         else {
             this.create({
@@ -179,7 +182,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         }
 
     },
-    objectTapped: function(object) {
+    objectTapped: function(event) {
+        var object = event.selection[0];
+
         object.mode = object.mode === 'transform' ? 'rotate' : 'transform';
         object.selected = true;
 

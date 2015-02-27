@@ -38,6 +38,9 @@ module.exports = View.extend({
             else if (event.data.message === 'update-object') {
                 this.update(event.data.object);
             }
+            else if (event.data.message === 'complete-object') {
+                this.complete(event.data.object);
+            }
         }.bind(this), false);
     },
     render: function() {
@@ -76,34 +79,43 @@ module.exports = View.extend({
             y: pointer.offsetY
         };
 
+        var itemNode = this.findItem(event.target);
         var item;
 
-        var handle = this.findHandle(event.target);
-
-        if (handle) {
-            item = this.model.layers.at(this.model.activeLayer).items.get(handle.item.id);
-
-            if (item) {
-
-                global.app.selection.reset();
-
-                item.selected = true;
-
-                item.activeHandle = handle.handle.id;
-            }
+        if (itemNode) {
+            item = this.model.layers.at(this.model.activeLayer).items.get(itemNode.id);
         }
-        else if (global.app.selection.length) {
-            item = global.app.selection.at(0);
+
+        var handleNode = this.findHandle(event.target);
+
+        if (handleNode && item) {
+            item.activeHandle = handleNode.id;
+        }
+
+        var selection = global.app.selection;
+
+        if (!item && selection.length) {
+            var previous = selection.at(0);
+
+            if (!previous.complete) {
+                item = selection.at(0);
+            }
         }
 
         if (item) {
+            selection.reset();
+
+            item.selected = true;
+
             this.activeSelection.push(item);
+
             evt.selection = [item.toJSON()];
         }
 
         global.packageWorker.postMessage(evt);
     },
     pointerMove: function(event) {
+
         if (!this.activeSelection) {
             return;
         }
@@ -161,10 +173,15 @@ module.exports = View.extend({
         item.set(object);
     },
     update: function(object) {
-        var item = this.items[object.id];
+        var item = this.model.layers.at(this.model.activeLayer).items.get(object.id);
 
-        item.model.mode = object.mode;
-        item.model.selected = object.selected;
+        item.mode = object.mode;
+        item.selected = object.selected;
+    },
+    complete: function(object) {
+        var item = this.model.layers.at(this.model.activeLayer).items.get(object.id);
+
+        item.complete = true;
     },
     findHandle: function(node) {
         while (true) {
@@ -173,10 +190,7 @@ module.exports = View.extend({
             }
 
             if (node.classList.contains('handle')) {
-                return {
-                    item: this.findItem(node),
-                    handle: node
-                };
+                return node;
             }
 
             node = node.parentNode;

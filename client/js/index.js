@@ -16,6 +16,13 @@ global.app = new App({
 });
 
 global.app.on('change:mode', function(app, mode) {
+    // Mark all items complete
+    global.app.project.layers.forEach(function(layer) {
+        layer.items.forEach(function(item) {
+            item.complete = true;
+        });
+    });
+
     global.packageWorker.postMessage({
         message: 'set-package',
         packageName: mode,
