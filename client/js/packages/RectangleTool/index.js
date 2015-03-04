@@ -137,7 +137,6 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         }
     },
     resize: function(handleIndex, buddyHandleIndex, event) {
-        console.log('resize', arguments);
         var object = event.selection[0];
 
         // Find handle buddy
@@ -172,23 +171,31 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             x: shape.attr.x + shape.attr.width / 2,
             y:  shape.attr.y + shape.attr.height / 2
         };
-        var start = {
+        var start = this.degreesFromTwoPoints(origin, {
             x: object.handles[handleIndex].attr.cx,
             y: object.handles[handleIndex].attr.cy
-        };
-        var radius = Math.sqrt(Math.pow(origin.x - event.x, 2) + Math.pow(origin.y - event.y, 2));
-        var radians = Math.acos((event.x - origin.x) / radius);
-        var degrees = radians * 180 / Math.PI;
+        });
+        var degrees = this.degreesFromTwoPoints(origin, event);
 
         object.transform = {
-            rotate: [degrees, origin.x, origin.y]
+            rotate: [degrees - start, origin.x, origin.y]
         };
 
-console.log('rotate', object, degrees);
         this.trigger('export', {
             message: 'transform-object',
             object: object
         });
+    },
+    degreesFromTwoPoints: function(point1, point2) {
+        var radius = Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
+        var radians = Math.acos((point2.x - point1.x) / radius);
+        var degrees = radians * 180 / Math.PI;
+
+        if (point2.y < point1.y) {
+            degrees = 360 - degrees;
+        }
+
+        return degrees;
     },
     onTap: function(event) {
         var object = event.object;

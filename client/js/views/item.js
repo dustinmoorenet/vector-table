@@ -81,8 +81,6 @@ module.exports = View.extend({
         else {
             this.el.setAttribute('transform', '');
         }
-
-        console.log('updateTransform', this.el.getAttribute('transform'));
     },
     renderShapes: function() {
         this.shapeGroup = this._element.group();
