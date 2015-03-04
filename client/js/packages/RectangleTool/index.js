@@ -3,7 +3,7 @@ var _ = require('lodash');
 
 function RectangleTool() {
     this.on('pointer-start', this.onPointerStart, this);
-    this.on('pointer-move', this.onTransform, this);
+    this.on('pointer-move', this.onPointerMove, this);
 }
 
 /*
@@ -79,10 +79,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
     onPointerStart: function(event) {
         var selection = event.selection;
         if (selection && selection.length) {
-            if (selection[0].activeHandle) {
-                this.onTransform(event);
-            }
-            else {
+            if (!selection[0].activeHandle) {
                 this.objectTapped(event);
             }
         }
@@ -96,14 +93,6 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                 stroke: 'black'
             });
         }
-    },
-    select: function(object) {
-        object.selected = true;
-
-        this.trigger('export', {
-            message: 'transform-object',
-            object: object
-        });
     },
     create: function(attr) {
 
@@ -127,7 +116,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
             object: object
         });
     },
-    onTransform: function(event) {
+    onPointerMove: function(event) {
         var object = event.selection[0];
 
         var handle = _.find(object.handles, {id: object.activeHandle});
@@ -225,20 +214,6 @@ _.extend(RectangleTool.prototype, Package.prototype, {
 
         this.trigger('export', {
             message: 'transform-object',
-            object: object
-        });
-    },
-    onUnselected: function(event) {
-        var object = event.object;
-
-        if (!object) {
-            return;
-        }
-
-        object.mode = '';
-
-        this.trigger('export', {
-            message: 'update-object',
             object: object
         });
     },
