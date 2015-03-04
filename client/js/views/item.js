@@ -37,6 +37,8 @@ module.exports = View.extend({
     },
     initialize: function(options) {
         this._parentElement = options.parentElement;
+
+        this.listenTo(this.model, 'change:transform', this.updateTransform);
     },
     render: function() {
         this.renderWithTemplate(this);
@@ -71,6 +73,16 @@ module.exports = View.extend({
         }
 
         return new Shape(options);
+    },
+    updateTransform: function(model, transform) {
+        if (transform.rotate) {
+            this.el.setAttribute('transform', 'rotate(' + transform.rotate.join(',') + ')');
+        }
+        else {
+            this.el.setAttribute('transform', '');
+        }
+
+        console.log('updateTransform', this.el.getAttribute('transform'));
     },
     renderShapes: function() {
         this.shapeGroup = this._element.group();

@@ -9,7 +9,8 @@ module.exports = AmpModel.extend({
         selected: ['boolean', true, false],
         mode: ['string', true, ''],
         activeHandle: ['string'],
-        tool: ['string']
+        tool: ['string'],
+        transform: ['object']
     },
     collections: {
         shapes: ShapeCollection,

@@ -115,7 +115,6 @@ module.exports = View.extend({
         global.packageWorker.postMessage(evt);
     },
     pointerMove: function(event) {
-
         if (!this.activeSelection) {
             return;
         }

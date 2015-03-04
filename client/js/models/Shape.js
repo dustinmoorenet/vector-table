@@ -6,6 +6,6 @@ module.exports = AmpModel.extend({
         id: ['string', true, function() { return _.uniqueId('shape-'); }],
         type: ['string', true],
         attr: ['object'],
-        action: ['string']
+        action: ['object']
     }
 });
