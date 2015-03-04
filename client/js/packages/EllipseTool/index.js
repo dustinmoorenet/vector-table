@@ -3,22 +3,51 @@ var _ = require('lodash');
 
 function EllipseTool() {
     this.on('pointer-start', this.onPointerStart, this);
-    this.on('pointer-move', this.onTransform, this);
+    this.on('pointer-move', this.onPointerMove, this);
 }
 
-_.extend(EllipseTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 10,
-    DEFAULT: {
-        rx: 50,
-        ry: 50
+EllipseTool.HANDLE_WIDTH = 10;
+
+EllipseTool.DEFAULT = {
+    rx: 50,
+    ry: 50
+};
+
+EllipseTool.resizeHandle = {
+    type: 'Ellipse',
+    attr: {
+        cx: 0,
+        cy: 0,
+        rx: EllipseTool.HANDLE_WIDTH,
+        ry: EllipseTool.HANDLE_WIDTH,
+        fill: 'red'
     },
+    action: {
+        func: 'resize',
+        partial: []
+    }
+};
+
+EllipseTool.rotateHandle = {
+    type: 'Ellipse',
+    attr: {
+        cx: 0,
+        cy: 0,
+        rx: EllipseTool.HANDLE_WIDTH,
+        ry: EllipseTool.HANDLE_WIDTH,
+        fill: 'green'
+    },
+    action: {
+        func: 'rotate',
+        partial: []
+    }
+};
+
+_.extend(EllipseTool.prototype, Package.prototype, {
     onPointerStart: function(event) {
         var selection = event.selection;
         if (selection && selection.length) {
-            if (selection[0].activeHandle) {
-                this.onTransform(event);
-            }
-            else {
+            if (!selection[0].activeHandle) {
                 this.objectTapped(event);
             }
         }
@@ -34,98 +63,40 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         }
     },
     create: function(attr) {
-        var rect = {
-            x: attr.cx - attr.rx,
-            y: attr.cy - attr.ry,
-            width: attr.rx * 2,
-            height: attr.ry * 2
-        };
-
         var object = {
             tool: 'EllipseTool',
+            mode: 'resize',
             shapes: [
                 {
                     type: 'Ellipse',
                     attr: attr
                 }
-            ],
-            handles: [
-                {
-                    id: 'nw',
-                    type: 'Ellipse',
-                    attr: {
-                        cx: rect.x,
-                        cy: rect.y,
-                        rx: this.HANDLE_WIDTH,
-                        ry: this.HANDLE_WIDTH,
-                        fill: 'red'
-                    },
-                    action: 'onTransform'
-                },
-                {
-                    id: 'ne',
-                    type: 'Ellipse',
-                    attr: {
-                        cx: rect.x + rect.width,
-                        cy: rect.y,
-                        rx: this.HANDLE_WIDTH,
-                        ry: this.HANDLE_WIDTH,
-                        fill: 'red'
-                    },
-                    action: 'onTransform'
-                },
-                {
-                    id: 'se',
-                    type: 'Ellipse',
-                    attr: {
-                        cx: rect.x + rect.width,
-                        cy: rect.y + rect.height,
-                        rx: this.HANDLE_WIDTH,
-                        ry: this.HANDLE_WIDTH,
-                        fill: 'red'
-                    },
-                    action: 'onTransform'
-                },
-                {
-                    id: 'sw',
-                    type: 'Ellipse',
-                    attr: {
-                        cx: rect.x,
-                        cy: rect.y + rect.height,
-                        rx: this.HANDLE_WIDTH,
-                        ry: this.HANDLE_WIDTH,
-                        fill: 'red'
-                    },
-                    action: 'onTransform'
-                }
-            ],
+            ]
         };
 
-        object.activeHandle = object.handles[3].id; // se
+        this.applyHandles(object);
+
+        object.activeHandle = object.handles[2].id; // se
 
         this.trigger('export', {
             message: 'create-object',
             object: object
         });
     },
-    onTransform: function(event) {
+    onPointerMove: function(event) {
+        var object = event.selection[0];
+
+        var handle = _.find(object.handles, {id: object.activeHandle});
+
+        if (handle.action.func) {
+            this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
+        }
+    },
+    resize: function(handleIndex, buddyHandleIndex, event) {
         var object = event.selection[0];
 
         // Find handle buddy
-        var attr;
-        switch (object.activeHandle) {
-            case 'se':
-                attr = object.handles[0].attr; // nw
-                break;
-            case 'sw':
-                attr = object.handles[1].attr; // ne
-                break;
-            case 'nw':
-                attr = object.handles[2].attr; // se
-                break;
-            default: // ne
-                attr = object.handles[3].attr; // sw
-        }
+        var attr = object.handles[buddyHandleIndex].attr;
 
         // Determine new rectangle from current position and handle buddy
         var rect = {
@@ -142,15 +113,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             ry: rect.height / 2
         });
 
-        // Determine new handle locations
-        object.handles[0].attr.cx = rect.x;
-        object.handles[0].attr.cy = rect.y;
-        object.handles[1].attr.cx = rect.x + rect.width;
-        object.handles[1].attr.cy = rect.y;
-        object.handles[2].attr.cx = rect.x + rect.width;
-        object.handles[2].attr.cy = rect.y + rect.height;
-        object.handles[3].attr.cx = rect.x;
-        object.handles[3].attr.cy = rect.y + rect.height;
+        this.applyHandles(object);
 
         // Determine new active handle
         object.handles.forEach(function(handle) {
@@ -164,6 +127,39 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             object: object
         });
     },
+    rotate: function(handleIndex, event) {
+        var object = event.selection[0];
+        var shape = object.shapes[0];
+        var origin = {
+            x: shape.attr.cx,
+            y:  shape.attr.cy
+        };
+        var start = this.degreesFromTwoPoints(origin, {
+            x: object.handles[handleIndex].attr.cx,
+            y: object.handles[handleIndex].attr.cy
+        });
+        var degrees = this.degreesFromTwoPoints(origin, event);
+
+        object.transform = {
+            rotate: [degrees - start, origin.x, origin.y]
+        };
+
+        this.trigger('export', {
+            message: 'transform-object',
+            object: object
+        });
+    },
+    degreesFromTwoPoints: function(point1, point2) {
+        var radius = Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
+        var radians = Math.acos((point2.x - point1.x) / radius);
+        var degrees = radians * 180 / Math.PI;
+
+        if (point2.y < point1.y) {
+            degrees = 360 - degrees;
+        }
+
+        return degrees;
+    },
     onTap: function(event) {
         var object = event.object;
 
@@ -172,40 +168,143 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         }
         else {
             this.create({
-                cx: event.x + this.DEFAULT.rx,
-                cy: event.y + this.DEFAULT.ry,
-                rx: this.DEFAULT.rx,
-                ry: this.DEFAULT.ry,
+                cx: event.x + EllipseTool.DEFAULT.rx,
+                cy: event.y + EllipseTool.DEFAULT.ry,
+                rx: EllipseTool.DEFAULT.rx,
+                ry: EllipseTool.DEFAULT.ry,
                 fill: 'blue',
                 stroke: 'black'
             });
         }
-
     },
     objectTapped: function(event) {
         var object = event.selection[0];
 
-        object.mode = object.mode === 'transform' ? 'rotate' : 'transform';
+        object.mode = object.mode === 'resize' ? 'rotate' : 'resize';
         object.selected = true;
 
+        this.applyHandles(object);
+
         this.trigger('export', {
-            message: 'update-object',
+            message: 'transform-object',
             object: object
         });
     },
-    onUnselected: function(event) {
-        var object = event.object;
+    applyHandles: function(object) {
+        object.handles = [];
 
-        if (!object) {
-            return;
+        if (object.mode === 'resize') {
+            this.resizeHandles(object);
         }
+        else if (object.mode === 'rotate') {
+            this.rotateHandles(object);
+        }
+    },
+    resizeHandles: function(object) {
+        var attr = object.shapes[0].attr;
+        var rect = {
+            x: attr.cx - attr.rx,
+            y: attr.cy - attr.ry,
+            width: attr.rx * 2,
+            height: attr.ry * 2
+        };
 
-        object.mode = '';
+        object.handles.push(_.merge({}, EllipseTool.resizeHandle, {
+            id: 'nw',
+            attr: {
+                cx: rect.x,
+                cy: rect.y
+            },
+            action: {
+                partial: [0, 2]
+            }
+        }));
 
-        this.trigger('export', {
-            message: 'update-object',
-            object: object
-        });
+        object.handles.push(_.merge({}, EllipseTool.resizeHandle, {
+            id: 'ne',
+            attr: {
+                cx: rect.x + rect.width,
+                cy: rect.y
+            },
+            action: {
+                partial: [1, 3]
+            }
+        }));
+
+        object.handles.push(_.merge({}, EllipseTool.resizeHandle, {
+            id: 'se',
+            attr: {
+                cx: rect.x + rect.width,
+                cy: rect.y + rect.height
+            },
+            action: {
+                partial: [2, 0]
+            }
+        }));
+
+        object.handles.push(_.merge({}, EllipseTool.resizeHandle, {
+            id: 'sw',
+            attr: {
+                cx: rect.x,
+                cy: rect.y + rect.height
+            },
+            action: {
+                partial: [3, 1]
+            }
+        }));
+    },
+    rotateHandles: function(object) {
+        var attr = object.shapes[0].attr;
+        var rect = {
+            x: attr.cx - attr.rx,
+            y: attr.cy - attr.ry,
+            width: attr.rx * 2,
+            height: attr.ry * 2
+        };
+
+        object.handles.push(_.merge({}, EllipseTool.rotateHandle, {
+            id: 'nw',
+            attr: {
+                cx: rect.x,
+                cy: rect.y
+            },
+            action: {
+                partial: [0]
+            }
+        }));
+
+        object.handles.push(_.merge({}, EllipseTool.rotateHandle, {
+            id: 'ne',
+            attr: {
+                cx: rect.x + rect.width,
+                cy: rect.y
+            },
+            action: {
+                partial: [1]
+            }
+        }));
+
+        object.handles.push(_.merge({}, EllipseTool.rotateHandle, {
+            id: 'se',
+            attr: {
+                cx: rect.x + rect.width,
+                cy: rect.y + rect.height
+            },
+            action: {
+                partial: [2]
+            }
+        }));
+
+        object.handles.push(_.merge({}, EllipseTool.rotateHandle, {
+            id: 'sw',
+            attr: {
+                cx: rect.x,
+                cy: rect.y + rect.height
+            },
+            action: {
+                partial: [3]
+            }
+        }));
     }
 });
 
