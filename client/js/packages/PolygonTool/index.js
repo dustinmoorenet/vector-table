@@ -2,13 +2,14 @@ var Package = require('../../libs/Package');
 var _ = require('lodash');
 
 function PolygonTool() {
-    this.on('pointer-start', this.addHandle, this);
-    this.on('pointer-move', this.transform, this);
+    this.on('pointer-start', this.onPointerStart, this);
+    this.on('pointer-move', this.onPointerMove, this);
 }
 
+PolygonTool.HANDLE_WIDTH = 10;
+
 _.extend(PolygonTool.prototype, Package.prototype, {
-    HANDLE_WIDTH: 10,
-    addHandle: function(event) {
+    onPointerStart: function(event) {
         var exportEvent;
         var object = event.selection && event.selection[0];
 
@@ -27,11 +28,14 @@ _.extend(PolygonTool.prototype, Package.prototype, {
             attr: {
                 cx: event.x,
                 cy: event.y,
-                rx: this.HANDLE_WIDTH,
-                ry: this.HANDLE_WIDTH,
+                rx: PolygonTool.HANDLE_WIDTH,
+                ry: PolygonTool.HANDLE_WIDTH,
                 fill: 'red'
             },
-            action: 'onTransform'
+            action: {
+                func: 'move',
+                partial: []
+            }
         };
 
         if (!object) {
@@ -74,7 +78,16 @@ _.extend(PolygonTool.prototype, Package.prototype, {
 
         this.trigger('export', exportEvent);
     },
-    transform: function(event) {
+    onPointerMove: function(event) {
+        var object = event.selection[0];
+
+        var handle = _.find(object.handles, {id: object.activeHandle});
+
+        if (handle.action.func) {
+            this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
+        }
+    },
+    move: function(event) {
         if (!event.selection) {
             return;
         }
