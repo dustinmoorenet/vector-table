@@ -4,6 +4,7 @@ var _ = require('lodash');
 function RectangleTool() {
     this.on('pointer-start', this.onPointerStart, this);
     this.on('pointer-move', this.onPointerMove, this);
+    this.on('control-init', this.onControlInit, this);
 }
 
 /*
@@ -320,6 +321,33 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                 partial: [3]
             }
         }));
+    },
+    onControlInit: function() {
+        return {
+            title: 'Rectangle Tool',
+            properties: [
+                {
+                    id: 'id',
+                    type: 'text-input',
+                    bind: {type: 'attr', attr: 'id'}
+                },
+                {
+                    id: 'width',
+                    type: 'text-input',
+                    bind: {type: 'attr', attr: 'attr.width'}
+                },
+                {
+                    id: 'height',
+                    type: 'text-input',
+                    bind: {type: 'attr', attr: 'attr.height'}
+                },
+                {
+                    id: 'double',
+                    type: 'button',
+                    bind: {type: 'func', func: 'doubleSize'}
+                }
+            ]
+        }
     }
 });
 
