@@ -1,4 +1,4 @@
-var AmpCollection = require('ampersand-collection');
+var AmpCollection = require('ampersand-rest-collection');
 var Properties = require('./Properties');
 
 module.exports = AmpCollection.extend({

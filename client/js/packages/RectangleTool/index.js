@@ -323,31 +323,34 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         }));
     },
     onControlInit: function() {
-        return {
-            title: 'Rectangle Tool',
-            properties: [
-                {
-                    id: 'id',
-                    type: 'text-input',
-                    bind: {type: 'attr', attr: 'id'}
-                },
-                {
-                    id: 'width',
-                    type: 'text-input',
-                    bind: {type: 'attr', attr: 'attr.width'}
-                },
-                {
-                    id: 'height',
-                    type: 'text-input',
-                    bind: {type: 'attr', attr: 'attr.height'}
-                },
-                {
-                    id: 'double',
-                    type: 'button',
-                    bind: {type: 'func', func: 'doubleSize'}
-                }
-            ]
-        }
+        this.trigger('export', {
+            message: 'package-control',
+            control: {
+                title: 'Rectangle Tool',
+                properties: [
+                    {
+                        id: 'id',
+                        type: 'text-input',
+                        bind: {type: 'attr', attr: 'id'}
+                    },
+                    {
+                        id: 'width',
+                        type: 'text-input',
+                        bind: {type: 'attr', attr: 'attr.width'}
+                    },
+                    {
+                        id: 'height',
+                        type: 'text-input',
+                        bind: {type: 'attr', attr: 'attr.height'}
+                    },
+                    {
+                        id: 'double',
+                        type: 'button',
+                        bind: {type: 'func', func: 'doubleSize'}
+                    }
+                ]
+            }
+        });
     }
 });
 

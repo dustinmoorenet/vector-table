@@ -85,7 +85,7 @@ table.render();
 
 body.appendChild(table.el);
 
-var controls = new Controls();
+var controls = new Controls({model: global.app});
 
 controls.render();
 
