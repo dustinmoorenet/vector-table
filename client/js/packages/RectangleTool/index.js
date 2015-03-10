@@ -8,6 +8,7 @@ function RectangleTool() {
     this.on('control-init', this.onControlInit, this);
     this.on('set-value', this.setValue, this);
     this.on('double-size', this.doubleSize, this);
+    this.on('set-fill', this.setFill, this);
 }
 
 /*
@@ -339,27 +340,49 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     {
                         id: 'x',
                         type: 'text-input',
-                        binding: {value: 'shapes[0].attr.x'}
+                        binding: {
+                            value: 'shapes[0].attr.x',
+                            onChange: 'set-value'
+                        }
                     },
                     {
                         id: 'y',
                         type: 'text-input',
-                        binding: {value: 'shapes[0].attr.y'}
+                        binding: {
+                            value: 'shapes[0].attr.y',
+                            onChange: 'set-value'
+                        }
                     },
                     {
                         id: 'width',
                         type: 'text-input',
-                        binding: {value: 'shapes[0].attr.width'}
+                        binding: {
+                            value: 'shapes[0].attr.width',
+                            onChange: 'set-value'
+                        }
                     },
                     {
                         id: 'height',
                         type: 'text-input',
-                        binding: {value: 'shapes[0].attr.height'}
+                        binding: {
+                            value: 'shapes[0].attr.height',
+                            onChange: 'set-value'
+                        }
+                    },
+                    {
+                        id: 'fill',
+                        type: 'fill',
+                        binding: {
+                            value: 'shapes[0].attr.fill',
+                            onChange: 'set-fill'
+                        }
                     },
                     {
                         id: 'double',
                         type: 'button',
-                        binding: {eventName: 'double-size'}
+                        binding: {
+                            onClick: 'double-size'
+                        }
                     }
                 ]
             }
@@ -387,6 +410,17 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         object.shapes[0].attr.height *= 2;
 
         this.applyHandles(object);
+
+        this.trigger('export', {
+            message: 'transform-object',
+            object: object
+        });
+    },
+    setFill: function(event) {
+        var object = event.selection[0];
+        var value = event.value;
+
+        object.shapes[0].attr.fill = value;
 
         this.trigger('export', {
             message: 'transform-object',

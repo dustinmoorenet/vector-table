@@ -10,15 +10,6 @@ module.exports = View.extend({
         'click [data-hook="circle"]': 'drawCircle',
         'click [data-hook="polygon"]': 'drawPolygon'
     },
-    subviews: {
-        packageControl: {
-            hook: 'package-control',
-            waitFor: 'model.packageControl',
-            prepareView: function(el) {
-                return new PackageControl({el: el, model: this.model.packageControl});
-            }
-        }
-    },
     initialize: function() {
         this.listenTo(this.model, 'change:mode', this.modeChange);
 
@@ -27,7 +18,11 @@ module.exports = View.extend({
                 if (event.data.control) {
                     event.data.control.boundModel = global.app.selection.at(0);
 
-                    this.model.packageControl.set(event.data.control);
+                    this.model.packageControl = new (this.model._children.packageControl)(event.data.control);
+
+                    this.packageControl = this.renderSubview(new PackageControl({
+                        model: this.model.packageControl
+                    }), '[data-hook="package-control"]');
                 }
             }
         }.bind(this), false);
@@ -38,6 +33,10 @@ module.exports = View.extend({
         this.drawSquare();
     },
     modeChange: function() {
+        if (this.packageControl) {
+            this.packageControl.remove();
+        }
+
         global.packageWorker.postMessage({
             message: 'control-init'
         });

@@ -18,7 +18,7 @@ module.exports = View.extend({
     },
     onClick: function() {
         var evt = {
-            message: this.model.binding.eventName,
+            message: this.model.binding.onClick,
             selection: [
                 this.boundModel.toJSON()
             ],

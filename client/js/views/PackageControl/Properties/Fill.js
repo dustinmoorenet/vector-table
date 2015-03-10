@@ -3,7 +3,7 @@ var View = require('../../view');
 var jsonQuery = global.jQ = require('json-query');
 
 module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/TextInput.html', 'utf8'),
+    template: fs.readFileSync(__dirname + '/Fill.html', 'utf8'),
     autoRender: true,
     events: {
         'change input': 'updateValue'

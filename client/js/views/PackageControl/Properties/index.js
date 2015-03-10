@@ -1,4 +1,5 @@
 module.exports = {
     TextInput: require('./TextInput'),
-    Button: require('./Button')
+    Button: require('./Button'),
+    Fill: require('./Fill')
 };

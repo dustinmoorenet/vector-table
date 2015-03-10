@@ -1,9 +1,13 @@
 var Package = require('../../libs/Package');
 var _ = require('lodash');
+var jsonQuery = require('json-query');
 
 function EllipseTool() {
     this.on('pointer-start', this.onPointerStart, this);
     this.on('pointer-move', this.onPointerMove, this);
+    this.on('control-init', this.onControlInit, this);
+    this.on('set-value', this.setValue, this);
+    this.on('set-fill', this.setFill, this);
 }
 
 EllipseTool.HANDLE_WIDTH = 10;
@@ -305,6 +309,87 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 partial: [3]
             }
         }));
+    },
+    onControlInit: function() {
+        this.trigger('export', {
+            message: 'package-control',
+            control: {
+                title: 'Ellipse Tool',
+                properties: [
+                    {
+                        id: 'id',
+                        type: 'text-input',
+                        binding: {type: 'value', value: 'id'}
+                    },
+                    {
+                        id: 'center x',
+                        type: 'text-input',
+                        binding: {
+                            value: 'shapes[0].attr.cx',
+                            onChange: 'set-value'
+                        }
+                    },
+                    {
+                        id: 'center y',
+                        type: 'text-input',
+                        binding: {
+                            value: 'shapes[0].attr.cy',
+                            onChange: 'set-value'
+                        }
+                    },
+                    {
+                        id: 'x radius',
+                        type: 'text-input',
+                        binding: {
+                            value: 'shapes[0].attr.rx',
+                            onChange: 'set-value'
+                        }
+                    },
+                    {
+                        id: 'y radius',
+                        type: 'text-input',
+                        binding: {
+                            value: 'shapes[0].attr.ry',
+                            onChange: 'set-value'
+                        }
+                    },
+                    {
+                        id: 'fill',
+                        type: 'fill',
+                        binding: {
+                            value: 'shapes[0].attr.fill',
+                            onChange: 'set-fill'
+                        }
+                    }
+                ]
+            }
+        });
+    },
+    setValue: function(event) {
+        var object = event.selection[0];
+        var value = event.value;
+        var binding = event.binding;
+        var lookUp = jsonQuery(binding.value, {data: object});
+
+        lookUp.references[0][lookUp.key] = +value;
+
+        this.applyHandles(object);
+
+        this.trigger('export', {
+            message: 'transform-object',
+            object: object
+        });
+    },
+    setFill: function(event) {
+        var object = event.selection[0];
+        var value = event.value;
+
+        object.shapes[0].attr.fill = value;
+
+        this.trigger('export', {
+            message: 'transform-object',
+            object: object
+        });
     }
 });
 
