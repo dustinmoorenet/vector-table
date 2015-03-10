@@ -1,10 +1,13 @@
 var Package = require('../../libs/Package');
 var _ = require('lodash');
+var jsonQuery = require('json-query');
 
 function RectangleTool() {
     this.on('pointer-start', this.onPointerStart, this);
     this.on('pointer-move', this.onPointerMove, this);
     this.on('control-init', this.onControlInit, this);
+    this.on('set-value', this.setValue, this);
+    this.on('double-size', this.doubleSize, this);
 }
 
 /*
@@ -331,25 +334,63 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     {
                         id: 'id',
                         type: 'text-input',
-                        bind: {type: 'attr', attr: 'id'}
+                        binding: {type: 'value', value: 'id'}
+                    },
+                    {
+                        id: 'x',
+                        type: 'text-input',
+                        binding: {value: 'shapes[0].attr.x'}
+                    },
+                    {
+                        id: 'y',
+                        type: 'text-input',
+                        binding: {value: 'shapes[0].attr.y'}
                     },
                     {
                         id: 'width',
                         type: 'text-input',
-                        bind: {type: 'attr', attr: 'attr.width'}
+                        binding: {value: 'shapes[0].attr.width'}
                     },
                     {
                         id: 'height',
                         type: 'text-input',
-                        bind: {type: 'attr', attr: 'attr.height'}
+                        binding: {value: 'shapes[0].attr.height'}
                     },
                     {
                         id: 'double',
                         type: 'button',
-                        bind: {type: 'func', func: 'doubleSize'}
+                        binding: {eventName: 'double-size'}
                     }
                 ]
             }
+        });
+    },
+    setValue: function(event) {
+        var object = event.selection[0];
+        var value = event.value;
+        var binding = event.binding;
+        var lookUp = jsonQuery(binding.value, {data: object});
+
+        lookUp.references[0][lookUp.key] = +value;
+
+        this.applyHandles(object);
+
+        this.trigger('export', {
+            message: 'transform-object',
+            object: object
+        });
+    },
+    doubleSize: function(event) {
+        var object = event.selection[0];
+
+        object.shapes[0].attr.width *= 2;
+        object.shapes[0].attr.height *= 2;
+
+        this.applyHandles(object);
+
+        this.trigger('export', {
+            message: 'transform-object',
+            object: object
         });
     }
 });

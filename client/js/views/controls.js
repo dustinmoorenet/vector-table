@@ -15,7 +15,6 @@ module.exports = View.extend({
             hook: 'package-control',
             waitFor: 'model.packageControl',
             prepareView: function(el) {
-                console.log('hey done here');
                 return new PackageControl({el: el, model: this.model.packageControl});
             }
         }
@@ -25,7 +24,11 @@ module.exports = View.extend({
 
         global.packageWorker.addEventListener('message', function (event) {
             if (event.data.message === 'package-control') {
-                this.model.packageControl.set(event.data.control);
+                if (event.data.control) {
+                    event.data.control.boundModel = global.app.selection.at(0);
+
+                    this.model.packageControl.set(event.data.control);
+                }
             }
         }.bind(this), false);
     },
@@ -34,7 +37,7 @@ module.exports = View.extend({
 
         this.drawSquare();
     },
-    modeChange: function(model, mode) {
+    modeChange: function() {
         global.packageWorker.postMessage({
             message: 'control-init'
         });

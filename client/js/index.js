@@ -64,6 +64,8 @@ global.app.selection.on('reset', function(collection, options) {
 });
 
 global.app.selection.on('add', function(item) {
+    global.app.packageControl.boundModel = item;
+
     global.packageWorker.postMessage({
         message: 'selected',
         object: item.toJSON()

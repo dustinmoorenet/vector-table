@@ -3,7 +3,6 @@ var View = require('../view');
 var Properties = require('./Properties');
 
 module.exports = View.extend({
-    autoRender: true,
     template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
     render: function() {
 
@@ -12,7 +11,6 @@ module.exports = View.extend({
         this.properties = this.renderCollection(
             this.model.properties,
             function(options) {
-                console.log('here?', options.model.type);
                 switch (options.model.type) {
                     case 'text-input':
                         return new Properties.TextInput(options);
