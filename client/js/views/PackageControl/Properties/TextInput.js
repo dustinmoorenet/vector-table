@@ -8,6 +8,9 @@ module.exports = View.extend({
     events: {
         'change input': 'updateValue'
     },
+    bindings: {
+        'model.id': 'label'
+    },
     initialize: function() {
         this.listenToAndRun(global.app.packageControl, 'change:boundModel', this.boundModelChanged);
     },

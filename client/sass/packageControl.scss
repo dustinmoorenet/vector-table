@@ -1,0 +1,21 @@
+.package-control {
+    margin: 20px 10px 0px 10px;
+
+    .property {
+        margin: 5px 0px;
+        display: flex;
+    }
+
+    label {
+        flex-grow: 1;
+        flex-shrink: 0;
+        margin-right: 5px;
+        width: 60px;
+    }
+
+    input[type="text"] {
+        flex-grow: 0;
+        flex-shrink: 1;
+        width: auto;
+    }
+}

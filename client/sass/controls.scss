@@ -1,16 +1,18 @@
 .controls {
+    display: flex;
+    flex-direction: column;
     background: $background-level-2;
     position: absolute;
     top: 0;
     left: 0;
-    width: 75px;
+    width: 150px;
     height: 100%;
 
-    button {
-        background: $button-background;
+    ul {
+        margin: 0px 5px;
 
-        &.selected {
-            background: $button-background-selected;
+        li {
+            margin: 5px;
         }
     }
 }
