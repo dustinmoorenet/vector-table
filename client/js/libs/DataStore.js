@@ -2,31 +2,29 @@ var _ = require('lodash');
 var Events = require('ampersand-events');
 
 function DataStore() {
-    this.history = [{}, {}];
+    this.currentStore = {};
+    this.history = [{}];
     this.cursor = 0;
     this.notifyList = [];
 }
 
 _.extend(DataStore.prototype, Events, {
     MAX_HISTORY: 5,
-    currentStore: function() {
-        return this.history[this.cursor];
-    },
     get: function(id) {
-        return this.currentStore()[id];
+        return this.currentStore[id];
     },
     set: function(id, object, params) {
         params = params || {};
         this.recordHistory = params.recordHistory !== false;
 
         if (object === undefined) {
-            delete this.currentStore()[id];
+            delete this.currentStore[id];
         }
         else if (params.merge) {
-            this.currentStore()[id] = _.merge({}, this.currentStore()[id], object);
+            this.currentStore[id] = _.merge({}, this.currentStore[id], object);
         }
         else {
-            this.currentStore()[id] = _.cloneDeep(object);
+            this.currentStore[id] = _.cloneDeep(object);
         }
 
         this.notifyOnNextTick(id);
@@ -42,15 +40,17 @@ _.extend(DataStore.prototype, Events, {
             setTimeout(this.timeToNotify.bind(this));
         }
 
-        this.notifyList.push(id);
+        if (this.notifyList.indexOf(id) !== -1) {
+            this.notifyList.push(id);
+        }
     },
     timeToNotify: function() {
         this.setHistory();
 
         this.notifyList.forEach(function(id) {
-            var previousObject = (this.history[this.cursor + 1] || {})[id];
+            var previousObject = (this.previousStore || {})[id];
 
-            this.trigger(id, this.currentStore()[id], previousObject);
+            this.trigger(id, this.currentStore[id], previousObject);
         }.bind(this));
 
         this.notifyList = [];
@@ -60,9 +60,11 @@ _.extend(DataStore.prototype, Events, {
             return;
         }
 
-        var newCurrentStore = _.clone(this.currentStore());
+        this.previousStore = this.currentStore;
 
-        this.history.splice(0, this.cursor, newCurrentStore);
+        this.currentStore = _.clone(this.previousStore);
+
+        this.history.splice(0, this.cursor, this.previousStore);
 
         this.history.splice(this.MAX_HISTORY, this.history.length);
 
@@ -73,12 +75,17 @@ _.extend(DataStore.prototype, Events, {
             return;
         }
 
-        var currentStore = this.currentStore();
+        var now = this.history[this.cursor];
 
         this.cursor++;
 
-        _.forEach(currentStore, function(currentObject, id) {
-            var previousObject = this.get(id);
+        var before = this.history[this.cursor];
+
+        this.previousStore = _.clone(now);
+        this.currentStore = _.clone(before);
+
+        _.forEach(now, function(currentObject, id) {
+            var previousObject = before[id];
 
             if (currentObject !== previousObject) {
                 this.set(id, previousObject, {recordHistory: false});
@@ -90,12 +97,17 @@ _.extend(DataStore.prototype, Events, {
             return;
         }
 
-        var currentStore = this.currentStore();
+        var now = this.history[this.cursor];
 
         this.cursor--;
 
-        _.forEach(currentStore, function(currentObject, id) {
-            var futureObject = this.get(id);
+        var after = this.history[this.cursor];
+
+        this.previousStore = _.clone(now);
+        this.currentStore = _.clone(after);
+
+        _.forEach(now, function(currentObject, id) {
+            var futureObject = after[id];
 
             if (currentObject !== futureObject) {
                 this.set(id, futureObject, {recordHistory: false});
