@@ -2,6 +2,7 @@ var App = require('./state/app');
 var Table = require('./views/table');
 var Controls = require('./views/controls');
 global.packageWorker = new Worker('./libs/packageWorker.js');
+global.dataStore = new (require('./libs/DataStore'))();
 
 var body = document.querySelector('body');
 
@@ -94,3 +95,9 @@ controls.render();
 body.appendChild(controls.el);
 
 global.app.table = table;
+
+var modal = new (require('./views/PackageControl/Properties/FillModal'))({
+    object: {id: 'foo', selection: [{attr: {fill: '#eee'}}]}
+    });
+modal.render();
+body.appendChild(modal.el);
