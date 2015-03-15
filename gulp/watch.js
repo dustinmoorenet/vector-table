@@ -5,4 +5,5 @@ gulp.task('watch', function() {
     gulp.watch('./client/js/**/*.html', ['scripts']);
     gulp.watch('./client/js/**/*.js', ['scripts']);
     gulp.watch('./client/sass/**/*.scss', ['styles']);
+    gulp.watch('./client/tests/**/*.js', ['tests']);
 });

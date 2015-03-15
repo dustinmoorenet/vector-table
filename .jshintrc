@@ -12,8 +12,5 @@
         "afterEach",
         "it",
         "xit",
-        "expect",
-        "jasmine",
-        "spyOn"
     ]
 }

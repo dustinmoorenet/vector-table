@@ -3,4 +3,7 @@ client/app.bundle.js
 client/css
 client/fonts
 client/sass/iconFonts.scss
+client/tests/bundle.js
+client/tests/mocha.css
+client/tests/mocha.js
 .DS_Store
