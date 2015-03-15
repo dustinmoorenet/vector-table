@@ -5,4 +5,4 @@ require('./gulp/tests');
 require('./gulp/watch');
 var gulp = require('gulp');
 
-gulp.task('default', ['scripts', 'tests', 'styles', 'watch']);
+gulp.task('default', ['watch']);
