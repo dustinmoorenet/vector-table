@@ -6,13 +6,13 @@ global.dataStore = new (require('./libs/DataStore'))();
 
 var body = document.querySelector('body');
 
-global.app = global.dataStore.set('app', {
+var app = global.dataStore.set('app', {
     projectID: 'project1',
     currentPackage: 'RectangleTool',
     activeLayerId: 'layer1'
 });
 
-var project = global.dataStore.set(global.app.projectID, {
+var project = global.dataStore.set(app.projectID, {
     layerCollectionID: 'layers1'
 })
 
@@ -33,8 +33,7 @@ global.dataStore.on('all', function() {
 })
 
 global.dataStore.on('app', function(app, previousApp) {
-
-    if (!previousApp || app.currentPackage !== app.currentPackage) {
+    if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
         global.packageWorker.postMessage({
             message: 'set-package',
             packageName: app.currentPackage,
@@ -107,7 +106,7 @@ global.dataStore.on('app', function(app, previousApp) {
 //
 // global.app.project.activeLayer = 0;
 
-var table = new Table({modelID: global.app.projectID});
+var table = new Table({modelID: app.projectID});
 
 body.appendChild(table.el);
 

@@ -72,6 +72,39 @@ describe('libs/DataStore', function() {
 
             expect(dataStore.get('foo')).toBe(undefined, 'value should be cleared');
         });
+
+        it('should not update previous values', function(done) {
+            dataStore.set('foo', {cake: 1});
+
+            var tick = 1;
+            var history = [];
+            dataStore.on('foo', function(value, previousValue) {
+                if (tick === 1) {
+                    expect(value).toEqual({cake: 1}, 'value should be set value 1');
+
+                    expect(previousValue).toBe(undefined, 'value original undefined value');
+
+                    value.cake = 2;
+                    dataStore.set('foo', value);
+                }
+                else if (tick === 2) {
+                    expect(value).toEqual({cake: 2}, 'value should be set value 2');
+
+                    expect(previousValue).toEqual({cake: 1}, 'value should be set value 1');
+
+                    dataStore.set('foo', {cake: 3});
+                }
+                else if (tick === 3) {
+                    expect(value).toEqual({cake: 3}, 'value should be set value 3');
+
+                    expect(previousValue).toEqual({cake: 2}, 'value should be set value 2');
+
+                    done();
+                }
+
+                tick++;
+            });
+        });
     });
 
     describe('merge', function() {

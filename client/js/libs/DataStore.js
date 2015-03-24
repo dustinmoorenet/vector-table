@@ -11,7 +11,10 @@ function DataStore() {
 _.extend(DataStore.prototype, Events, {
     MAX_HISTORY: 5,
     get: function(id) {
-        return this.currentStore[id];
+        // FIXME deepClone on every get() is not fast
+        // reason to do this because changes to the object from the currentStore
+        // cause the previousValue in the change event to have future changes
+        return _.cloneDeep(this.currentStore[id]);
     },
     set: function(id, object, params) {
         params = params || {};
@@ -56,7 +59,7 @@ _.extend(DataStore.prototype, Events, {
         list.forEach(function(id) {
             var previousObject = (this.previousStore || {})[id];
 
-            this.trigger(id, this.currentStore[id], previousObject);
+            this.trigger(id, this.get(id), previousObject);
         }.bind(this));
     },
     setHistory: function() {
