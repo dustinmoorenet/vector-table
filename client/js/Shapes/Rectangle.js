@@ -9,34 +9,23 @@ module.exports = View.extend({
     initialize: function(options) {
         this._parentElement = options.parentElement;
     },
-    bindings: {
-        'model.id': {
-            type: 'attribute',
-            name: 'id'
-        },
-        'model.attr.fill': {
-            type: 'attribute',
-            name: 'fill'
-        },
-        'model.attr.stroke': {
-            type: 'attribute',
-            name: 'stroke'
-        },
-        'model.attr.x': {
-            type: 'attribute',
-            name: 'x'
-        },
-        'model.attr.y': {
-            type: 'attribute',
-            name: 'y'
-        },
-        'model.attr.width': {
-            type: 'attribute',
-            name: 'width'
-        },
-        'model.attr.height': {
-            type: 'attribute',
-            name: 'height'
+    render: function(shape) {
+        if (!this.el) {
+            this.renderWithTemplate();
         }
+
+        if (!shape) {
+            this.remove();
+
+            return;
+        }
+
+        this.el.setAttribute('id', shape.id);
+        this.el.setAttribute('fill', shape.attr.fill);
+        this.el.setAttribute('stroke', shape.attr.stroke);
+        this.el.setAttribute('x', shape.attr.x);
+        this.el.setAttribute('y', shape.attr.y);
+        this.el.setAttribute('width', shape.attr.width);
+        this.el.setAttribute('height', shape.attr.height);
     }
 });

@@ -1,5 +1,5 @@
 var State = require('ampersand-state');
-var AmpCollection = require('ampersand-rest-collection');
+var AmpCollection = require('ampersand-collection');
 var Project = require('../models/project');
 var PackageControl = require('../models/PackageControl');
 

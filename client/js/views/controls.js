@@ -6,33 +6,39 @@ var PackageControl = require('./PackageControl');
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/controls.html', 'utf8'),
     events: {
-        'click [data-hook="square"]': 'drawSquare',
-        'click [data-hook="circle"]': 'drawCircle',
-        'click [data-hook="polygon"]': 'drawPolygon'
+        'click [data-hook="RectangleTool"]': 'drawSquare',
+        'click [data-hook="EllipseTool"]': 'drawCircle',
+        'click [data-hook="PolygonTool"]': 'drawPolygon'
     },
     initialize: function() {
-        this.listenTo(this.model, 'change:mode', this.modeChange);
+        this.listenTo(global.dataStore, 'app', this.render);
 
-        global.packageWorker.addEventListener('message', function (event) {
-            if (event.data.message === 'package-control') {
-                if (event.data.control) {
-                    event.data.control.boundModel = global.app.selection.at(0);
+        // global.packageWorker.addEventListener('message', function (event) {
+        //     if (event.data.message === 'package-control') {
+        //         if (event.data.control) {
+        //             event.data.control.boundModel = (global.dataStore.get('selection') || [])[0];
+        //
+        //             this.model.packageControl = new (this.model._children.packageControl)(event.data.control);
+        //
+        //             this.packageControl = this.renderSubview(new PackageControl({
+        //                 model: this.model.packageControl
+        //             }), '[data-hook="package-control"]');
+        //         }
+        //     }
+        // }.bind(this), false);
 
-                    this.model.packageControl = new (this.model._children.packageControl)(event.data.control);
+        var app = global.dataStore.get('app');
 
-                    this.packageControl = this.renderSubview(new PackageControl({
-                        model: this.model.packageControl
-                    }), '[data-hook="package-control"]');
-                }
-            }
-        }.bind(this), false);
+        if (app) {
+            this.render(app);
+        }
     },
-    render: function() {
+    render: function(app) {
         this.renderWithTemplate();
 
-        this.drawSquare();
+        this.markSelected(app.currentPackage);
     },
-    modeChange: function() {
+    controlInit: function() {
         if (this.packageControl) {
             this.packageControl.remove();
         }
@@ -42,25 +48,28 @@ module.exports = View.extend({
         });
     },
     drawSquare: function() {
-        global.app.mode = 'RectangleTool';
-
-        this.markSelected('square');
+        this.setCurrentPackage('RectangleTool');
     },
     drawCircle: function() {
-        global.app.mode = 'EllipseTool';
-
-        this.markSelected('circle');
+        this.setCurrentPackage('EllipseTool');
     },
     drawPolygon: function() {
-        global.app.mode = 'PolygonTool';
-
-        this.markSelected('polygon');
+        this.setCurrentPackage('PolygonTool');
     },
-    markSelected: function(tool) {
+    setCurrentPackage: function(currentPackage) {
+        var app = global.dataStore.get('app');
+
+        app.currentPackage = currentPackage;
+
+        global.dataStore.set('app', app);
+    },
+    markSelected: function(currentPackage) {
         _.forEach(this.el.querySelectorAll('button'), function(element) {
             element.classList.remove('selected');
         });
 
-        this.el.querySelector('[data-hook="' + tool + '"]').classList.add('selected');
+        if (currentPackage) {
+            this.el.querySelector('[data-hook="' + currentPackage + '"]').classList.add('selected');
+        }
     }
 });

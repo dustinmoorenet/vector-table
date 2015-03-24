@@ -1,9 +1,2 @@
 .item {
-    [data-hook="handles"] {
-        display: none;
-    }
-
-    &.selected [data-hook="handles"] {
-        display: inherit;
-    }
 }

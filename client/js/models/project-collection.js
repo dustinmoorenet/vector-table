@@ -1,5 +1,5 @@
 // project Collection - project-collection.js
-var AmpCollection = require('ampersand-rest-collection');
+var AmpCollection = require('ampersand-collection');
 var project = require('./project');
 
 

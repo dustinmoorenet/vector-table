@@ -1,3 +1,5 @@
+var Collection = require('ampersand-collection');
+var _ = require('lodash');
 var View = require('./view');
 var Layer = require('./layer');
 var fs = require('fs');
@@ -25,7 +27,8 @@ module.exports = View.extend({
 
         return events;
     },
-    initialize: function () {
+    initialize: function (options) {
+        this.layerViewsById = {};
         this.items = {};
 
         global.packageWorker.addEventListener('message', function (event) {
@@ -42,25 +45,50 @@ module.exports = View.extend({
                 this.complete(event.data.object);
             }
         }.bind(this), false);
+
+        this.listenTo(global.dataStore, options.modelID, this.render);
+
+        var project = global.dataStore.get(options.modelID);
+
+        if (project) {
+            this.render(project);
+        }
     },
-    render: function() {
+    render: function(project) {
+        if (!project) {
+            this.remove();
+
+            return;
+        }
+
         this.renderWithTemplate(this);
 
         this.svg = SVG(this.queryByHook('area'));
 
         this.background = this.svg.rect('100%', '100%').attr('class', 'background');
 
-        this.layers = this.renderCollection(
-            this.model.layers,
-            Layer,
-            this.svg.node,
-            {viewOptions: {
-                parent: this,
-                parentElement: this.svg
-            }}
-        );
+        this.listenTo(global.dataStore, project.layerCollectionID, this.addLayers);
 
         return this;
+    },
+    addLayers: function(layerIds) {
+        this.svg.clear();
+
+        layerIds.forEach(function(layerId) {
+            var layerView = this.layerViewsById[layerId];
+
+            if (!layerView) {
+                layerView = new Layer({
+                    layerId: layerId,
+                    parent: this,
+                    parentElement: this.svg
+                });
+
+                this.layerViewsById[layerId] = layerView;
+            }
+
+            this.svg.node.appendChild(layerView.el);
+        }, this);
     },
     pointerStart: function(event) {
         this.activeSelection = [];
@@ -83,7 +111,7 @@ module.exports = View.extend({
         var item;
 
         if (itemNode) {
-            item = this.model.layers.at(this.model.activeLayer).items.get(itemNode.id);
+            item = global.dataStore.get(itemNode.id);
         }
 
         var handleNode = this.findHandle(event.target);
@@ -92,24 +120,22 @@ module.exports = View.extend({
             item.activeHandle = handleNode.id;
         }
 
-        var selection = global.app.selection;
+        var selection = global.dataStore.get('selection');
 
         if (!item && selection.length) {
-            var previous = selection.at(0);
+            var previous = global.dataStore.get(selection[0]);
 
-            if (!previous.complete) {
-                item = selection.at(0);
+            if (previous && !previous.complete) {
+                item = previous;
             }
         }
 
         if (item) {
-            selection.reset();
-
             item.selected = true;
 
-            this.activeSelection.push(item);
+            this.activeSelection = item.id;
 
-            evt.selection = [item.toJSON()];
+            global.dataStore.set('selection', evt.selection = [item]);
         }
 
         global.packageWorker.postMessage(evt);
@@ -119,7 +145,7 @@ module.exports = View.extend({
             return;
         }
 
-        var item = global.app.selection.at(0);
+        var item = global.dataStore.get(this.activeSelection);
 
         if (!item) {
             return;
@@ -138,7 +164,7 @@ module.exports = View.extend({
             x: pointer.offsetX,
             y: pointer.offsetY,
             selection: [
-                item.toJSON()
+                item
             ]
         };
 
@@ -149,38 +175,55 @@ module.exports = View.extend({
             return;
         }
 
-        this.activeSelection.forEach(function(item) {
-            item.activeHandle = '';
-        });
+        var item = global.dataStore.get(this.activeSelection)
 
-        delete this.activeSelection;
-    },
-    create: function(object) {
-        global.app.selection.reset();
-
-        var item = this.model.layers.at(this.model.activeLayer).items.add(object);
-
-        if (this.activeSelection) {
-            this.activeSelection = [item];
+        if (!item) {
+            return;
         }
 
-        item.selected = true;
-    },
-    transform: function(object) {
-        var item = this.model.layers.at(this.model.activeLayer).items.get(object.id);
+        item.activeHandle = '';
 
-        item.set(object);
-    },
-    update: function(object) {
-        var item = this.model.layers.at(this.model.activeLayer).items.get(object.id);
+        global.dataStore.set(item.id, item);
 
-        item.mode = object.mode;
-        item.selected = object.selected;
-    },
-    complete: function(object) {
-        var item = this.model.layers.at(this.model.activeLayer).items.get(object.id);
+        delete this.activeSelection;
 
+        var evt = {
+            message: 'pointer-end',
+            selection: [
+                item
+            ]
+        };
+
+        global.packageWorker.postMessage(evt);
+    },
+    create: function(item) {
+        item.id = _.uniqueId('item-');
+
+        var selection = [item.id];
+
+        global.dataStore.set(item.id, item);
+
+        global.dataStore.set('selection', selection);
+
+        var activeLayerId = global.dataStore.get('app').activeLayerId;
+        var layer = global.dataStore.get(activeLayerId);
+
+        layer.itemIds.push(item.id);
+
+        global.dataStore.set(layer.id, layer);
+
+        this.activeSelection = item.id;
+    },
+    transform: function(item) {
+        global.dataStore.set(item.id, item);
+    },
+    update: function(item) {
+        global.dataStore.set(item.id, item);
+    },
+    complete: function(item) {
         item.complete = true;
+
+        global.dataStore.set(item.id, item);
     },
     findHandle: function(node) {
         while (true) {

@@ -7,21 +7,6 @@ var shapes = {
 var Handle = require('./Handle');
 
 module.exports = View.extend({
-    bindings: {
-        'model.id': {
-            type: 'attribute',
-            name: 'id'
-        },
-        'model.selected': {
-            type: 'booleanClass',
-            name: 'selected'
-        },
-        'model.mode': {
-            type: 'attribute',
-            name: 'data-mode'
-        }
-    },
-    autoRender: true,
     template: function(context) {
         context._element = context._parentElement.group();
 
@@ -37,128 +22,88 @@ module.exports = View.extend({
     },
     initialize: function(options) {
         this._parentElement = options.parentElement;
+        this.itemId = options.itemId;
+        this.shapeViewsById = {};
+        this.handleViewsById = {};
 
-        this.listenTo(this.model, 'change:transform', this.updateTransform);
+        this.listenTo(global.dataStore, this.itemId, this.render);
+
+        var item = global.dataStore.get(this.itemId);
+
+        if (item) {
+            this.render(item);
+        }
     },
-    render: function() {
-        this.renderWithTemplate(this);
+    render: function(item) {
+        if (!this.el) {
+            this.renderWithTemplate(this);
+        }
 
-        this.renderCollection(
-            this.model.shapes,
-            this.initShapeView,
-            '[data-hook="shapes"]',
-            {viewOptions: {
-                parent: this,
-                parentElement: this._shapes
-            }}
-        );
+        this.renderShapes(item.shapes);
 
-        this.renderCollection(
-            this.model.handles,
-            Handle,
-            '[data-hook="handles"]',
-            {viewOptions: {
-                parent: this,
-                parentElement: this._handles
-            }}
-        );
+        this.renderHandles(item.handles);
+
+        this.updateTransform(item.transform);
+
+        this.el.setAttribute('id', item.id);
+
+        if (item.selected) {
+            this.el.setAttribute('selected', true);
+        }
+        else {
+            this.el.removeAttribute('selected');
+        }
+
+        this.el.setAttribute('data-mode', item.mode);
 
         return this;
     },
-    initShapeView: function(options) {
-        var Shape = shapes[options.model.type];
+    renderShapes: function(shapes) {
+        shapes.forEach(this.renderShape, this);
+    },
+    renderShape: function(shape) {
+        var shapeView = this.shapeViewsById[shape.id];
 
-        if (!Shape) {
-            return;
+        if (!shapeView) {
+            var Shape = shapes[shape.type];
+
+            if (!Shape) {
+                return;
+            }
+
+            var shapeView = new Shape({
+                parent: this,
+                parentElement: this._shapes
+            });
+
+            this.shapeViewsById[shape.id] = shapeView;
         }
 
-        return new Shape(options);
+        shapeView.render(shape);
     },
-    updateTransform: function(model, transform) {
-        if (transform.rotate) {
+    renderHandles: function(handles) {
+        handles.forEach(this.renderHandle, this);
+    },
+    renderHandle: function(handle) {
+        var handleView = this.handleViewsById[handle.id];
+
+        if (!handleView) {
+            var handleView = new Handle({
+                parent: this,
+                parentElement: this._handles
+            });
+
+            this.handleViewsById[handle.id] = handleView;
+        }
+
+        handleView.render(handle);
+    },
+    updateTransform: function(transform) {
+        if (transform && transform.rotate) {
             this.el.setAttribute('transform', 'rotate(' + transform.rotate.join(',') + ')');
         }
         else {
             this.el.setAttribute('transform', '');
         }
-    },
-    renderShapes: function() {
-        this.shapeGroup = this._element.group();
-
-        this.model.shapes.forEach(this.addShape, this);
-    },
-    renderHandles: function() {
-        this.handleGroup = this._element.group();
-
-        this._handles = {};
-        this.model.handles.forEach(this.addHandle, this);
-    },
-    transform: function(object) {
-        object.shapes.forEach(this.transformShape, this);
-
-        object.handles.forEach(this.transformHandle, this);
-    },
-    delta: function(object) {
-        (object.addShapes || []).forEach(this.addShape, this);
-        (object.removeShapes || []).forEach(this.removeShape, this);
-        (object.transformShapes || []).forEach(this.transformShape, this);
-
-        (object.addHandles || []).forEach(this.addHandle, this);
-        (object.removeHandles || []).forEach(this.removeHandle, this);
-        (object.transformHandles || []).forEach(this.transformHandle, this);
-    },
-    addShape: function(shape) {
-        var Shape = shapes[shape.type];
-
-        if (!Shape) {
-            return;
-        }
-
-        shape = new Shape(shape, this.shapeGroup);
-
-        this._shapes[shape.id] = shape;
-    },
-    removeShape: function(shape) {
-        var shapeElement = this._shapes[shape.id];
-
-        shapeElement.remove();
-    },
-    transformShape: function(shape) {
-        var shapeElement = this._shapes[shape.id];
-
-        shapeElement.transform(shape);
-    },
-    addHandle: function(shape) {
-        var Shape = shapes[shape.type];
-
-        if (!Shape) {
-            return;
-        }
-
-        shape = new Shape(shape, this.handleGroup);
-
-        this._handles[shape.id] = shape;
-    },
-    removeHandle: function(shape) {
-        var shapeElement = this._handles[shape.id];
-
-        shapeElement.remove();
-    },
-    transformHandle: function(shape) {
-        var shapeElement = this._handles[shape.id];
-
-        shapeElement.transform(shape);
-    },
-    tap: function(event) {
-        var pointer = event.pointers[0];
-
-        var evt = {
-            message: 'tap',
-            x: pointer.offsetX,
-            y: pointer.offsetY,
-            object: this.model.toJSON()
-        };
-
-        global.packageWorker.postMessage(evt);
     }
 });

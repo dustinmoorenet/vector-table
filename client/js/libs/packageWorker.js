@@ -6,7 +6,7 @@ var packages = {
     PolygonTool: new (require('../packages/PolygonTool'))()
 };
 
-var currentPackage = packages.rectangleTool;
+var currentPackage;
 
 self.onmessage = function(event) {
     var data = event.data;

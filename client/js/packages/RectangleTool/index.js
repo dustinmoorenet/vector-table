@@ -5,6 +5,7 @@ var jsonQuery = require('json-query');
 function RectangleTool() {
     this.on('pointer-start', this.onPointerStart, this);
     this.on('pointer-move', this.onPointerMove, this);
+    this.on('pointer-end', this.onPointerEnd, this);
     this.on('control-init', this.onControlInit, this);
     this.on('set-value', this.setValue, this);
     this.on('double-size', this.doubleSize, this);
@@ -129,6 +130,16 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         if (handle.action.func) {
             this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
         }
+    },
+    onPointerEnd: function(event) {
+        var object = event.selection[0];
+
+        object.complete = true;
+
+        this.trigger('export', {
+            message: 'complete-object',
+            object: object
+        });
     },
     resize: function(handleIndex, buddyHandleIndex, event) {
         var object = event.selection[0];

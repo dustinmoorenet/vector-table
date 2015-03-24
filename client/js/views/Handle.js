@@ -6,22 +6,27 @@ var shapes = {
 };
 
 module.exports = View.extend({
-    template: function(context) {
-        context._element = context.shape._element;
-
-        context._element.node.classList.add('handle');
-
-        return context._element.node;
-    },
     initialize: function(options) {
         this._parentElement = options.parentElement;
+    },
+    render: function(handle) {
+        if (!this.el) {
+            var Shape = shapes[handle.type];
 
-        var Shape = shapes[options.model.type];
+            if (!Shape) {
+                return;
+            }
 
-        if (!Shape) {
-            return;
+            this.shapeView = new Shape({
+                parent: this,
+                parentElement: this._parentElement
+            });
         }
 
-        this.shape = new Shape(options);
+        this.shapeView.render(handle);
+
+        this.el = this.shapeView.el;
+
+        this.el.classList.add('handle');
     }
 });

@@ -28,12 +28,14 @@ _.extend(DataStore.prototype, Events, {
         }
 
         this.notifyOnNextTick(id);
+
+        return this.get(id);
     },
     merge: function(id, object, params) {
-        this.set(id, object, _.extend({merge: true}, params));
+        return this.set(id, object, _.extend({merge: true}, params));
     },
     clear: function(id, params) {
-        this.set(id, undefined, params);
+        return this.set(id, undefined, params);
     },
     notifyOnNextTick: function(id) {
         if (!this.notifyList.length) {
