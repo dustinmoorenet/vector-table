@@ -59,8 +59,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
             };
         }
         else {
-
-            if (object.activeHandle) {
+            if (event.activeHandle) {
                 object.shapes[0].attr.d += ' Z';
                 object.complete = true;
                 object.shapes[0].attr.fill = 'blue';
@@ -79,9 +78,13 @@ _.extend(PolygonTool.prototype, Package.prototype, {
         this.trigger('export', exportEvent);
     },
     onPointerMove: function(event) {
+        if (!event.activeHandle) {
+            return;
+        }
+
         var object = event.selection[0];
 
-        var handle = _.find(object.handles, {id: object.activeHandle});
+        var handle = _.find(object.handles, {id: event.activeHandle});
 
         if (handle.action.func) {
             this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
@@ -98,7 +101,7 @@ _.extend(PolygonTool.prototype, Package.prototype, {
         object.handles.forEach(function(handle, index) {
             var point = {};
 
-            if (object.activeHandle === handle.id) {
+            if (event.activeHandle === handle.id) {
                 point = {x: event.x, y: event.y};
                 handle.attr.cx = event.x;
                 handle.attr.cy = event.y;

@@ -33,16 +33,16 @@ module.exports = View.extend({
 
         global.packageWorker.addEventListener('message', function (event) {
             if (event.data.message === 'create-object') {
-                this.create(event.data.object);
+                this.create(event.data);
             }
             else if (event.data.message === 'transform-object') {
-                this.transform(event.data.object);
+                this.transform(event.data);
             }
             else if (event.data.message === 'update-object') {
-                this.update(event.data.object);
+                this.update(event.data);
             }
             else if (event.data.message === 'complete-object') {
-                this.complete(event.data.object);
+                this.complete(event.data);
             }
         }.bind(this), false);
 
@@ -117,7 +117,7 @@ module.exports = View.extend({
         var handleNode = this.findHandle(event.target);
 
         if (handleNode && item) {
-            item.activeHandle = handleNode.id;
+            this.activeHandle = evt.activeHandle = handleNode.id;
         }
 
         var selection = global.dataStore.get('selection');
@@ -135,7 +135,9 @@ module.exports = View.extend({
 
             this.activeSelection = item.id;
 
-            global.dataStore.set('selection', evt.selection = [item]);
+            evt.selection = [item]
+
+            global.dataStore.set('selection', [item.id]);
         }
 
         global.packageWorker.postMessage(evt);
@@ -163,6 +165,7 @@ module.exports = View.extend({
             message: 'pointer-move',
             x: pointer.offsetX,
             y: pointer.offsetY,
+            activeHandle: this.activeHandle,
             selection: [
                 item
             ]
@@ -181,11 +184,10 @@ module.exports = View.extend({
             return;
         }
 
-        item.activeHandle = '';
-
         global.dataStore.set(item.id, item);
 
         delete this.activeSelection;
+        delete this.activeHandle;
 
         var evt = {
             message: 'pointer-end',
@@ -196,7 +198,9 @@ module.exports = View.extend({
 
         global.packageWorker.postMessage(evt);
     },
-    create: function(item) {
+    create: function(event) {
+        var item = event.object;
+
         item.id = _.uniqueId('item-');
 
         var selection = [item.id];
@@ -213,14 +217,32 @@ module.exports = View.extend({
         global.dataStore.set(layer.id, layer);
 
         this.activeSelection = item.id;
+
+        if (event.activeHandle) {
+            this.activeHandle = event.activeHandle;
+        }
     },
-    transform: function(item) {
+    transform: function(event) {
+        var item = event.object;
+
+        if (event.activeHandle) {
+            this.activeHandle = event.activeHandle;
+        }
+
         global.dataStore.set(item.id, item);
     },
-    update: function(item) {
+    update: function(event) {
+        var item = event.object;
+
+        if (event.activeHandle) {
+            this.activeHandle = event.activeHandle;
+        }
+
         global.dataStore.set(item.id, item);
     },
-    complete: function(item) {
+    complete: function(event) {
+        var item = event.object;
+
         item.complete = true;
 
         global.dataStore.set(item.id, item);

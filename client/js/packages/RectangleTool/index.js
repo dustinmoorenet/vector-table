@@ -85,7 +85,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
     onPointerStart: function(event) {
         var selection = event.selection;
         if (selection && selection.length) {
-            if (!selection[0].activeHandle) {
+            if (!event.activeHandle) {
                 this.objectTapped(event);
             }
         }
@@ -115,17 +115,20 @@ _.extend(RectangleTool.prototype, Package.prototype, {
 
         this.applyHandles(object);
 
-        object.activeHandle = object.handles[2].id; // se
-
         this.trigger('export', {
             message: 'create-object',
+            activeHandle: object.handles[2].id, // se
             object: object
         });
     },
     onPointerMove: function(event) {
+        if (!event.activeHandle) {
+            return;
+        }
+
         var object = event.selection[0];
 
-        var handle = _.find(object.handles, {id: object.activeHandle});
+        var handle = _.find(object.handles, {id: event.activeHandle});
 
         if (handle.action.func) {
             this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
@@ -160,12 +163,13 @@ _.extend(RectangleTool.prototype, Package.prototype, {
         // Determine new active handle
         object.handles.forEach(function(handle) {
             if (handle.attr.cx === event.x && handle.attr.cy === event.y) {
-                object.activeHandle = handle.id;
+                event.activeHandle = handle.id;
             }
         });
 
         this.trigger('export', {
             message: 'transform-object',
+            activeHandle: event.activeHandle,
             object: object
         });
     },

@@ -9,31 +9,20 @@ module.exports = View.extend({
     initialize: function(options) {
         this._parentElement = options.parentElement;
     },
-    bindings: {
-        'model.id': {
-            type: 'attribute',
-            name: 'id'
-        },
-        'model.attr.fill': {
-            type: 'attribute',
-            name: 'fill'
-        },
-        'model.attr.stroke': {
-            type: 'attribute',
-            name: 'stroke'
-        },
-        'model.attr.d': {
-            type: 'attribute',
-            name: 'd'
+    render: function(shape) {
+        if (!this.el) {
+            this.renderWithTemplate();
         }
-    },
-    addPoint: function(shape) {
-        var position = shape.attr.path[shape.attr.path.length - 1];
 
-        var array = this._element._array.value;
+        if (!shape) {
+            this.remove();
 
-        array.push(position);
+            return;
+        }
 
-        this._element.plot(array);
+        this.el.setAttribute('id', shape.id);
+        this.el.setAttribute('fill', shape.attr.fill);
+        this.el.setAttribute('stroke', shape.attr.stroke);
+        this.el.setAttribute('d', shape.attr.d);
     }
 });
