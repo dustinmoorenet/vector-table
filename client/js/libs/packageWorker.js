@@ -18,7 +18,7 @@ self.onmessage = function(event) {
 
         eventExport.listenTo(currentPackage, 'export', self.postMessage.bind(self));
     }
-    else {
+    else if (currentPackage) {
         currentPackage.trigger.call(currentPackage, data.message, data);
     }
 };

@@ -13,19 +13,15 @@ module.exports = View.extend({
     initialize: function() {
         this.listenTo(global.dataStore, 'app', this.render);
 
-        // global.packageWorker.addEventListener('message', function (event) {
-        //     if (event.data.message === 'package-control') {
-        //         if (event.data.control) {
-        //             event.data.control.boundModel = (global.dataStore.get('selection') || [])[0];
-        //
-        //             this.model.packageControl = new (this.model._children.packageControl)(event.data.control);
-        //
-        //             this.packageControl = this.renderSubview(new PackageControl({
-        //                 model: this.model.packageControl
-        //             }), '[data-hook="package-control"]');
-        //         }
-        //     }
-        // }.bind(this), false);
+        global.packageWorker.addEventListener('message', function (event) {
+            if (event.data.message === 'package-control') {
+                if (event.data.control) {
+                    this.packageControl = this.renderSubview(new PackageControl({
+                        packageControl: event.data.control
+                    }), '[data-hook="package-control"]');
+                }
+            }
+        }.bind(this), false);
 
         var app = global.dataStore.get('app');
 
@@ -37,15 +33,23 @@ module.exports = View.extend({
         this.renderWithTemplate();
 
         this.markSelected(app.currentPackage);
+
+        this.controlInit(app.currentPackage);
     },
-    controlInit: function() {
+    controlInit: function(currentPackage) {
+        if (!currentPackage || this.packageControl && this.packageControl.package === currentPackage) {
+            return;
+        }
+
         if (this.packageControl) {
             this.packageControl.remove();
         }
 
-        global.packageWorker.postMessage({
-            message: 'control-init'
-        });
+        if (currentPackage) {
+            global.packageWorker.postMessage({
+                message: 'control-init'
+            });
+        }
     },
     drawSquare: function() {
         this.setCurrentPackage('RectangleTool');

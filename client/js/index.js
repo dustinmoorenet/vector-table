@@ -28,94 +28,32 @@ global.dataStore.set(project.layerCollectionID, ['layer1', 'layer2', 'layer3']);
 
 global.dataStore.set('selection', []);
 
-global.dataStore.on('all', function() {
-    console.log('DATA EVENT', arguments);
-})
-
 global.dataStore.on('app', function(app, previousApp) {
-    if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
-        global.packageWorker.postMessage({
-            message: 'set-package',
-            packageName: app.currentPackage,
-        });
-    }
-})
-// global.app.on('change:mode', function(app, mode) {
 //     // Mark all items complete
 //     global.app.project.layers.forEach(function(layer) {
 //         layer.items.forEach(function(item) {
 //             item.complete = true;
 //         });
 //     });
-//
-//     global.packageWorker.postMessage({
-//         message: 'set-package',
-//         packageName: mode,
-//     });
-// });
-//
-// global.app.project.on('change:activeLayer', function(product, layerIndex) {
-//     var previousLayer = global.app.project.layers.at(global.app.project.previousAttributes.activeLayer);
-//
-//     if (previousLayer) {
-//         global.app.project.stopListening(previousLayer.items);
-//     }
-//
-//     var layer = global.app.project.layers.at(layerIndex);
-//
-//     if (layer) {
-//         global.app.project.listenTo(layer.items, 'change:selected', function(model, isSelected) {
-//             if (isSelected) {
-//                 global.app.selection.add(model);
-//             }
-//             else {
-//                 global.app.selection.remove(model);
-//             }
-//         });
-//     }
-// });
-//
-// global.app.selection.on('add remove', function(item, selection) {
-//     global.packageWorker.postMessage({
-//         message: 'selection',
-//         selection: selection.toJSON()
-//     });
-// });
-//
-// global.app.selection.on('reset', function(collection, options) {
-//     options.previousModels.forEach(function(item) {
-//         item.selected = false;
-//     });
-// });
-//
-// global.app.selection.on('add', function(item) {
-//     global.app.packageControl.boundModel = item;
-//
-//     global.packageWorker.postMessage({
-//         message: 'selected',
-//         object: item.toJSON()
-//     });
-// });
-//
-// global.app.selection.on('remove', function(item) {
-//     global.packageWorker.postMessage({
-//         message: 'unselected',
-//         object: item.toJSON()
-//     });
-// });
-//
-// global.app.project.activeLayer = 0;
 
-var table = new Table({modelID: app.projectID});
+    if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
+        global.packageWorker.postMessage({
+            message: 'set-package',
+            packageName: app.currentPackage,
+        });
+    }
+});
 
-body.appendChild(table.el);
+global.views = {};
 
-var controls = new Controls();
+global.views.table = new Table({modelID: app.projectID});
 
-body.appendChild(controls.el);
-//
-// global.app.table = table;
-//
+body.appendChild(global.views.table.el);
+
+global.views.controls = new Controls();
+
+body.appendChild(global.views.controls.el);
+
 // var modal = new (require('./views/PackageControl/Properties/FillModal'))({
 //     object: {id: 'foo', selection: [{attr: {fill: '#eee'}}]}
 //     });

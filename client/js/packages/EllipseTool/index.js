@@ -333,12 +333,12 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 properties: [
                     {
                         id: 'id',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {type: 'value', value: 'id'}
                     },
                     {
                         id: 'center x',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.cx',
                             onChange: 'set-value'
@@ -346,7 +346,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'center y',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.cy',
                             onChange: 'set-value'
@@ -354,7 +354,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'x radius',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.rx',
                             onChange: 'set-value'
@@ -362,7 +362,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'y radius',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.ry',
                             onChange: 'set-value'
@@ -370,7 +370,7 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'fill',
-                        type: 'fill',
+                        type: 'Fill',
                         binding: {
                             value: 'shapes[0].attr.fill',
                             onChange: 'set-fill'

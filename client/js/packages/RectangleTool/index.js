@@ -349,12 +349,12 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                 properties: [
                     {
                         id: 'id',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {type: 'value', value: 'id'}
                     },
                     {
                         id: 'x',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.x',
                             onChange: 'set-value'
@@ -362,7 +362,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'y',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.y',
                             onChange: 'set-value'
@@ -370,7 +370,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'width',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.width',
                             onChange: 'set-value'
@@ -378,7 +378,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'height',
-                        type: 'text-input',
+                        type: 'TextInput',
                         binding: {
                             value: 'shapes[0].attr.height',
                             onChange: 'set-value'
@@ -386,7 +386,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'fill',
-                        type: 'fill',
+                        type: 'Fill',
                         binding: {
                             value: 'shapes[0].attr.fill',
                             onChange: 'set-fill'
@@ -394,7 +394,7 @@ _.extend(RectangleTool.prototype, Package.prototype, {
                     },
                     {
                         id: 'double',
-                        type: 'button',
+                        type: 'Button',
                         binding: {
                             onClick: 'double-size'
                         }

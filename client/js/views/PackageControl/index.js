@@ -7,25 +7,47 @@ module.exports = View.extend({
     bindings: {
         'model.title': '[data-hook="title"]'
     },
-    render: function() {
+    initialize: function(options) {
+        this.packageControl = options.packageControl;
 
-        this.renderWithTemplate(this);
+        this.listenTo(global.dataStore, 'selection', this.selectionChanged);
 
-        this.properties = this.renderCollection(
-            this.model.properties,
-            function(options) {
-                switch (options.model.type) {
-                    case 'text-input':
-                        return new Properties.TextInput(options);
-                    case 'button':
-                        return new Properties.Button(options);
-                    case 'fill':
-                        return new Properties.Fill(options);
-                    default:
-                        throw new Error('type ' + options.model.type + ' does not have a defined view');
-                }
-            },
-            '[data-hook="properties"]'
-        );
+        this.selectionChanged(global.dataStore.get('selection'));
+    },
+    render: function(boundItem) {
+        if (!this.el) {
+            this.renderWithTemplate(this);
+
+            this.propertyViews = this.packageControl.properties.map(this.renderProperty, this);
+        }
+
+        this.propertyViews.forEach(function(view) {
+            view.render(boundItem);
+        });
+    },
+    renderProperty: function(property) {
+        var Property = Properties[property.type];
+
+        if (!Property) {
+            return;
+        }
+
+        return this.renderSubview(new Property({config: property}), '[data-hook="properties"]');
+    },
+    selectionChanged: function(selection, previous) {
+        if (this.boundItemId) {
+            this.stopListening(global.dataStore, this.boundItemId);
+        }
+
+        this.boundItemId = (selection || [])[0];
+
+        var boundItem;
+        if (this.boundItemId) {
+            this.listenTo(global.dataStore, this.boundItemId, this.render);
+
+            boundItem = global.dataStore.get(this.boundItemId);
+        }
+
+        this.render(boundItem);
     }
 });

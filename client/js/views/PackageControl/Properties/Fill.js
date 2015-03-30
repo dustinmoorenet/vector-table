@@ -4,23 +4,32 @@ var jsonQuery = global.jQ = require('json-query');
 
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/Fill.html', 'utf8'),
-    autoRender: true,
     events: {
         'change input': 'updateValue'
     },
-    bindings: {
-        'model.id': 'label'
+    initialize: function(options) {
+        this.config = options.config;
     },
-    initialize: function() {
-        this.listenToAndRun(global.app.packageControl, 'change:boundModel', this.boundModelChanged);
-    },
-    render: function() {
-        this.renderWithTemplate(this);
+    render: function(boundItem) {
+        if (!this.el) {
+            this.renderWithTemplate(this);
 
-        this.textInput = this.query('input');
+            this.textInput = this.query('input');
+
+            this.query('label').innerHTML = this.config.id;
+        }
+
+        if (boundItem) {
+            this.boundItemId = boundItem.id;
+
+            this.renderElement(boundItem);
+        }
+        else {
+            this.textInput.value = '';
+        }
     },
-    updateElement: function() {
-        var value = jsonQuery(this.model.binding.value, {data: this.boundModel.toJSON()}).value;
+    renderElement: function(boundItem) {
+        var value = jsonQuery(this.config.binding.value, {data: boundItem}).value;
 
         if (value === undefined) {
             return;
@@ -32,25 +41,14 @@ module.exports = View.extend({
         var value = this.textInput.value;
 
         var evt = {
-            message: this.model.binding.onChange,
+            message: this.config.binding.onChange,
             selection: [
-                this.boundModel.toJSON()
+                global.dataStore.get(this.boundItemId)
             ],
             value: value,
-            binding: this.model.binding
+            binding: this.config.binding
         };
 
         global.packageWorker.postMessage(evt);
-    },
-    boundModelChanged: function(packageControl, boundModel) {
-        if (this.boundModel) {
-            this.stopListening(this.boundModel);
-        }
-
-        this.boundModel = boundModel;
-
-        if (boundModel) {
-            this.listenToAndRun(boundModel, 'change', this.updateElement);
-        }
     }
 });

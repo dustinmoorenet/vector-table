@@ -3,35 +3,34 @@ var View = require('../../view');
 
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/Button.html', 'utf8'),
-    autoRender: true,
     events: {
         'click button': 'onClick'
     },
-    initialize: function() {
-        this.listenToAndRun(global.app.packageControl, 'change:boundModel', this.boundModelChanged);
+    initialize: function(options) {
+        this.config = options.config
     },
-    bindings: {
-        'model.id': {
-            type: 'text',
-            selector: 'button'
+    render: function(boundItem) {
+        if (!this.el) {
+            this.renderWithTemplate(this);
+
+            this.button = this.query('button');
+
+            this.button.innerHTML = this.config.id;
+        }
+
+        if (boundItem) {
+            this.boundItemId = boundItem.id;
         }
     },
     onClick: function() {
         var evt = {
-            message: this.model.binding.onClick,
+            message: this.config.binding.onClick,
             selection: [
-                this.boundModel.toJSON()
+                global.dataStore.get(this.boundItemId)
             ],
-            binding: this.model.binding
+            binding: this.config.binding
         };
 
         global.packageWorker.postMessage(evt);
-    },
-    boundModelChanged: function(packageControl, boundModel) {
-        if (this.boundModel) {
-            this.stopListening(this.boundModel);
-        }
-
-        this.boundModel = boundModel;
     }
 });
