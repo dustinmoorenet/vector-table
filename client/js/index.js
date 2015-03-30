@@ -1,4 +1,3 @@
-var App = require('./state/app');
 var Table = require('./views/table');
 var Controls = require('./views/controls');
 global.packageWorker = new Worker('./libs/packageWorker.js');
