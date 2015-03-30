@@ -4,9 +4,6 @@ var Properties = require('./Properties');
 
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
-    bindings: {
-        'model.title': '[data-hook="title"]'
-    },
     initialize: function(options) {
         this.packageControl = options.packageControl;
 
@@ -19,7 +16,11 @@ module.exports = View.extend({
             this.renderWithTemplate(this);
 
             this.propertyViews = this.packageControl.properties.map(this.renderProperty, this);
+
+            this.title = this.query('[data-hook="title"]');
         }
+
+        this.title.innerHTML = this.packageControl.title;
 
         this.propertyViews.forEach(function(view) {
             view.render(boundItem);
