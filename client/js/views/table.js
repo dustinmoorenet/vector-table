@@ -1,4 +1,3 @@
-var Collection = require('ampersand-collection');
 var _ = require('lodash');
 var View = require('./view');
 var Layer = require('./layer');
