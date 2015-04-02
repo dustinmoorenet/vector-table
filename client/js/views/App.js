@@ -7,9 +7,9 @@ var AppToolbar = require('./AppToolbar');
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/App.html', 'utf8'),
     initialize: function(options) {
-        this.listenTo(global.dataStore, 'app', this.render);
+        this.listenTo(global.appStore, 'app', this.render);
 
-        this.render(global.dataStore.get('app'));
+        this.render(global.appStore.get('app'));
     },
     render: function(app) {
         if (!this.el) {
@@ -20,6 +20,8 @@ module.exports = View.extend({
             this.views.appToolbar = new AppToolbar({
                 el: this.el.querySelector('.app-toolbar')
             });
+
+            this.views.appToolbar.render(app);
 
             this.registerSubview(this.views.appToolbar);
 

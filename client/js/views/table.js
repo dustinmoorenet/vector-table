@@ -134,9 +134,7 @@ module.exports = View.extend({
 
             this.activeSelection = item.id;
 
-            evt.selection = [item]
-
-            global.dataStore.set('selection', [item.id]);
+            evt.selection = [item];
         }
 
         global.packageWorker.postMessage(evt);
@@ -183,8 +181,6 @@ module.exports = View.extend({
             return;
         }
 
-        global.dataStore.set(item.id, item);
-
         delete this.activeSelection;
         delete this.activeHandle;
 
@@ -203,17 +199,18 @@ module.exports = View.extend({
         item.id = _.uniqueId('item-');
 
         var selection = [item.id];
+        var params = {recordHistory: !this.activeSelection};
 
-        global.dataStore.set(item.id, item);
+        global.dataStore.set(item.id, item, params);
 
-        global.dataStore.set('selection', selection);
+        global.dataStore.set('selection', selection, params);
 
-        var activeLayerId = global.dataStore.get('app').activeLayerId;
+        var activeLayerId = global.appStore.get('app').activeLayerId;
         var layer = global.dataStore.get(activeLayerId);
 
         layer.itemIds.push(item.id);
 
-        global.dataStore.set(layer.id, layer);
+        global.dataStore.set(layer.id, layer, params);
 
         this.activeSelection = item.id;
 
@@ -223,28 +220,31 @@ module.exports = View.extend({
     },
     transform: function(event) {
         var item = event.object;
+        var params = {recordHistory: !this.activeSelection};
 
         if (event.activeHandle) {
             this.activeHandle = event.activeHandle;
         }
 
-        global.dataStore.set(item.id, item);
+        global.dataStore.set(item.id, item, params);
     },
     update: function(event) {
         var item = event.object;
+        var params = {recordHistory: !this.activeSelection};
 
         if (event.activeHandle) {
             this.activeHandle = event.activeHandle;
         }
 
-        global.dataStore.set(item.id, item);
+        global.dataStore.set(item.id, item, params);
     },
     complete: function(event) {
         var item = event.object;
+        var params = {recordHistory: !this.activeSelection};
 
         item.complete = true;
 
-        global.dataStore.set(item.id, item);
+        global.dataStore.set(item.id, item, params);
     },
     findHandle: function(node) {
         while (true) {

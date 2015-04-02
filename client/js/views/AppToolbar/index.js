@@ -3,10 +3,12 @@ var View = require('../view');
 
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
+    events: {
+        'click .undo': 'undo',
+        'click .redo': 'redo'
+    },
     initialize: function(options) {
-        this.listenTo(global.dataStore, 'app', this.render);
-
-        this.render(global.dataStore.get('app'));
+        this.listenTo(global.appStore, 'app', this.render);
     },
     render: function(app) {
         if (!this.built) {
@@ -14,5 +16,11 @@ module.exports = View.extend({
         }
 
         this.built = true;
+    },
+    undo: function() {
+        global.dataStore.undo();
+    },
+    redo: function() {
+        global.dataStore.redo();
     }
 });

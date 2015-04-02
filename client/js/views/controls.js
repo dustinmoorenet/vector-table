@@ -11,7 +11,7 @@ module.exports = View.extend({
         'click [data-hook="PolygonTool"]': 'drawPolygon'
     },
     initialize: function() {
-        this.listenTo(global.dataStore, 'app', this.render);
+        this.listenTo(global.appStore, 'app', this.render);
 
         global.packageWorker.addEventListener('message', function (event) {
             if (event.data.message === 'package-control') {
@@ -59,11 +59,11 @@ module.exports = View.extend({
         this.setCurrentPackage('PolygonTool');
     },
     setCurrentPackage: function(currentPackage) {
-        var app = global.dataStore.get('app');
+        var app = global.appStore.get('app');
 
         app.currentPackage = currentPackage;
 
-        global.dataStore.set('app', app);
+        global.appStore.set('app', app);
     },
     markSelected: function(currentPackage) {
         _.forEach(this.el.querySelectorAll('button'), function(element) {

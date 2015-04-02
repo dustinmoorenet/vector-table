@@ -1,9 +1,11 @@
 var App = require('./views/App');
+var DataStore = require('./libs/DataStore');
 
 global.packageWorker = new Worker('./libs/packageWorker.js');
-global.dataStore = new (require('./libs/DataStore'))();
+global.dataStore = new DataStore();
+global.appStore = new DataStore();
 
-var app = global.dataStore.set('app', {
+var app = global.appStore.set('app', {
     projectId: 'project1',
     currentPackage: 'RectangleTool',
     activeLayerId: 'layer1'
@@ -25,7 +27,7 @@ global.dataStore.set(project.layerCollectionID, ['layer1', 'layer2', 'layer3']);
 
 global.dataStore.set('selection', []);
 
-global.dataStore.on('app', function(app, previousApp) {
+global.appStore.on('app', function(app, previousApp) {
 //     // Mark all items complete
 //     global.app.project.layers.forEach(function(layer) {
 //         layer.items.forEach(function(item) {
