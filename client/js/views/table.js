@@ -248,7 +248,11 @@ module.exports = View.extend({
     },
     complete: function(event) {
         var item = event.object;
-        var params = {recordHistory: !this.activeSelection};
+
+        delete this.activeSelection;
+        delete this.activeHandle;
+
+        var params = {recordHistory: true};
 
         item.complete = true;
 

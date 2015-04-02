@@ -59,18 +59,21 @@ _.extend(PolygonTool.prototype, Package.prototype, {
             };
         }
         else {
+            var message;
+
             if (event.activeHandle) {
                 object.shapes[0].attr.d += ' Z';
-                object.complete = true;
                 object.shapes[0].attr.fill = 'blue';
+                message = 'complete-object';
             }
             else {
                 object.shapes[0].attr.d += ' L' + event.x + ',' + event.y;
                 object.handles.push(handle);
+                message = 'transform-object';
             }
 
             exportEvent = {
-                message: 'transform-object',
+                message: message,
                 object: object
             };
         }
