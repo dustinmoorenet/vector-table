@@ -1,16 +1,10 @@
 .table {
-    position: absolute;
-    background: white;
-    height: 100%;
-    width: 100%;
+    background: green;
 
     [data-hook="area"] {
-        height: 100%;
-        width: 100%;
     }
 
     svg {
-        position: absolute;
     }
 
     .background {

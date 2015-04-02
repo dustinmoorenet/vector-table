@@ -4,6 +4,11 @@ $text-color: rgba(170,170,170,1);
 $button-background: rgba(240,240,240,1);
 $button-background-selected: rgba(200,200,200,1);
 
+html, body {
+    overflow: hidden;
+    height: 100%;
+}
+
 body {
     background: $background-level-1;
     color: $text-color;

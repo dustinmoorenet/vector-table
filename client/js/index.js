@@ -1,17 +1,15 @@
-var Table = require('./views/table');
-var Controls = require('./views/controls');
+var App = require('./views/App');
+
 global.packageWorker = new Worker('./libs/packageWorker.js');
 global.dataStore = new (require('./libs/DataStore'))();
 
-var body = document.querySelector('body');
-
 var app = global.dataStore.set('app', {
-    projectID: 'project1',
+    projectId: 'project1',
     currentPackage: 'RectangleTool',
     activeLayerId: 'layer1'
 });
 
-var project = global.dataStore.set(app.projectID, {
+var project = global.dataStore.set(app.projectId, {
     layerCollectionID: 'layers1'
 })
 
@@ -43,15 +41,13 @@ global.dataStore.on('app', function(app, previousApp) {
     }
 });
 
-global.views = {};
 
-global.views.table = new Table({modelID: app.projectID});
 
-body.appendChild(global.views.table.el);
+var body = document.querySelector('body');
 
-global.views.controls = new Controls();
+global.app = new App();
 
-body.appendChild(global.views.controls.el);
+body.appendChild(global.app.el);
 
 // var modal = new (require('./views/PackageControl/Properties/FillModal'))({
 //     object: {id: 'foo', selection: [{attr: {fill: '#eee'}}]}

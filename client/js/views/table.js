@@ -2,11 +2,10 @@ var _ = require('lodash');
 var View = require('./view');
 var Layer = require('./layer');
 var fs = require('fs');
-var html = fs.readFileSync(__dirname + '/table.html', 'utf8');
 var SVG = require('../libs/svg');
 
 module.exports = View.extend({
-    template: html,
+    template: fs.readFileSync(__dirname + '/table.html', 'utf8'),
     events: function() {
         var isTouchDevice = 'ontouchstart' in document.documentElement;
 
@@ -45,13 +44,9 @@ module.exports = View.extend({
             }
         }.bind(this), false);
 
-        this.listenTo(global.dataStore, options.modelID, this.render);
+        this.listenTo(global.dataStore, options.projectId, this.render);
 
-        var project = global.dataStore.get(options.modelID);
-
-        if (project) {
-            this.render(project);
-        }
+        window.addEventListener('resize', this.resize.bind(this));
     },
     render: function(project) {
         if (!project) {
@@ -60,19 +55,21 @@ module.exports = View.extend({
             return;
         }
 
-        this.renderWithTemplate(this);
+        if (!this.built) {
+            this.renderWithTemplate();
 
-        this.svg = SVG(this.queryByHook('area'));
+            this.svg = SVG(this.queryByHook('area'));
 
-        this.background = this.svg.rect('100%', '100%').attr('class', 'background');
+            this.background = this.svg.rect('100%', '100%').attr('class', 'background');
 
-        this.listenTo(global.dataStore, project.layerCollectionID, this.addLayers);
+            this.listenTo(global.dataStore, project.layerCollectionID, this.addLayers);
 
-        return this;
+            setTimeout(this.resize.bind(this));
+        }
+
+        this.built = true;
     },
     addLayers: function(layerIds) {
-        this.svg.clear();
-
         layerIds.forEach(function(layerId) {
             var layerView = this.layerViewsById[layerId];
 
@@ -88,6 +85,9 @@ module.exports = View.extend({
 
             this.svg.node.appendChild(layerView.el);
         }, this);
+    },
+    resize: function() {
+        this.svg.size(this.el.offsetWidth, this.el.offsetHeight);
     },
     pointerStart: function(event) {
         this.activeSelection = [];

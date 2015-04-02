@@ -22,19 +22,17 @@ module.exports = View.extend({
                 }
             }
         }.bind(this), false);
-
-        var app = global.dataStore.get('app');
-
-        if (app) {
-            this.render(app);
-        }
     },
     render: function(app) {
-        this.renderWithTemplate();
+        if (!this.built) {
+            this.renderWithTemplate();
+        }
 
         this.markSelected(app.currentPackage);
 
         this.controlInit(app.currentPackage);
+
+        this.built = true;
     },
     controlInit: function(currentPackage) {
         if (!currentPackage || this.packageControl && this.packageControl.package === currentPackage) {
