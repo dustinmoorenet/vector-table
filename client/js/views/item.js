@@ -27,15 +27,15 @@ module.exports = View.extend({
         this.handleViewsById = {};
 
         this.listenTo(global.dataStore, this.itemId, this.render);
-
-        var item = global.dataStore.get(this.itemId);
-
-        if (item) {
-            this.render(item);
-        }
     },
     render: function(item) {
-        if (!this.el) {
+        if (!item) {
+            this.remove();
+
+            return;
+        }
+
+        if (!this.built) {
             this.renderWithTemplate(this);
         }
 
@@ -56,7 +56,7 @@ module.exports = View.extend({
 
         this.el.setAttribute('data-mode', item.mode);
 
-        return this;
+        this.built = true;
     },
     renderShapes: function(shapes) {
         shapes.forEach(this.renderShape, this);

@@ -14,12 +14,6 @@ module.exports = View.extend({
         this.itemViewsById = {};
 
         this.listenTo(global.dataStore, this.layerId, this.render);
-
-        var layer = global.dataStore.get(this.layerId);
-
-        if (layer) {
-            this.render(layer);
-        }
     },
     render: function(layer) {
         if (!layer) {
@@ -28,15 +22,27 @@ module.exports = View.extend({
             return;
         }
 
-        this.renderWithTemplate(this);
+        if (!this.built) {
+            this.renderWithTemplate();
+        }
 
         this.renderItems(layer.itemIds);
+
+        this.built = true;
     },
     renderItems: function(itemIds) {
         itemIds.forEach(function(itemId) {
+            var item = global.dataStore.get(itemId);
+
+            if (!item) {
+                delete this.itemViewsById[itemId];
+
+                return;
+            }
+
             var itemView = this.itemViewsById[itemId];
 
-            if (!this.itemViewsById[itemId]) {
+            if (!itemView) {
                 itemView = new Item({
                     itemId: itemId,
                     parent: this,
@@ -44,9 +50,9 @@ module.exports = View.extend({
                 });
 
                 this.itemViewsById[itemId] = itemView;
-            }
 
-            this._element.node.appendChild(itemView.el);
+                itemView.render(item);
+            }
         }, this);
     }
 });

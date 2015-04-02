@@ -71,6 +71,14 @@ module.exports = View.extend({
     },
     addLayers: function(layerIds) {
         layerIds.forEach(function(layerId) {
+            var layer = global.dataStore.get(layerId);
+
+            if (!layer) {
+                delete this.layerViewsById;
+
+                return;
+            }
+
             var layerView = this.layerViewsById[layerId];
 
             if (!layerView) {
@@ -81,9 +89,9 @@ module.exports = View.extend({
                 });
 
                 this.layerViewsById[layerId] = layerView;
-            }
 
-            this.svg.node.appendChild(layerView.el);
+                layerView.render(layer);
+            }
         }, this);
     },
     resize: function() {
