@@ -1,5 +1,6 @@
 var View = require('./view');
 var Item = require('./item');
+var _ = require('lodash');
 
 module.exports = View.extend({
     template: function(context) {
@@ -31,28 +32,31 @@ module.exports = View.extend({
         this.built = true;
     },
     renderItems: function(itemIds) {
+        var itemViewsById = {};
+
         itemIds.forEach(function(itemId) {
             var item = global.dataStore.get(itemId);
-
-            if (!item) {
-                delete this.itemViewsById[itemId];
-
-                return;
-            }
-
             var itemView = this.itemViewsById[itemId];
 
-            if (!itemView) {
+            delete this.itemViewsById[itemId];
+
+            if (item && !itemView) {
                 itemView = new Item({
                     itemId: itemId,
                     parent: this,
                     parentElement: this._element
                 });
 
-                this.itemViewsById[itemId] = itemView;
+                itemViewsById[itemId] = itemView;
 
                 itemView.render(item);
             }
         }, this);
+
+        _.forEach(this.itemViewsById, function(view) {
+            view.remove();
+        });
+
+        this.itemViewsById = itemViewsById;
     }
 });
