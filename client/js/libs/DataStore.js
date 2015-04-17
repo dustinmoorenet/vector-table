@@ -10,6 +10,12 @@ function DataStore() {
 
 _.extend(DataStore.prototype, Events, {
     MAX_HISTORY: 5,
+    restore: function(data) {
+        this.history = [data];
+        this.currentStore = _.deepClone(this.history[0]);
+        this.cursor = 0;
+        this.notifyList = [];
+    },
     get: function(id) {
         // FIXME deepClone on every get() is not fast
         // reason to do this because changes to the object from the currentStore

@@ -6,11 +6,6 @@ var AppToolbar = require('./AppToolbar');
 
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/App.html', 'utf8'),
-    initialize: function(options) {
-        this.listenTo(global.appStore, 'app', this.render);
-
-        this.render(global.appStore.get('app'));
-    },
     render: function(app) {
         if (!this.el) {
             this.renderWithTemplate(this);
@@ -44,6 +39,9 @@ module.exports = View.extend({
             this.views.table.render(project);
 
             this.registerSubview(this.views.table);
+            console.log('all the way here', this.parent);
+
+            this.parent.appendChild(this.el);
         }
     }
 });

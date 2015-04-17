@@ -1,11 +1,29 @@
-var static = require('node-static');
+var express = require('express');
+var bodyParser = require('body-parser');
+var _ = require('lodash');
 
-var fileServer = new static.Server('./client');
+var app = express();
+app.use(express.static('client'));
+app.use(bodyParser.json());
 
-require('http').createServer(function (request, response) {
-    request.addListener('end', function () {
-        fileServer.serve(request, response);
-    }).resume();
-}).listen(8077);
+var backup = {};
+app.post('/data', function(req, res) {
+    console.log('what did we get', req.body);
 
-console.log('listening on port 8077');
+    _.extend(backup, req.body || {});
+
+    res.json(req.body);
+});
+
+app.get('/data', function(req, res) {
+    res.json(backup);
+});
+
+var server = app.listen(8077, function () {
+
+    var host = server.address().address;
+    var port = server.address().port;
+
+    console.log('Backup listening at http://%s:%s', host, port);
+
+});
