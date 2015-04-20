@@ -5,7 +5,7 @@ function ProjectStore() {
 
 }
 
-_.extends(ProjectStore.prototype, {
+_.extend(ProjectStore.prototype, {
     query: function(filter) {
 
     },

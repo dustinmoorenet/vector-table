@@ -39,7 +39,6 @@ module.exports = View.extend({
             this.views.table.render(project);
 
             this.registerSubview(this.views.table);
-            console.log('all the way here', this.parent);
 
             this.parent.appendChild(this.el);
         }
