@@ -7,7 +7,6 @@ var DataStore = require('../libs/DataStore');
 var Backup = require('../libs/Backup');
 
 function App() {
-
     global.packageWorker = new Worker('../../libs/packageWorker.js');
     global.dataStore = new DataStore();
     global.appStore = new DataStore();

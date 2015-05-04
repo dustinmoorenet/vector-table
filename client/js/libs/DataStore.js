@@ -8,6 +8,23 @@ function DataStore() {
     this.notifyList = [];
 }
 
+/*
+Keep a hash for every history point
+
+On backup saves, save that history hash to the project
+
+All users connected to the project ping master with their current hash
+
+If the hash is different than master, a delta of changes is pass to the client
+the master keeps n number of history points, so a delta can only be created when
+the remotes user's hash is in the history. If a delta can not be created then
+the user must refresh the entire project
+
+During normal changes, the hash is passed with each update to the remote client
+and the client pings will be the same as the master so no delta will be needed.
+
+*/
+
 _.extend(DataStore.prototype, Events, {
     MAX_HISTORY: 5,
     restore: function(data) {

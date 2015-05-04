@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var Events = require('ampersand-events');
-var ProjectStore = require('../libs/ProjectStore');
-var LoginModal = require('../views/LoginModal');
+var uuid = require('node-uuid');
+var Project = require('./Project');
 
 /*
 Empty app loads
@@ -63,6 +63,20 @@ function User() {
 }
 
 _.extend(User.prototype, Events, {
+    createGuest: function() {
+        var user = {
+            id: uuid.v4()
+        };
+
+        window.localStorage.setItem('user', JSON.stringify(user));
+
+        global.appStore.set('user', user);
+    },
+    requestLink: function(email) {
+        // Make a request to the server
+
+        // Post notice to app saying: Check your email
+    },
     create: function() {
         // NO username or password, just an auth link they use to access the app
         // The session should never expire, but all session should be listed for
@@ -76,20 +90,18 @@ _.extend(User.prototype, Events, {
 
     },
     onUser: function(user) {
+        console.log('on user');
         if (!user) {
             window.location.href = '/logout';
 
             return;
         }
 
-        this.userID = user.id;
+        if (!this.userID) {
+            this.userID = user.id;
 
-        this.projectStore = new ProjectStore();
-    },
-    showLogin: function() {
-        var modal = new LoginModal();
-        modal.render();
-        body.appendChild(modal.el);
+            this.projectStore = new Project();
+        }
     }
 });
 

@@ -1,9 +1,12 @@
 var _ = require('lodash');
+var when = require('when');
 var ajax = require('./Ajax');
 
-function Backup(store) {
+function Backup(store, hasRemoteBackup) {
     this.store = store;
     this.sendBuffer = {};
+    this.hasRemoteBackup = hasRemoteBackup;
+    this.host = 'http://localhost:8077';
 
     store.on('all', this.registerSend.bind(this));
 }
@@ -25,22 +28,42 @@ _.extend(Backup.prototype, {
 
             if (data) {
                 allData[id] = data;
+
+                window.localStorage.setItem(id, JSON.stringify(data));
             }
         }, this);
 
 console.log('about to send', allData);
-        ajax.post({
-            uri: 'http://localhost:8077/data',
-            json: allData
-        });
+        if (this.hasRemoteBackup) {
+            ajax.post({
+                uri: this.host + '/data',
+                json: allData
+            });
+        }
 
         delete this.sendTimeout;
         this.sendBuffer = {};
     },
-    restore: function() {
-        ajax.get('/data').then(function(data) {
-            this.store.restore(data);
+    get: function(id) {
+        if (!id) {
+            throw new Error('ID required to get anything (I dont know what you want)');
+        }
+
+        var data = window.localStorage.getItem(id);
+        var promise = when.resolve(data);
+
+        if (this.hasRemoteBackup) {
+            promise = ajax.get({url: this.host + '/data/' + id})
+                .tap(function(data) {
+                    window.localStorage.setItem(id, data);
+                });
+        }
+
+        promise = promise.then(function(data) {
+            return data && JSON.parse(data);
         });
+
+        return promise;
     }
 });
 

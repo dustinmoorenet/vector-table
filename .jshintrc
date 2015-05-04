@@ -11,6 +11,6 @@
         "beforeEach",
         "afterEach",
         "it",
-        "xit",
+        "xit"
     ]
 }

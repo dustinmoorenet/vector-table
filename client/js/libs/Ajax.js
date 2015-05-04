@@ -1,3 +1,4 @@
 var request = require('request');
+var nodefn = require('when/node');
 
-module.exports = request;
+module.exports = nodefn.liftAll(request);

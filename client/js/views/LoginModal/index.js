@@ -15,9 +15,11 @@ module.exports = Modal.extend({
         }
     },
     loadGuest: function() {
-        global.appStore.set('user', {});
+        global.app.user.createGuest();
     },
     requestLink: function() {
-        
+        var email = this.query('.request-link').value;
+
+        global.app.user.requestLink(email);
     }
 });
