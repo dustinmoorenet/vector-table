@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var Events = require('ampersand-events');
-var AppView = require('../views/App');
+var AppView = require('../views/AppView');
 var LoginModal = require('../views/LoginModal');
 var User = require('./User');
 var DataStore = require('../libs/DataStore');
@@ -53,7 +53,7 @@ function App() {
 _.extend(App.prototype, Events, {
     onApp: function(app) {
         if (!this.appView) {
-            this.appView = new AppView({parent: document.querySelector('body')});
+            this.appView = new AppView({el: document.querySelector('.app-view')});
         }
 
         this.appView.render(app);

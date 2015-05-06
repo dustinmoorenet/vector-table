@@ -1,23 +1,25 @@
 var fs = require('fs');
-var View = require('./view');
-var AppMenu = require('./AppMenu');
-var ProjectView = require('./ProjectView');
+var View = require('../View');
+var AppMenu = require('../AppMenu');
+var ProjectView = require('../ProjectView');
 
 module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/App.html', 'utf8'),
+    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
     initialize: function() {
         this.listenTo(global.appStore, 'app', this.render);
     },
     render: function(app) {
-        if (!this.el) {
+        if (!this.built) {
             this.renderWithTemplate();
 
             this.appMenu = new AppMenu({el: this.el.querySelector('.app-menu')});
 
             this.registerSubview(this.appMenu);
+
+            this.built = true;
         }
 
-        if (this.projectView.projectID !== app.projectID) {
+        if (app && app.projectID && (!this.projectView || this.projectView.projectID !== app.projectID)) {
             if (this.projectView) {
                 this.projectView.remove();
             }

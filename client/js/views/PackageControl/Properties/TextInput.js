@@ -1,5 +1,5 @@
 var fs = require('fs');
-var View = require('../../view');
+var View = require('../../View');
 var jsonQuery = global.jQ = require('json-query');
 
 module.exports = View.extend({

@@ -1,22 +1,28 @@
 var fs = require('fs');
-var View = require('./view');
-var ProjectToolbar = require('./ProjectToolbar');
-var Controls = require('./controls');
-var Table = require('./table');
+var View = require('../View');
+var ProjectToolbar = require('../ProjectToolbar');
+var Controls = require('../Controls');
+var Table = require('../table');
 
 module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/ProjectView.html', 'utf8'),
+    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
     initialize: function(options) {
         this.projectID = options.projectID;
 
         this.listenTo(global.dataStore, this.projectID, this.render);
+
+        var project = global.dataStore.get(this.projectID);
+
+        if (project) {
+            this.render(project);
+        }
     },
     render: function(project) {
         if (!project) {
             this.remove();
         }
 
-        if (!this.el) {
+        if (!this.built) {
             this.renderWithTemplate();
 
             this.views = {};
@@ -45,6 +51,8 @@ module.exports = View.extend({
             this.registerSubview(this.views.table);
 
             // this.parent.appendChild(this.el);
+
+            this.built = true;
         }
     }
 });

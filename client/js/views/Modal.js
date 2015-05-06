@@ -1,4 +1,4 @@
-var View = require('./view');
+var View = require('./View');
 var fs = require('fs');
 var modalStack = [];
 

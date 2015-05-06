@@ -1,5 +1,5 @@
 var fs = require('fs');
-var View = require('../view');
+var View = require('../View');
 var Properties = require('./Properties');
 
 module.exports = View.extend({

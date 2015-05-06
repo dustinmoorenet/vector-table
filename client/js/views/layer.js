@@ -1,4 +1,4 @@
-var View = require('./view');
+var View = require('./View');
 var Item = require('./item');
 var _ = require('lodash');
 

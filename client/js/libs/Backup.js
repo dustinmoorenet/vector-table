@@ -60,7 +60,12 @@ console.log('about to send', allData);
         }
 
         promise = promise.then(function(data) {
-            return data && JSON.parse(data);
+            console.log('here we are with data', data);
+            if (!data) {
+                throw new Error('Data not found with ID:' + id);
+            }
+
+            return JSON.parse(data);
         });
 
         return promise;

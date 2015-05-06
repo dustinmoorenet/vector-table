@@ -13,7 +13,7 @@ function Project() {
             else {
                 this.new();
             }
-        });
+        }.bind(this));
 
     // if projects
     //   project list modal
@@ -21,7 +21,6 @@ function Project() {
     //   setup new project
     //   load project
 
-    this.listenTo(global.appStore, 'project', this.onProject);
 }
 
 _.extend(Project.prototype, Events, {
@@ -37,6 +36,9 @@ _.extend(Project.prototype, Events, {
     },
     open: function(projectID) {
 
+        global.appStore('projectID', projectID);
+        global.dataStore(projectID, {id: projectID});
+
     },
     close: function() {
 
@@ -46,19 +48,13 @@ _.extend(Project.prototype, Events, {
     },
     new: function() {
         var projectID = uuid.v4();
-    },
-    onProject: function(project, oldProject) {
-        oldProject = oldProject || {};
 
-        if (!project) {
-            this.projectView.remove();
+        var app = global.appStore.get('app');
 
-            return;
-        }
+        app.projectID = projectID;
 
-        if (project.id !== oldProject.id) {
-            this.projectView = new ProjectView(project.id);
-        }
+        global.appStore.set('app', app);
+        global.dataStore.set(projectID, {id: projectID});
     }
 });
 

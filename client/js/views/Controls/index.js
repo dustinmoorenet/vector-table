@@ -1,10 +1,10 @@
-var View = require('./view');
+var View = require('../View');
 var fs = require('fs');
 var _ = require('lodash');
-var PackageControl = require('./PackageControl');
+var PackageControl = require('../PackageControl');
 
 module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/controls.html', 'utf8'),
+    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
     events: {
         'click [data-hook="RectangleTool"]': 'drawSquare',
         'click [data-hook="EllipseTool"]': 'drawCircle',
@@ -22,6 +22,10 @@ module.exports = View.extend({
                 }
             }
         }.bind(this), false);
+
+        var app = global.appStore.get('app');
+
+        this.render(app);
     },
     render: function(app) {
         if (!this.built) {

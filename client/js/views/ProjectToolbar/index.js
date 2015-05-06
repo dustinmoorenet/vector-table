@@ -1,29 +1,23 @@
 var fs = require('fs');
-var View = require('../view');
+var View = require('../View');
 
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
     events: {
-        'click .new': 'new',
-        'click .open': 'open',
         'click .undo': 'undo',
         'click .redo': 'redo'
     },
     initialize: function(options) {
-        this.listenTo(global.appStore, 'app', this.render);
+        this.projectID = options.projectID;
+
+        this.render();
     },
-    render: function(app) {
+    render: function() {
         if (!this.built) {
             this.renderWithTemplate(this);
         }
 
         this.built = true;
-    },
-    new: function() {
-        global.account.projectStore.new();
-    },
-    open: function() {
-        // Open ProjectModal
     },
     undo: function() {
         global.dataStore.undo();

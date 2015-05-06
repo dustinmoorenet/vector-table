@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var View = require('./view');
+var View = require('./View');
 var Layer = require('./layer');
 var fs = require('fs');
 var SVG = require('../libs/svg');
@@ -44,11 +44,12 @@ module.exports = View.extend({
             }
         }.bind(this), false);
 
-        this.listenTo(global.dataStore, options.projectId, this.render);
+        this.listenTo(global.dataStore, options.projectID, this.render);
 
         window.addEventListener('resize', this.resize.bind(this));
     },
     render: function(project) {
+        console.log('table render', project);
         if (!project) {
             this.remove();
 

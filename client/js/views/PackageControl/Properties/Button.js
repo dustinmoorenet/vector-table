@@ -1,5 +1,5 @@
 var fs = require('fs');
-var View = require('../../view');
+var View = require('../../View');
 
 module.exports = View.extend({
     template: fs.readFileSync(__dirname + '/Button.html', 'utf8'),

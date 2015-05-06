@@ -71,6 +71,12 @@ _.extend(User.prototype, Events, {
         window.localStorage.setItem('user', JSON.stringify(user));
 
         global.appStore.set('user', user);
+
+        var app = global.appStore.get('app');
+
+        app.userID = user.id;
+
+        global.appStore.set('app', app);
     },
     requestLink: function(email) {
         // Make a request to the server
