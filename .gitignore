@@ -1,4 +1,5 @@
 node_modules
+npm-debug.log
 client/app.bundle.js
 client/css
 client/fonts
