@@ -49,11 +49,16 @@ _.extend(Project.prototype, Events, {
     new: function() {
         var projectID = uuid.v4();
 
+        var layerID = uuid.v4();
+        global.dataStore.set('layers', [layerID]);
+        global.dataStore.set(layerID, {id: layerID, visible: true, itemIDs: []});
+
         var app = global.appStore.get('app');
 
         app.projectID = projectID;
-
+        app.activeLayerID = layerID;
         global.appStore.set('app', app);
+
         global.dataStore.set(projectID, {id: projectID});
     }
 });

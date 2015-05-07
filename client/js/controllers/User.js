@@ -96,7 +96,6 @@ _.extend(User.prototype, Events, {
 
     },
     onUser: function(user) {
-        console.log('on user');
         if (!user) {
             window.location.href = '/logout';
 

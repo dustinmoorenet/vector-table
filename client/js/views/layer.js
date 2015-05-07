@@ -25,16 +25,16 @@ module.exports = View.extend({
 
         if (!this.built) {
             this.renderWithTemplate();
+
+            this.built = true;
         }
 
-        this.renderItems(layer.itemIds);
-
-        this.built = true;
+        this.renderItems(layer.itemIDs);
     },
-    renderItems: function(itemIds) {
+    renderItems: function(itemIDs) {
         var itemViewsById = {};
 
-        itemIds.forEach(function(itemId) {
+        itemIDs.forEach(function(itemId) {
             var item = global.dataStore.get(itemId);
             var itemView = this.itemViewsById[itemId];
 

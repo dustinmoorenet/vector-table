@@ -33,7 +33,6 @@ _.extend(Backup.prototype, {
             }
         }, this);
 
-console.log('about to send', allData);
         if (this.hasRemoteBackup) {
             ajax.post({
                 uri: this.host + '/data',
@@ -60,7 +59,6 @@ console.log('about to send', allData);
         }
 
         promise = promise.then(function(data) {
-            console.log('here we are with data', data);
             if (!data) {
                 throw new Error('Data not found with ID:' + id);
             }

@@ -25,7 +25,11 @@ module.exports = View.extend({
 
         var app = global.appStore.get('app');
 
-        this.render(app);
+        if (!app.currentPackage) {
+            app.currentPackage = 'RectangleTool';
+        }
+
+        global.appStore.set('app', app);
     },
     render: function(app) {
         if (!this.built) {

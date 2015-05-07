@@ -8,7 +8,6 @@ module.exports = Modal.extend({
         'click .request-link': 'requestLink'
     },
     render: function() {
-        console.log('render this login modal');
         if (!this.el) {
             Modal.prototype.render.apply(this, arguments);
 

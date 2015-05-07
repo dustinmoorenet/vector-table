@@ -47,9 +47,10 @@ module.exports = View.extend({
         this.listenTo(global.dataStore, options.projectID, this.render);
 
         window.addEventListener('resize', this.resize.bind(this));
+
+        //this.render(global.dataStore.get(options.projectID));
     },
     render: function(project) {
-        console.log('table render', project);
         if (!project) {
             this.remove();
 
@@ -63,15 +64,17 @@ module.exports = View.extend({
 
             this.background = this.svg.rect('100%', '100%').attr('class', 'background');
 
-            this.listenTo(global.dataStore, project.layerCollectionID, this.addLayers);
+            this.listenTo(global.dataStore, 'layers', this.addLayers);
+
+            this.addLayers(global.dataStore.get('layers'));
 
             setTimeout(this.resize.bind(this));
-        }
 
-        this.built = true;
+            this.built = true;
+        }
     },
-    addLayers: function(layerIds) {
-        layerIds.forEach(function(layerId) {
+    addLayers: function(layerIDs) {
+        layerIDs.forEach(function(layerId) {
             var layer = global.dataStore.get(layerId);
 
             if (!layer) {
@@ -128,7 +131,7 @@ module.exports = View.extend({
             this.activeHandle = evt.activeHandle = handleNode.id;
         }
 
-        var selection = global.dataStore.get('selection');
+        var selection = global.appStore.get('selection');
 
         if (!item && selection.length) {
             var previous = global.dataStore.get(selection[0]);
@@ -212,12 +215,12 @@ module.exports = View.extend({
 
         global.dataStore.set(item.id, item, params);
 
-        global.dataStore.set('selection', selection, params);
+        global.appStore.set('selection', selection, params);
 
-        var activeLayerId = global.appStore.get('app').activeLayerId;
-        var layer = global.dataStore.get(activeLayerId);
+        var activeLayerID = global.appStore.get('app').activeLayerID;
+        var layer = global.dataStore.get(activeLayerID);
 
-        layer.itemIds.push(item.id);
+        layer.itemIDs.push(item.id);
 
         global.dataStore.set(layer.id, layer, params);
 

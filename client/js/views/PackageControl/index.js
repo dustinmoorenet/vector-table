@@ -7,9 +7,9 @@ module.exports = View.extend({
     initialize: function(options) {
         this.packageControl = options.packageControl;
 
-        this.listenTo(global.dataStore, 'selection', this.selectionChanged);
+        this.listenTo(global.appStore, 'selection', this.selectionChanged);
 
-        this.selectionChanged(global.dataStore.get('selection'));
+        this.selectionChanged(global.appStore.get('selection'));
     },
     render: function(boundItem) {
         if (!this.el) {

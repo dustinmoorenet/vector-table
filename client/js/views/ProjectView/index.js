@@ -50,6 +50,8 @@ module.exports = View.extend({
 
             this.registerSubview(this.views.table);
 
+            this.views.table.render(global.dataStore.get(project.id));
+
             // this.parent.appendChild(this.el);
 
             this.built = true;
