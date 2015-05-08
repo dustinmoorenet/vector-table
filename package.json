@@ -5,17 +5,20 @@
   "repository": "https://github.com/dustinmoorenet/vector-table",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "karma start",
     "build:css": "node-sass ./client/sass/index.scss ./client/css/index.css",
     "watch:css": "node-sass --watch --source-map=true ./client/sass/index.scss ./client/css/index.css",
     "build:js": "browserify ./client/js/index.js --outfile ./client/app.bundle.js",
-    "watch:js": "watchify ./client/js/index.js --verbose --debug --outfile ./client/app.bundle.js"
+    "watch:js": "watchify ./client/js/index.js --verbose --debug --outfile ./client/app.bundle.js",
+    "build": "npm run build:css && npm run build:js",
+    "watch": "parallelshell 'npm run watch:css' 'npm run watch:js'"
   },
   "author": "Dustin Moore",
   "license": "MIT",
   "devDependencies": {
     "ampersand-events": "1.0.1",
     "ampersand-view": "7.2.0",
+    "babelify": "^6.0.2",
     "brfs": "1.4.0",
     "browserify": "9.0.3",
     "expect": "1.6.0",
@@ -27,12 +30,18 @@
     "gulp-sass": "1.3.3",
     "gulp-util": "3.0.4",
     "json-query": "1.4.0",
+    "karma": "0.12.31",
+    "karma-browserify": "4.1.2",
+    "karma-cli": "0.0.4",
+    "karma-mocha": "0.1.10",
     "lodash": "3.5.0",
     "mocha": "2.2.1",
     "node-sass": "3.0.0",
     "node-uuid": "1.4.3",
+    "parallelshell": "1.1.1",
     "request": "2.55.0",
     "request-promise": "0.4.1",
+    "svg.js": "git@github.com:wout/svg.js.git",
     "vinyl-source-stream": "1.1.0",
     "watchify": "2.4.0",
     "when": "3.7.2",
@@ -44,6 +53,7 @@
   },
   "browserify": {
     "transform": [
+      "babelify",
       "brfs",
       "workerify"
     ]

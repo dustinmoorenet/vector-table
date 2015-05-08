@@ -7,5 +7,5 @@ npm install
 
 Dev
 ```
-node server.js &; gulp
+node server.js &; npm run watch
 ```

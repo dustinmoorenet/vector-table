@@ -5,6 +5,7 @@
     "browser": true,
     "node": true,
     "expr": true,
+    "esnext": true,
     "predef": [
         "describe",
         "xdescribe",

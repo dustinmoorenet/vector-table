@@ -1,39 +1,40 @@
-var _ = require('lodash');
-var Events = require('ampersand-events');
-var AppView = require('../views/AppView');
-var LoginModal = require('../views/LoginModal');
-var User = require('./User');
-var DataStore = require('../libs/DataStore');
-var Backup = require('../libs/Backup');
+import Events from '../libs/Events';
+import AppView from '../views/AppView';
+import LoginModal from '../views/LoginModal';
+import User from './User';
+import DataStore from '../libs/DataStore';
+import Backup from '../libs/Backup';
 
-function App() {
-    global.packageWorker = new Worker('../../libs/packageWorker.js');
-    global.dataStore = new DataStore();
-    global.appStore = new DataStore();
-    global.backup = new Backup(global.dataStore);
+export default class App extends Events {
+    constructor() {
+        super();
 
-    global.appStore.set('selection', []);
+        global.packageWorker = new Worker('../../libs/packageWorker.js');
+        global.dataStore = new DataStore();
+        global.appStore = new DataStore();
+        global.backup = new Backup(global.dataStore);
 
-    global.appStore.on('app', function(app, previousApp) {
-        if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
-            global.packageWorker.postMessage({
-                message: 'set-package',
-                packageName: app.currentPackage,
-            });
-        }
-    });
+        global.appStore.set('selection', []);
 
-    this.listenTo(global.appStore, 'app', this.onApp);
+        global.appStore.on('app', (app, previousApp) => {
+            if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
+                global.packageWorker.postMessage({
+                    message: 'set-package',
+                    packageName: app.currentPackage,
+                });
+            }
+        });
 
-    global.appStore.set('app', {
-        currentPackage: 'RectangleTool'
-    });
+        this.listenTo(global.appStore, 'app', this.onApp);
 
-    this.user = new User();
-}
+        global.appStore.set('app', {
+            currentPackage: 'RectangleTool'
+        });
 
-_.extend(App.prototype, Events, {
-    onApp: function(app) {
+        this.user = new User();
+    }
+
+    onApp(app) {
         if (!this.appView) {
             this.appView = new AppView({el: document.querySelector('.app-view')});
         }
@@ -44,6 +45,4 @@ _.extend(App.prototype, Events, {
             new LoginModal();
         }
     }
-});
-
-module.exports = App;
+}
