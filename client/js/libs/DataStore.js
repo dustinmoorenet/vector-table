@@ -1,12 +1,5 @@
-var _ = require('lodash');
-var Events = require('ampersand-events');
-
-function DataStore() {
-    this.currentStore = {};
-    this.history = [{}];
-    this.cursor = 0;
-    this.notifyList = [];
-}
+import _ from 'lodash';
+import Events from './Events';
 
 /*
 Keep a hash for every history point
@@ -25,21 +18,33 @@ and the client pings will be the same as the master so no delta will be needed.
 
 */
 
-_.extend(DataStore.prototype, Events, {
-    MAX_HISTORY: 5,
-    restore: function(data) {
+export default class DataStore extends Events {
+    get MAX_HISTORY() { return 5; }
+
+    constructor() {
+        super();
+
+        this.currentStore = {};
+        this.history = [{}];
+        this.cursor = 0;
+        this.notifyList = [];
+    }
+
+    restore(data) {
         this.history = [data];
         this.currentStore = _.deepClone(this.history[0]);
         this.cursor = 0;
         this.notifyList = [];
-    },
-    get: function(id) {
+    }
+
+    get(id) {
         // FIXME deepClone on every get() is not fast
         // reason to do this because changes to the object from the currentStore
         // cause the previousValue in the change event to have future changes
         return _.cloneDeep(this.currentStore[id]);
-    },
-    set: function(id, object, params) {
+    }
+
+    set(id, object, params) {
         params = params || {};
         this.recordHistory = params.recordHistory !== false;
 
@@ -56,14 +61,17 @@ _.extend(DataStore.prototype, Events, {
         this.notifyOnNextTick(id);
 
         return this.get(id);
-    },
-    merge: function(id, object, params) {
+    }
+
+    merge(id, object, params) {
         return this.set(id, object, _.extend({merge: true}, params));
-    },
-    clear: function(id, params) {
+    }
+
+    clear(id, params) {
         return this.set(id, undefined, params);
-    },
-    notifyOnNextTick: function(id) {
+    }
+
+    notifyOnNextTick(id) {
         if (!this.notifyList.length) {
             setTimeout(this.timeToNotify.bind(this));
         }
@@ -71,8 +79,9 @@ _.extend(DataStore.prototype, Events, {
         if (this.notifyList.indexOf(id) === -1) {
             this.notifyList.push(id);
         }
-    },
-    timeToNotify: function() {
+    }
+
+    timeToNotify() {
         this.setHistory();
 
         var list = this.notifyList;
@@ -84,8 +93,9 @@ _.extend(DataStore.prototype, Events, {
 
             this.trigger(id, this.get(id), previousObject);
         }.bind(this));
-    },
-    setHistory: function() {
+    }
+
+    setHistory() {
         if (this.recordHistory === false) {
             return;
         }
@@ -101,8 +111,9 @@ _.extend(DataStore.prototype, Events, {
         this.cursor = 0;
 
         this.previousStore = this.history[1];
-    },
-    undo: function() {
+    }
+
+    undo() {
         if (this.cursor >= this.MAX_HISTORY - 1) {
             return;
         }
@@ -123,8 +134,9 @@ _.extend(DataStore.prototype, Events, {
                 this.set(id, previousObject, {recordHistory: false});
             }
         }.bind(this));
-    },
-    redo: function() {
+    }
+
+    redo() {
         if (this.cursor <= 0) {
             return;
         }
@@ -146,6 +158,4 @@ _.extend(DataStore.prototype, Events, {
             }
         }.bind(this));
     }
-});
-
-module.exports = DataStore;
+}

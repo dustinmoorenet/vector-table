@@ -1,55 +1,20 @@
-var Package = require('../../libs/Package');
-var _ = require('lodash');
-var jsonQuery = require('json-query');
+import _ from 'lodash';
+import jsonQuery from 'json-query';
+import Package from '../../libs/Package';
 
-function EllipseTool() {
-    this.on('pointer-start', this.onPointerStart, this);
-    this.on('pointer-move', this.onPointerMove, this);
-    this.on('pointer-end', this.onPointerEnd, this);
-    this.on('control-init', this.onControlInit, this);
-    this.on('set-value', this.setValue, this);
-    this.on('set-fill', this.setFill, this);
-}
+export default class EllipseTool extends Package {
+    constructor() {
+        super();
 
-EllipseTool.HANDLE_WIDTH = 10;
-
-EllipseTool.DEFAULT = {
-    rx: 50,
-    ry: 50
-};
-
-EllipseTool.resizeHandle = {
-    type: 'Ellipse',
-    attr: {
-        cx: 0,
-        cy: 0,
-        rx: EllipseTool.HANDLE_WIDTH,
-        ry: EllipseTool.HANDLE_WIDTH,
-        fill: 'red'
-    },
-    action: {
-        func: 'resize',
-        partial: []
+        this.on('pointer-start', this.onPointerStart, this);
+        this.on('pointer-move', this.onPointerMove, this);
+        this.on('pointer-end', this.onPointerEnd, this);
+        this.on('control-init', this.onControlInit, this);
+        this.on('set-value', this.setValue, this);
+        this.on('set-fill', this.setFill, this);
     }
-};
 
-EllipseTool.rotateHandle = {
-    type: 'Ellipse',
-    attr: {
-        cx: 0,
-        cy: 0,
-        rx: EllipseTool.HANDLE_WIDTH,
-        ry: EllipseTool.HANDLE_WIDTH,
-        fill: 'green'
-    },
-    action: {
-        func: 'rotate',
-        partial: []
-    }
-};
-
-_.extend(EllipseTool.prototype, Package.prototype, {
-    onPointerStart: function(event) {
+    onPointerStart(event) {
         var selection = event.selection;
         if (selection && selection.length) {
             if (!event.activeHandle) {
@@ -66,8 +31,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 stroke: 'black'
             });
         }
-    },
-    create: function(attr) {
+    }
+
+    create(attr) {
         var object = {
             tool: 'EllipseTool',
             mode: 'resize',
@@ -86,8 +52,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             activeHandle: object.handles[2].id, // se
             object: object
         });
-    },
-    onPointerMove: function(event) {
+    }
+
+    onPointerMove(event) {
         if (!event.activeHandle) {
             return;
         }
@@ -99,8 +66,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         if (handle.action.func) {
             this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
         }
-    },
-    onPointerEnd: function(event) {
+    }
+
+    onPointerEnd(event) {
         var object = event.selection[0];
 
         object.complete = true;
@@ -109,8 +77,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             message: 'complete-object',
             object: object
         });
-    },
-    resize: function(handleIndex, buddyHandleIndex, event) {
+    }
+
+    resize(handleIndex, buddyHandleIndex, event) {
         var object = event.selection[0];
 
         // Find handle buddy
@@ -145,8 +114,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             activeHandle: event.activeHandle,
             object: object
         });
-    },
-    rotate: function(handleIndex, event) {
+    }
+
+    rotate(handleIndex, event) {
         var object = event.selection[0];
         var shape = object.shapes[0];
         var origin = {
@@ -167,8 +137,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             message: 'transform-object',
             object: object
         });
-    },
-    degreesFromTwoPoints: function(point1, point2) {
+    }
+
+    degreesFromTwoPoints(point1, point2) {
         var radius = Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
         var radians = Math.acos((point2.x - point1.x) / radius);
         var degrees = radians * 180 / Math.PI;
@@ -178,8 +149,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         }
 
         return degrees;
-    },
-    onTap: function(event) {
+    }
+
+    onTap(event) {
         var object = event.object;
 
         if (object) {
@@ -195,8 +167,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 stroke: 'black'
             });
         }
-    },
-    objectTapped: function(event) {
+    }
+
+    objectTapped(event) {
         var object = event.selection[0];
 
         object.mode = object.mode === 'resize' ? 'rotate' : 'resize';
@@ -208,8 +181,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             message: 'transform-object',
             object: object
         });
-    },
-    applyHandles: function(object) {
+    }
+
+    applyHandles(object) {
         object.handles = [];
 
         if (object.mode === 'resize') {
@@ -218,8 +192,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
         else if (object.mode === 'rotate') {
             this.rotateHandles(object);
         }
-    },
-    resizeHandles: function(object) {
+    }
+
+    resizeHandles(object) {
         var attr = object.shapes[0].attr;
         var rect = {
             x: attr.cx - attr.rx,
@@ -271,8 +246,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 partial: [3, 1]
             }
         }));
-    },
-    rotateHandles: function(object) {
+    }
+
+    rotateHandles(object) {
         var attr = object.shapes[0].attr;
         var rect = {
             x: attr.cx - attr.rx,
@@ -324,8 +300,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 partial: [3]
             }
         }));
-    },
-    onControlInit: function() {
+    }
+
+    onControlInit() {
         this.trigger('export', {
             message: 'package-control',
             control: {
@@ -379,8 +356,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
                 ]
             }
         });
-    },
-    setValue: function(event) {
+    }
+
+    setValue(event) {
         var object = event.selection[0];
         var value = event.value;
         var binding = event.binding;
@@ -394,8 +372,9 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             message: 'transform-object',
             object: object
         });
-    },
-    setFill: function(event) {
+    }
+
+    setFill(event) {
         var object = event.selection[0];
         var value = event.value;
 
@@ -406,6 +385,41 @@ _.extend(EllipseTool.prototype, Package.prototype, {
             object: object
         });
     }
-});
+}
 
-module.exports = EllipseTool;
+EllipseTool.HANDLE_WIDTH = 10;
+
+EllipseTool.DEFAULT = {
+    rx: 50,
+    ry: 50
+};
+
+EllipseTool.resizeHandle = {
+    type: 'Ellipse',
+    attr: {
+        cx: 0,
+        cy: 0,
+        rx: EllipseTool.HANDLE_WIDTH,
+        ry: EllipseTool.HANDLE_WIDTH,
+        fill: 'red'
+    },
+    action: {
+        func: 'resize',
+        partial: []
+    }
+};
+
+EllipseTool.rotateHandle = {
+    type: 'Ellipse',
+    attr: {
+        cx: 0,
+        cy: 0,
+        rx: EllipseTool.HANDLE_WIDTH,
+        ry: EllipseTool.HANDLE_WIDTH,
+        fill: 'green'
+    },
+    action: {
+        func: 'rotate',
+        partial: []
+    }
+};

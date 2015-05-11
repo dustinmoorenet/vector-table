@@ -1,16 +1,20 @@
-var View = require('../View');
 var fs = require('fs');
-var _ = require('lodash');
-var PackageControl = require('../PackageControl');
+import View from '../View';
+import _ from 'lodash';
+import PackageControl from '../PackageControl';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
-    events: {
-        'click [data-hook="RectangleTool"]': 'drawSquare',
-        'click [data-hook="EllipseTool"]': 'drawCircle',
-        'click [data-hook="PolygonTool"]': 'drawPolygon'
-    },
-    initialize: function() {
+export default class Controls extends View {
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    get events() {
+        return {
+            'click [data-hook="RectangleTool"]': 'drawSquare',
+            'click [data-hook="EllipseTool"]': 'drawCircle',
+            'click [data-hook="PolygonTool"]': 'drawPolygon'
+        };
+    }
+
+    initialize() {
         this.listenTo(global.appStore, 'app', this.render);
 
         global.packageWorker.addEventListener('message', function (event) {
@@ -30,8 +34,9 @@ module.exports = View.extend({
         }
 
         global.appStore.set('app', app);
-    },
-    render: function(app) {
+    }
+
+    render(app) {
         if (!this.built) {
             this.renderWithTemplate();
         }
@@ -41,8 +46,9 @@ module.exports = View.extend({
         this.controlInit(app.currentPackage);
 
         this.built = true;
-    },
-    controlInit: function(currentPackage) {
+    }
+
+    controlInit(currentPackage) {
         if (!currentPackage || this.packageControl && this.packageControl.package === currentPackage) {
             return;
         }
@@ -56,24 +62,29 @@ module.exports = View.extend({
                 message: 'control-init'
             });
         }
-    },
-    drawSquare: function() {
+    }
+
+    drawSquare() {
         this.setCurrentPackage('RectangleTool');
-    },
-    drawCircle: function() {
+    }
+
+    drawCircle() {
         this.setCurrentPackage('EllipseTool');
-    },
-    drawPolygon: function() {
+    }
+
+    drawPolygon() {
         this.setCurrentPackage('PolygonTool');
-    },
-    setCurrentPackage: function(currentPackage) {
+    }
+
+    setCurrentPackage(currentPackage) {
         var app = global.appStore.get('app');
 
         app.currentPackage = currentPackage;
 
         global.appStore.set('app', app);
-    },
-    markSelected: function(currentPackage) {
+    }
+
+    markSelected(currentPackage) {
         _.forEach(this.el.querySelectorAll('button'), function(element) {
             element.classList.remove('selected');
         });
@@ -82,4 +93,4 @@ module.exports = View.extend({
             this.el.querySelector('[data-hook="' + currentPackage + '"]').classList.add('selected');
         }
     }
-});
+}

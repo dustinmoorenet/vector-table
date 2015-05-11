@@ -1,12 +1,13 @@
 var fs = require('fs');
-var View = require('../View');
-var ProjectToolbar = require('../ProjectToolbar');
-var Controls = require('../Controls');
-var Table = require('../table');
+import View from '../View';
+import ProjectToolbar from '../ProjectToolbar';
+import Controls from '../Controls';
+import Table from '../Table';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
-    initialize: function(options) {
+export default class ProjectView extends View {
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    initialize(options) {
         this.projectID = options.projectID;
 
         this.listenTo(global.dataStore, this.projectID, this.render);
@@ -16,8 +17,9 @@ module.exports = View.extend({
         if (project) {
             this.render(project);
         }
-    },
-    render: function(project) {
+    }
+
+    render(project) {
         if (!project) {
             this.remove();
         }
@@ -57,4 +59,4 @@ module.exports = View.extend({
             this.built = true;
         }
     }
-});
+}

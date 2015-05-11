@@ -1,17 +1,14 @@
-var View = require('../views/view');
-var shapes = {
-    Rectangle: require('../Shapes/Rectangle'),
-    Ellipse: require('../Shapes/Ellipse'),
-    Polygon: require('../Shapes/Polygon')
-};
+import View from './View';
+import Shapes from './Shapes';
 
-module.exports = View.extend({
-    initialize: function(options) {
+export default class Handle extends View {
+    initialize(options) {
         this._parentElement = options.parentElement;
-    },
-    render: function(handle) {
+    }
+
+    render(handle) {
         if (!this.el) {
-            var Shape = shapes[handle.type];
+            var Shape = Shapes[handle.type];
 
             if (!Shape) {
                 return;
@@ -29,4 +26,4 @@ module.exports = View.extend({
 
         this.el.classList.add('handle');
     }
-});
+}

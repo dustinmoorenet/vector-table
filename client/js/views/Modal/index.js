@@ -1,11 +1,14 @@
-var View = require('./View');
 var fs = require('fs');
+import View from '../View';
+
 var modalStack = [];
 
-module.exports = View.extend({
-    autoRender: true,
-    template: fs.readFileSync(__dirname + '/Modal.html', 'utf8'),
-    render: function() {
+export default class Modal extends View {
+    get autoRender() { return true; }
+
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    render() {
         if (!this.el) {
             this.renderWithTemplate();
 
@@ -14,4 +17,4 @@ module.exports = View.extend({
             document.querySelector('body').appendChild(this.el);
         }
     }
-});
+}

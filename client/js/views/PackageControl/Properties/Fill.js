@@ -1,16 +1,21 @@
 var fs = require('fs');
-var View = require('../../View');
-var jsonQuery = global.jQ = require('json-query');
+import View from '../../View';
+import jsonQuery from 'json-query';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/Fill.html', 'utf8'),
-    events: {
-        'change input': 'updateValue'
-    },
-    initialize: function(options) {
+export default class Fill extends View {
+    get template() { return fs.readFileSync(__dirname + '/Fill.html', 'utf8'); }
+
+    get events() {
+        return {
+            'change input': 'updateValue'
+        };
+    }
+
+    initialize(options) {
         this.config = options.config;
-    },
-    render: function(boundItem) {
+    }
+
+    render(boundItem) {
         if (!this.el) {
             this.renderWithTemplate(this);
 
@@ -27,8 +32,9 @@ module.exports = View.extend({
         else {
             this.textInput.value = '';
         }
-    },
-    renderElement: function(boundItem) {
+    }
+
+    renderElement(boundItem) {
         var value = jsonQuery(this.config.binding.value, {data: boundItem}).value;
 
         if (value === undefined) {
@@ -36,8 +42,9 @@ module.exports = View.extend({
         }
 
         this.textInput.value = value;
-    },
-    updateValue: function() {
+    }
+
+    updateValue() {
         var value = this.textInput.value;
 
         var evt = {
@@ -51,4 +58,4 @@ module.exports = View.extend({
 
         global.packageWorker.postMessage(evt);
     }
-});
+}

@@ -1,26 +1,33 @@
 var fs = require('fs');
-var View = require('../View');
+import View from '../View';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
-    events: {
-        'click .new': 'new',
-        'click .open': 'open'
-    },
-    initialize: function() {
+export default class AppMenu extends View {
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    get events() {
+        return {
+            'click .new': 'new',
+            'click .open': 'open'
+        };
+    }
+
+    initialize() {
         this.listenTo(global.appStore, 'app', this.render);
-    },
-    render: function(app) {
+    }
+
+    render() {
         if (!this.built) {
             this.renderWithTemplate(this);
         }
 
         this.built = true;
-    },
-    new: function() {
+    }
+
+    new() {
         global.account.projectStore.new();
-    },
-    open: function() {
+    }
+
+    open() {
         // Open ProjectModal
     }
-});
+}

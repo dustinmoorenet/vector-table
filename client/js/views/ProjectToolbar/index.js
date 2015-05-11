@@ -1,28 +1,35 @@
 var fs = require('fs');
-var View = require('../View');
+import View from '../View';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
-    events: {
-        'click .undo': 'undo',
-        'click .redo': 'redo'
-    },
-    initialize: function(options) {
+export default class ProjectToolbar extends View {
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    get events() {
+        return {
+            'click .undo': 'undo',
+            'click .redo': 'redo'
+        };
+    }
+
+    initialize(options) {
         this.projectID = options.projectID;
 
         this.render();
-    },
-    render: function() {
+    }
+
+    render() {
         if (!this.built) {
             this.renderWithTemplate(this);
         }
 
         this.built = true;
-    },
-    undo: function() {
+    }
+
+    undo() {
         global.dataStore.undo();
-    },
-    redo: function() {
+    }
+
+    redo() {
         global.dataStore.redo();
     }
-});
+}

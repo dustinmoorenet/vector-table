@@ -1,13 +1,14 @@
-var Modal = require('../../Modal');
-var FillPanel = require('./FillPanel');
+import Modal from '../../Modal';
+import FillPanel from './FillPanel';
 
-module.exports = Modal.extend({
-    initialize: function(options) {
+export default class FillModal extends Modal {
+    initialize(options) {
         this.object = options.object;
-    },
-    render: function() {
+    }
+
+    render() {
         this.renderWithTemplate();
 
         this.renderSubview(new FillPanel({object: this.object}), '.container');
     }
-});
+}

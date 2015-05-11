@@ -1,13 +1,9 @@
-var View = require('../views/view');
-var shapes = {
-    Rectangle: require('../Shapes/Rectangle'),
-    Ellipse: require('../Shapes/Ellipse'),
-    Polygon: require('../Shapes/Polygon')
-};
-var Handle = require('./Handle');
+import View from './View';
+import Shapes from './Shapes';
+import Handle from './Handle';
 
-module.exports = View.extend({
-    template: function(context) {
+export default class Item extends View {
+    template(context) {
         context._element = context._parentElement.group();
 
         context._shapes = context._element.group();
@@ -19,16 +15,18 @@ module.exports = View.extend({
         context._element.node.classList.add('item');
 
         return context._element.node;
-    },
-    initialize: function(options) {
+    }
+
+    initialize(options) {
         this._parentElement = options.parentElement;
         this.itemId = options.itemId;
         this.shapeViewsById = {};
         this.handleViewsById = {};
 
         this.listenTo(global.dataStore, this.itemId, this.render);
-    },
-    render: function(item) {
+    }
+
+    render(item) {
         if (!item) {
             this.remove();
 
@@ -57,21 +55,23 @@ module.exports = View.extend({
         this.el.setAttribute('data-mode', item.mode);
 
         this.built = true;
-    },
-    renderShapes: function(shapes) {
+    }
+
+    renderShapes(shapes) {
         shapes.forEach(this.renderShape, this);
-    },
-    renderShape: function(shape) {
+    }
+
+    renderShape(shape) {
         var shapeView = this.shapeViewsById[shape.id];
 
         if (!shapeView) {
-            var Shape = shapes[shape.type];
+            var Shape = Shapes[shape.type];
 
             if (!Shape) {
                 return;
             }
 
-            var shapeView = new Shape({
+            shapeView = new Shape({
                 parent: this,
                 parentElement: this._shapes
             });
@@ -80,15 +80,17 @@ module.exports = View.extend({
         }
 
         shapeView.render(shape);
-    },
-    renderHandles: function(handles) {
+    }
+
+    renderHandles(handles) {
         handles.forEach(this.renderHandle, this);
-    },
-    renderHandle: function(handle) {
+    }
+
+    renderHandle(handle) {
         var handleView = this.handleViewsById[handle.id];
 
         if (!handleView) {
-            var handleView = new Handle({
+            handleView = new Handle({
                 parent: this,
                 parentElement: this._handles
             });
@@ -97,8 +99,9 @@ module.exports = View.extend({
         }
 
         handleView.render(handle);
-    },
-    updateTransform: function(transform) {
+    }
+
+    updateTransform(transform) {
         if (transform && transform.rotate) {
             this.el.setAttribute('transform', 'rotate(' + transform.rotate.join(',') + ')');
         }
@@ -106,4 +109,4 @@ module.exports = View.extend({
             this.el.setAttribute('transform', '');
         }
     }
-});
+}

@@ -1,12 +1,13 @@
-var _ = require('lodash');
-var View = require('./View');
-var Layer = require('./layer');
 var fs = require('fs');
-var SVG = require('../libs/svg');
+import _ from 'lodash';
+import View from '../View';
+import Layer from '../Layer';
+import SVG from '../../libs/svg';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/table.html', 'utf8'),
-    events: function() {
+export default class Table extends View {
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    events() {
         var isTouchDevice = 'ontouchstart' in document.documentElement;
 
         var events = {
@@ -24,8 +25,9 @@ module.exports = View.extend({
         }
 
         return events;
-    },
-    initialize: function (options) {
+    }
+
+    initialize(options) {
         this.layerViewsById = {};
         this.items = {};
 
@@ -49,8 +51,9 @@ module.exports = View.extend({
         window.addEventListener('resize', this.resize.bind(this));
 
         //this.render(global.dataStore.get(options.projectID));
-    },
-    render: function(project) {
+    }
+
+    render(project) {
         if (!project) {
             this.remove();
 
@@ -72,8 +75,9 @@ module.exports = View.extend({
 
             this.built = true;
         }
-    },
-    addLayers: function(layerIDs) {
+    }
+
+    addLayers(layerIDs) {
         layerIDs.forEach(function(layerId) {
             var layer = global.dataStore.get(layerId);
 
@@ -97,11 +101,13 @@ module.exports = View.extend({
                 layerView.render(layer);
             }
         }, this);
-    },
-    resize: function() {
+    }
+
+    resize() {
         this.svg.size(this.el.offsetWidth, this.el.offsetHeight);
-    },
-    pointerStart: function(event) {
+    }
+
+    pointerStart(event) {
         this.activeSelection = [];
 
         var pointer;
@@ -150,8 +156,9 @@ module.exports = View.extend({
         }
 
         global.packageWorker.postMessage(evt);
-    },
-    pointerMove: function(event) {
+    }
+
+    pointerMove(event) {
         if (!this.activeSelection) {
             return;
         }
@@ -181,13 +188,14 @@ module.exports = View.extend({
         };
 
         global.packageWorker.postMessage(evt);
-    },
-    pointerEnd: function() {
+    }
+
+    pointerEnd() {
         if (!this.activeSelection) {
             return;
         }
 
-        var item = global.dataStore.get(this.activeSelection)
+        var item = global.dataStore.get(this.activeSelection);
 
         if (!item) {
             return;
@@ -204,8 +212,9 @@ module.exports = View.extend({
         };
 
         global.packageWorker.postMessage(evt);
-    },
-    create: function(event) {
+    }
+
+    create(event) {
         var item = event.object;
 
         item.id = _.uniqueId('item-');
@@ -229,8 +238,9 @@ module.exports = View.extend({
         if (event.activeHandle) {
             this.activeHandle = event.activeHandle;
         }
-    },
-    transform: function(event) {
+    }
+
+    transform(event) {
         var item = event.object;
         var params = {recordHistory: !this.activeSelection};
 
@@ -239,8 +249,9 @@ module.exports = View.extend({
         }
 
         global.dataStore.set(item.id, item, params);
-    },
-    update: function(event) {
+    }
+
+    update(event) {
         var item = event.object;
         var params = {recordHistory: !this.activeSelection};
 
@@ -249,8 +260,9 @@ module.exports = View.extend({
         }
 
         global.dataStore.set(item.id, item, params);
-    },
-    complete: function(event) {
+    }
+
+    complete(event) {
         var item = event.object;
 
         delete this.activeSelection;
@@ -261,8 +273,9 @@ module.exports = View.extend({
         item.complete = true;
 
         global.dataStore.set(item.id, item, params);
-    },
-    findHandle: function(node) {
+    }
+
+    findHandle(node) {
         while (true) {
             if (node === this.svg.node) {
                 return null;
@@ -274,8 +287,9 @@ module.exports = View.extend({
 
             node = node.parentNode;
         }
-    },
-    findItem: function(node) {
+    }
+
+    findItem(node) {
         while (true) {
             if (node === this.svg.node) {
                 return null;
@@ -288,4 +302,4 @@ module.exports = View.extend({
             node = node.parentNode;
         }
     }
-});
+}

@@ -1,3 +1,3 @@
-var svg = require('svg.js');
+import svg from 'svg.js';
 
-module.exports = svg;
+export default svg;

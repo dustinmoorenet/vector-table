@@ -1,12 +1,16 @@
-var View = require('../../View');
 var fs = require('fs');
+import View from '../../View';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/FillPanel.html', 'utf8'),
-    events: {
-        'change .color': 'onColorChange'
-    },
-    initialize: function(options) {
+export default class FillPanel extends View {
+    get template() { return fs.readFileSync(__dirname + '/FillPanel.html', 'utf8'); }
+
+    get events() {
+        return {
+            'change .color': 'onColorChange'
+        };
+    }
+
+    initialize(options) {
         var object = options.object;
 
         this.listenTo(global.dataStore, object.id, this.update);
@@ -14,14 +18,16 @@ module.exports = View.extend({
         this.render();
 
         this.update(object);
-    },
-    render: function() {
+    }
+
+    render() {
         this.renderWithTemplate();
 
         this.colorDisplay = this.query('.color-display');
         this.color = this.query('.color');
-    },
-    onColorChange: function() {
+    }
+
+    onColorChange() {
         var color = this.color.value;
 
         global.dataStore.merge(this.object.id, {
@@ -29,8 +35,9 @@ module.exports = View.extend({
                 {attr: {fill: color}}
             ]
         });
-    },
-    update: function(object) {
+    }
+
+    update(object) {
         var attr = object.selection[0].attr;
 
         this.color.value =
@@ -38,4 +45,4 @@ module.exports = View.extend({
 
         this.object = object;
     }
-});
+}

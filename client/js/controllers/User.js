@@ -1,7 +1,6 @@
-var _ = require('lodash');
-var Events = require('ampersand-events');
-var uuid = require('node-uuid');
-var Project = require('./Project');
+import Events from '../libs/Events';
+import uuid from 'node-uuid';
+import Project from './Project';
 
 /*
 Empty app loads
@@ -58,12 +57,14 @@ login modal
   see section 4
 */
 
-function User() {
-    this.listenTo(global.appStore, 'user', this.onUser);
-}
+export default class User extends Events {
+    constructor() {
+        super();
 
-_.extend(User.prototype, Events, {
-    createGuest: function() {
+        this.listenTo(global.appStore, 'user', this.onUser);
+    }
+
+    createGuest() {
         var user = {
             id: uuid.v4()
         };
@@ -77,25 +78,30 @@ _.extend(User.prototype, Events, {
         app.userID = user.id;
 
         global.appStore.set('app', app);
-    },
-    requestLink: function(email) {
+    }
+
+    requestLink(email) {
         // Make a request to the server
 
         // Post notice to app saying: Check your email
-    },
-    create: function() {
+    }
+
+    create() {
         // NO username or password, just an auth link they use to access the app
         // The session should never expire, but all session should be listed for
         // user to invalidate. Multiple devices can be connected using the same
         // user so multiple sessions are created.
-    },
-    login: function() {
+    }
 
-    },
-    logout: function() {
+    login() {
 
-    },
-    onUser: function(user) {
+    }
+
+    logout() {
+
+    }
+
+    onUser(user) {
         if (!user) {
             window.location.href = '/logout';
 
@@ -108,6 +114,4 @@ _.extend(User.prototype, Events, {
             this.projectStore = new Project();
         }
     }
-});
-
-module.exports = User;
+}

@@ -1,8 +1,8 @@
-var View = require('../views/view');
+var View = require('../View');
 
 module.exports = View.extend({
     template: function(context) {
-        context._element = context._parentElement.path('M0,0');
+        context._element = context._parentElement.rect(0, 0);
 
         return context._element.node;
     },
@@ -23,6 +23,9 @@ module.exports = View.extend({
         this.el.setAttribute('id', shape.id);
         this.el.setAttribute('fill', shape.attr.fill);
         this.el.setAttribute('stroke', shape.attr.stroke);
-        this.el.setAttribute('d', shape.attr.d);
+        this.el.setAttribute('x', shape.attr.x);
+        this.el.setAttribute('y', shape.attr.y);
+        this.el.setAttribute('width', shape.attr.width);
+        this.el.setAttribute('height', shape.attr.height);
     }
 });

@@ -1,15 +1,20 @@
 var fs = require('fs');
-var View = require('../../View');
+import View from '../../View';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/Button.html', 'utf8'),
-    events: {
-        'click button': 'onClick'
-    },
-    initialize: function(options) {
-        this.config = options.config
-    },
-    render: function(boundItem) {
+export default class Button extends View {
+    get template() { return fs.readFileSync(__dirname + '/Button.html', 'utf8'); }
+
+    get events() {
+        return {
+            'click button': 'onClick'
+        };
+    }
+
+    initialize(options) {
+        this.config = options.config;
+    }
+
+    render(boundItem) {
         if (!this.el) {
             this.renderWithTemplate(this);
 
@@ -21,8 +26,9 @@ module.exports = View.extend({
         if (boundItem) {
             this.boundItemId = boundItem.id;
         }
-    },
-    onClick: function() {
+    }
+
+    onClick() {
         var evt = {
             message: this.config.binding.onClick,
             selection: [
@@ -33,4 +39,4 @@ module.exports = View.extend({
 
         global.packageWorker.postMessage(evt);
     }
-});
+}

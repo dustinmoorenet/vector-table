@@ -1,15 +1,15 @@
-var Package = require('../../libs/Package');
-var _ = require('lodash');
+import Package from '../../libs/Package';
+import _ from 'lodash';
 
-function PolygonTool() {
-    this.on('pointer-start', this.onPointerStart, this);
-    this.on('pointer-move', this.onPointerMove, this);
-}
+export default class PolygonTool extends Package {
+    constructor() {
+        super();
 
-PolygonTool.HANDLE_WIDTH = 10;
+        this.on('pointer-start', this.onPointerStart, this);
+        this.on('pointer-move', this.onPointerMove, this);
+    }
 
-_.extend(PolygonTool.prototype, Package.prototype, {
-    onPointerStart: function(event) {
+    onPointerStart(event) {
         var exportEvent;
         var object = event.selection && event.selection[0];
 
@@ -79,8 +79,9 @@ _.extend(PolygonTool.prototype, Package.prototype, {
         }
 
         this.trigger('export', exportEvent);
-    },
-    onPointerMove: function(event) {
+    }
+
+    onPointerMove(event) {
         if (!event.activeHandle) {
             return;
         }
@@ -92,8 +93,9 @@ _.extend(PolygonTool.prototype, Package.prototype, {
         if (handle.action.func) {
             this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
         }
-    },
-    move: function(event) {
+    }
+
+    move(event) {
         if (!event.selection) {
             return;
         }
@@ -131,6 +133,6 @@ _.extend(PolygonTool.prototype, Package.prototype, {
             object: object
         });
     }
-});
+}
 
-module.exports = PolygonTool;
+PolygonTool.HANDLE_WIDTH = 10;

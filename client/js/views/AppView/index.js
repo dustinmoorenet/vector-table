@@ -1,14 +1,16 @@
 var fs = require('fs');
-var View = require('../View');
-var AppMenu = require('../AppMenu');
-var ProjectView = require('../ProjectView');
+import View from '../View';
+import AppMenu from '../AppMenu';
+import ProjectView from '../ProjectView';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
-    initialize: function() {
+export default class AppView extends View {
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    initialize() {
         this.listenTo(global.appStore, 'app', this.render);
-    },
-    render: function(app) {
+    }
+
+    render(app) {
         if (!this.built) {
             this.renderWithTemplate();
 
@@ -32,4 +34,4 @@ module.exports = View.extend({
             this.registerSubview(this.projectView);
         }
     }
-});
+}

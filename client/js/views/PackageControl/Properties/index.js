@@ -1,5 +1,9 @@
-module.exports = {
-    TextInput: require('./TextInput'),
-    Button: require('./Button'),
-    Fill: require('./Fill')
+import TextInput from './TextInput';
+import Button from './Button';
+import Fill from './Fill';
+
+export default {
+    TextInput,
+    Button,
+    Fill
 };

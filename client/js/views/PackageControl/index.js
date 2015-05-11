@@ -1,17 +1,19 @@
 var fs = require('fs');
-var View = require('../View');
-var Properties = require('./Properties');
+import View from '../View';
+import Properties from './Properties';
 
-module.exports = View.extend({
-    template: fs.readFileSync(__dirname + '/index.html', 'utf8'),
-    initialize: function(options) {
+export default class PackageControl extends View {
+    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+
+    initialize(options) {
         this.packageControl = options.packageControl;
 
         this.listenTo(global.appStore, 'selection', this.selectionChanged);
 
         this.selectionChanged(global.appStore.get('selection'));
-    },
-    render: function(boundItem) {
+    }
+
+    render(boundItem) {
         if (!this.el) {
             this.renderWithTemplate(this);
 
@@ -25,8 +27,9 @@ module.exports = View.extend({
         this.propertyViews.forEach(function(view) {
             view.render(boundItem);
         });
-    },
-    renderProperty: function(property) {
+    }
+
+    renderProperty(property) {
         var Property = Properties[property.type];
 
         if (!Property) {
@@ -34,8 +37,9 @@ module.exports = View.extend({
         }
 
         return this.renderSubview(new Property({config: property}), '[data-hook="properties"]');
-    },
-    selectionChanged: function(selection, previous) {
+    }
+
+    selectionChanged(selection, previous) {
         if (this.boundItemId) {
             this.stopListening(global.dataStore, this.boundItemId);
         }
@@ -51,4 +55,4 @@ module.exports = View.extend({
 
         this.render(boundItem);
     }
-});
+}

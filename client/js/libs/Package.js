@@ -1,10 +1,5 @@
-var _ = require('lodash');
-var Events = require('ampersand-events');
+import Events from './Events';
 
-function Package() { }
+export default class Package extends Events {
 
-_.extend(Package.prototype, Events, {
-
-});
-
-module.exports = Package;
+}

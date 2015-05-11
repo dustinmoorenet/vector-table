@@ -1,5 +1,6 @@
 /* jshint worker:true */
-var eventExport = require('ampersand-events').createEmitter({});
+import Events from './Events';
+var eventExport = new Events();
 var packages = {
     RectangleTool: new (require('../packages/RectangleTool'))(),
     EllipseTool: new (require('../packages/EllipseTool'))(),

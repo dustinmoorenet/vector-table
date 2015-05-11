@@ -1,22 +1,24 @@
-var View = require('./View');
-var Item = require('./item');
-var _ = require('lodash');
+import View from '../View';
+import Item from '../Item';
+import _ from 'lodash';
 
-module.exports = View.extend({
-    template: function(context) {
+export default class Layer extends View {
+    template(context) {
         context._element = context._parentElement.group();
         context._element.attr('class', 'layer');
 
         return context._element.node;
-    },
-    initialize: function(options) {
+    }
+
+    initialize(options) {
         this._parentElement = options.parentElement;
         this.layerId = options.layerId;
         this.itemViewsById = {};
 
         this.listenTo(global.dataStore, this.layerId, this.render);
-    },
-    render: function(layer) {
+    }
+
+    render(layer) {
         if (!layer) {
             this.remove();
 
@@ -30,8 +32,9 @@ module.exports = View.extend({
         }
 
         this.renderItems(layer.itemIDs);
-    },
-    renderItems: function(itemIDs) {
+    }
+
+    renderItems(itemIDs) {
         var itemViewsById = {};
 
         itemIDs.forEach(function(itemId) {
@@ -59,4 +62,4 @@ module.exports = View.extend({
 
         this.itemViewsById = itemViewsById;
     }
-});
+}

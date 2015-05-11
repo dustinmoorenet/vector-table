@@ -1,4 +1,4 @@
-var View = require('../views/view');
+var View = require('../View');
 
 module.exports = View.extend({
     template: function(context) {

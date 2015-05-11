@@ -1,26 +1,28 @@
-var _ = require('lodash');
-var when = require('when');
-var ajax = require('./Ajax');
+import _ from 'lodash';
+import when from 'when';
+import ajax from './Ajax';
 
-function Backup(store, hasRemoteBackup) {
-    this.store = store;
-    this.sendBuffer = {};
-    this.hasRemoteBackup = hasRemoteBackup;
-    this.host = 'http://localhost:8077';
+export default class Backup {
+    get SEND_TIMEOUT() { return 5000; }
 
-    store.on('all', this.registerSend.bind(this));
-}
+    constructor(store, hasRemoteBackup) {
+        this.store = store;
+        this.sendBuffer = {};
+        this.hasRemoteBackup = hasRemoteBackup;
+        this.host = 'http://localhost:8077';
 
-_.extend(Backup.prototype, {
-    SEND_TIMEOUT: 5000,
-    registerSend: function(id) {
+        store.on('all', this.registerSend.bind(this));
+    }
+
+    registerSend(id) {
         this.sendBuffer[id] = true;
 
         if (!this.sendTimeout) {
             this.sendTimeout = setTimeout(this.send.bind(this), this.SEND_TIMEOUT);
         }
-    },
-    send: function() {
+    }
+
+    send() {
         var allData = {};
 
         _.forEach(this.sendBuffer, function(value, id) {
@@ -42,8 +44,9 @@ _.extend(Backup.prototype, {
 
         delete this.sendTimeout;
         this.sendBuffer = {};
-    },
-    get: function(id) {
+    }
+
+    get(id) {
         if (!id) {
             throw new Error('ID required to get anything (I dont know what you want)');
         }
@@ -68,6 +71,4 @@ _.extend(Backup.prototype, {
 
         return promise;
     }
-});
-
-module.exports = Backup;
+}
