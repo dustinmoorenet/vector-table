@@ -1,37 +1,35 @@
 var fs = require('fs');
-import View from '../View';
+import {NewView} from '../View';
 import AppMenu from '../AppMenu';
 import ProjectView from '../ProjectView';
 
-export default class AppView extends View {
+export default class AppView extends NewView {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
 
-    initialize() {
+    constructor(...args) {
+        super(...args);
+
         this.listenTo(global.appStore, 'app', this.render);
     }
 
     render(app) {
         if (!this.built) {
-            this.renderWithTemplate();
+            super.render();
 
-            this.appMenu = new AppMenu({el: this.el.querySelector('.app-menu')});
-
-            this.registerSubview(this.appMenu);
+            this.views.appMenu = new AppMenu({el: this.el.querySelector('.app-menu')});
 
             this.built = true;
         }
 
-        if (app && app.projectID && (!this.projectView || this.projectView.projectID !== app.projectID)) {
-            if (this.projectView) {
-                this.projectView.remove();
+        if (app && app.projectID && (!this.views.projectView || this.views.projectView.projectID !== app.projectID)) {
+            if (this.views.projectView) {
+                this.views.projectView.remove();
             }
 
-            this.projectView = new ProjectView({
+            this.views.projectView = new ProjectView({
                 projectID: app.projectID,
                 el: this.el.querySelector('.project-view')
             });
-
-            this.registerSubview(this.projectView);
         }
     }
 }

@@ -1,15 +1,17 @@
-var View = require('../View');
+import View from '../View';
 
-module.exports = View.extend({
-    template: function(context) {
+export default class Rectangle extends View {
+    template(context) {
         context._element = context._parentElement.rect(0, 0);
 
         return context._element.node;
-    },
-    initialize: function(options) {
+    }
+
+    initialize(options) {
         this._parentElement = options.parentElement;
-    },
-    render: function(shape) {
+    }
+
+    render(shape) {
         if (!this.el) {
             this.renderWithTemplate();
         }
@@ -28,4 +30,4 @@ module.exports = View.extend({
         this.el.setAttribute('width', shape.attr.width);
         this.el.setAttribute('height', shape.attr.height);
     }
-});
+}

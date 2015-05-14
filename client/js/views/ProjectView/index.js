@@ -36,7 +36,6 @@ export default class ProjectView extends View {
 
             this.registerSubview(this.views.projectToolbar);
 
-
             this.views.controls = new Controls({
                 el: this.el.querySelector('.controls'),
                 projectID: project.id
