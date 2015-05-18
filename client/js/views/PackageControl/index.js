@@ -5,28 +5,39 @@ import Properties from './Properties';
 export default class PackageControl extends View {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
 
-    initialize(options) {
-        this.packageControl = options.packageControl;
+    constructor(options) {
+        super(options);
+
+        this.propertyViews = [];
 
         this.listenTo(global.appStore, 'selection', this.selectionChanged);
 
         this.selectionChanged(global.appStore.get('selection'));
+
+        global.packageWorker.addEventListener('message', (event) => this.onMessage(event), false);
     }
 
-    render(boundItem) {
-        if (!this.el) {
-            this.renderWithTemplate(this);
+    onMessage(event) {
+        if (event.data.message !== 'package-control') { return; }
 
-            this.propertyViews = this.packageControl.properties.map(this.renderProperty, this);
+        this.render(event.data.control);
+    }
 
-            this.title = this.query('[data-hook="title"]');
+    render(packageControl) {
+        if (!this.built) {
+            super.render();
+
+            this.title = this.el.querySelector('[data-hook="title"]');
+            this.properties = this.el.querySelector('[data-hook="properties"]');
+
+            this.built = true;
         }
 
-        this.title.innerHTML = this.packageControl.title;
+        this.title.innerHTML = packageControl.title;
 
-        this.propertyViews.forEach(function(view) {
-            view.render(boundItem);
-        });
+        this.propertyViews.forEach((view) => view.remove());
+
+        this.propertyViews = packageControl.properties.map(this.renderProperty, this);
     }
 
     renderProperty(property) {
@@ -36,10 +47,17 @@ export default class PackageControl extends View {
             return;
         }
 
-        return this.renderSubview(new Property({config: property}), '[data-hook="properties"]');
+        property = new Property({
+            config: property
+        });
+
+        this.properties.appendChild(property.el);
+        property.render();
+
+        return property;
     }
 
-    selectionChanged(selection, previous) {
+    selectionChanged(selection) {
         if (this.boundItemId) {
             this.stopListening(global.dataStore, this.boundItemId);
         }
@@ -48,11 +66,15 @@ export default class PackageControl extends View {
 
         var boundItem;
         if (this.boundItemId) {
-            this.listenTo(global.dataStore, this.boundItemId, this.render);
+            this.listenTo(global.dataStore, this.boundItemId, this.renderBoundItem);
 
             boundItem = global.dataStore.get(this.boundItemId);
         }
 
-        this.render(boundItem);
+        this.renderBoundItem(boundItem);
+    }
+
+    renderBoundItem(boundItem) {
+        this.propertyViews.forEach((view) => view.render(boundItem));
     }
 }

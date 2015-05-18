@@ -10,7 +10,9 @@ export default class FillPanel extends View {
         };
     }
 
-    initialize(options) {
+    constructor(options) {
+        super(options);
+
         var object = options.object;
 
         this.listenTo(global.dataStore, object.id, this.update);
@@ -21,10 +23,10 @@ export default class FillPanel extends View {
     }
 
     render() {
-        this.renderWithTemplate();
+        super.render();
 
-        this.colorDisplay = this.query('.color-display');
-        this.color = this.query('.color');
+        this.colorDisplay = this.el.querySelector('.color-display');
+        this.color = this.el.querySelector('.color');
     }
 
     onColorChange() {

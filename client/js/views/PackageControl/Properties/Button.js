@@ -10,17 +10,21 @@ export default class Button extends View {
         };
     }
 
-    initialize(options) {
+    constructor(options) {
+        super(options);
+
         this.config = options.config;
     }
 
     render(boundItem) {
-        if (!this.el) {
-            this.renderWithTemplate(this);
+        if (!this.built) {
+            super.render();
 
-            this.button = this.query('button');
+            this.button = this.el.querySelector('button');
 
             this.button.innerHTML = this.config.id;
+
+            this.built = true;
         }
 
         if (boundItem) {

@@ -1,9 +1,9 @@
 var fs = require('fs');
-import {NewView} from '../View';
+import View from '../View';
 import AppMenu from '../AppMenu';
 import ProjectView from '../ProjectView';
 
-export default class AppView extends NewView {
+export default class AppView extends View {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
 
     constructor(...args) {

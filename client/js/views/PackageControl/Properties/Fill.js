@@ -11,17 +11,21 @@ export default class Fill extends View {
         };
     }
 
-    initialize(options) {
+    constructor(options) {
+        super(options);
+
         this.config = options.config;
     }
 
     render(boundItem) {
-        if (!this.el) {
-            this.renderWithTemplate(this);
+        if (!this.built) {
+            super.render();
 
-            this.textInput = this.query('input');
+            this.textInput = this.el.querySelector('input');
 
-            this.query('label').innerHTML = this.config.id;
+            this.el.querySelector('label').innerHTML = this.config.id;
+
+            this.built = true;
         }
 
         if (boundItem) {

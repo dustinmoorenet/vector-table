@@ -3,21 +3,9 @@ import Shapes from './Shapes';
 import Handle from './Handle';
 
 export default class Item extends View {
-    template(context) {
-        context._element = context._parentElement.group();
+    constructor(options) {
+        super(options);
 
-        context._shapes = context._element.group();
-        context._shapes.attr('data-hook', 'shapes');
-
-        context._handles = context._element.group();
-        context._handles.attr('data-hook', 'handles');
-
-        context._element.node.classList.add('item');
-
-        return context._element.node;
-    }
-
-    initialize(options) {
         this._parentElement = options.parentElement;
         this.itemId = options.itemId;
         this.shapeViewsById = {};
@@ -26,15 +14,25 @@ export default class Item extends View {
         this.listenTo(global.dataStore, this.itemId, this.render);
     }
 
+    createElement(options) {
+        this._element = options.parentElement.group();
+
+        super.createElement({el: this._element.node});
+
+        this._shapes = this._element.group();
+        this._shapes.attr('data-hook', 'shapes');
+
+        this._handles = this._element.group();
+        this._handles.attr('data-hook', 'handles');
+
+        this.el.classList.add('item');
+    }
+
     render(item) {
         if (!item) {
             this.remove();
 
             return;
-        }
-
-        if (!this.built) {
-            this.renderWithTemplate(this);
         }
 
         this.renderShapes(item.shapes);

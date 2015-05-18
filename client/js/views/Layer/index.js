@@ -3,19 +3,21 @@ import Item from '../Item';
 import _ from 'lodash';
 
 export default class Layer extends View {
-    template(context) {
-        context._element = context._parentElement.group();
-        context._element.attr('class', 'layer');
+    constructor(options) {
+        super(options);
 
-        return context._element.node;
-    }
-
-    initialize(options) {
-        this._parentElement = options.parentElement;
         this.layerId = options.layerId;
         this.itemViewsById = {};
 
         this.listenTo(global.dataStore, this.layerId, this.render);
+    }
+
+    createElement(options) {
+        this._element = options.parentElement.group();
+
+        super.createElement({el: this._element.node});
+
+        this.el.classList.add('layer');
     }
 
     render(layer) {
@@ -23,12 +25,6 @@ export default class Layer extends View {
             this.remove();
 
             return;
-        }
-
-        if (!this.built) {
-            this.renderWithTemplate();
-
-            this.built = true;
         }
 
         this.renderItems(layer.itemIDs);

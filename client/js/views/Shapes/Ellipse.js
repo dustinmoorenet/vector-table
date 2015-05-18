@@ -1,21 +1,13 @@
 import View from '../View';
 
 export default class Ellipse extends View {
-    template(context) {
-        context._element = context._parentElement.ellipse(0, 0);
+    createElement(options) {
+        this._element = options.parentElement.ellipse(0, 0);
 
-        return context._element.node;
-    }
-
-    initialize(options) {
-        this._parentElement = options.parentElement;
+        this.el = this._element.node;
     }
 
     render(shape) {
-        if (!this.el) {
-            this.renderWithTemplate();
-        }
-
         if (!shape) {
             this.remove();
 

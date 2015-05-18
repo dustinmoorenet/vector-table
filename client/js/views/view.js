@@ -1,10 +1,7 @@
-import AmpersandView from 'ampersand-view';
-
-export default AmpersandView.extend({});
-
 import Events from '../libs/Events';
+import delegateEvents from 'events-mixin';
 
-export class NewView extends Events {
+export default class View extends Events {
     get template() { return ''; }
 
     get events() { return {}; }
@@ -19,32 +16,36 @@ export class NewView extends Events {
 
     createElement(options) {
         this.el = options.el || document.createElement('div');
+
+        this.delegateEvents();
     }
 
     render() {
-        var template = this.template;
+        var newDOM = this.template;
 
-        var newDOM = template.call ? template() : template;
+        if (newDOM) {
+            if (!newDOM.appendChild) {
+                var div = document.createElement('div');
 
-        if (!newDOM.appendChild) {
-            var div = document.createElement('div');
+                div.innerHTML = newDOM;
 
-            div.innerHTML = newDOM;
+                newDOM = div.children[0];
+            }
 
-            newDOM = div.children[0];
+            var parent = this.el.parentNode;
+
+            if (parent) {
+                parent.replaceChild(newDOM, this.el);
+            }
+
+            if (newDOM.nodeName === '#document-fragment') {
+                throw new Error('Views can only have one root element.');
+            }
+
+            this.el = newDOM;
         }
 
-        var parent = this.el.parentNode;
-
-        if (parent) {
-            parent.replaceChild(newDOM, this.el);
-        }
-
-        if (newDOM.nodeName === '#document-fragment') {
-            throw new Error('Views can only have one root element.');
-        }
-
-        this.el = newDOM;
+        this.delegateEvents();
     }
 
     remove() {
@@ -57,5 +58,20 @@ export class NewView extends Events {
         this.stopListening();
 
         this.trigger('remove', this);
+    }
+
+    delegateEvents() {
+        if (this.eventManager) {
+            this.eventManager.unbind();
+        }
+
+        this.eventManager = delegateEvents(this.el, this);
+
+        var events = this.events;
+
+        for (var key in events) {
+            this.eventManager.bind(key, events[key]);
+        }
+
     }
 }

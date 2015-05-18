@@ -11,7 +11,9 @@ export default class ProjectToolbar extends View {
         };
     }
 
-    initialize(options) {
+    constructor(options) {
+        super(options);
+
         this.projectID = options.projectID;
 
         this.render();
@@ -19,7 +21,7 @@ export default class ProjectToolbar extends View {
 
     render() {
         if (!this.built) {
-            this.renderWithTemplate(this);
+            super.render();
         }
 
         this.built = true;

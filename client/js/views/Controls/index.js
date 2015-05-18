@@ -14,18 +14,10 @@ export default class Controls extends View {
         };
     }
 
-    initialize() {
-        this.listenTo(global.appStore, 'app', this.render);
+    constructor(...args) {
+        super(...args);
 
-        global.packageWorker.addEventListener('message', function (event) {
-            if (event.data.message === 'package-control') {
-                if (event.data.control) {
-                    this.packageControl = this.renderSubview(new PackageControl({
-                        packageControl: event.data.control
-                    }), '[data-hook="package-control"]');
-                }
-            }
-        }.bind(this), false);
+        this.listenTo(global.appStore, 'app', this.render);
 
         var app = global.appStore.get('app');
 
@@ -38,7 +30,11 @@ export default class Controls extends View {
 
     render(app) {
         if (!this.built) {
-            this.renderWithTemplate();
+            super.render();
+
+            this.views.packageControl = new PackageControl({
+                el: this.el.querySelector('[data-hook="package-control"]')
+            });
         }
 
         this.markSelected(app.currentPackage);

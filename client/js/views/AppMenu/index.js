@@ -11,13 +11,15 @@ export default class AppMenu extends View {
         };
     }
 
-    initialize() {
+    constructor(...args) {
+        super(...args);
+
         this.listenTo(global.appStore, 'app', this.render);
     }
 
     render() {
         if (!this.built) {
-            this.renderWithTemplate(this);
+            super.render();
         }
 
         this.built = true;

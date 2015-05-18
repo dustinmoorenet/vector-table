@@ -12,10 +12,12 @@ export default class LoginModal extends Modal {
     }
 
     render() {
-        if (!this.el) {
-            Modal.prototype.render.apply(this, arguments);
+        if (!this.built) {
+            super.render();
 
-            this.query('.container').innerHTML = this.panelTemplate;
+            this.el.querySelector('.container').innerHTML = this.panelTemplate;
+
+            this.built = true;
         }
     }
 
@@ -26,7 +28,7 @@ export default class LoginModal extends Modal {
     }
 
     requestLink() {
-        var email = this.query('.request-link').value;
+        var email = this.el.querySelector('.request-link').value;
 
         global.app.user.requestLink(email);
 

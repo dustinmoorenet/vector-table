@@ -7,7 +7,7 @@ import SVG from '../../libs/svg';
 export default class Table extends View {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
 
-    events() {
+    get events() {
         var isTouchDevice = 'ontouchstart' in document.documentElement;
 
         var events = {
@@ -27,7 +27,9 @@ export default class Table extends View {
         return events;
     }
 
-    initialize(options) {
+    constructor(options) {
+        super(options);
+
         this.layerViewsById = {};
         this.items = {};
 
@@ -49,8 +51,6 @@ export default class Table extends View {
         this.listenTo(global.dataStore, options.projectID, this.render);
 
         window.addEventListener('resize', this.resize.bind(this));
-
-        //this.render(global.dataStore.get(options.projectID));
     }
 
     render(project) {
@@ -61,9 +61,9 @@ export default class Table extends View {
         }
 
         if (!this.built) {
-            this.renderWithTemplate();
+            super.render();
 
-            this.svg = SVG(this.queryByHook('area'));
+            this.svg = SVG(this.el.querySelector('[data-hook="area"]'));
 
             this.background = this.svg.rect('100%', '100%').attr('class', 'background');
 

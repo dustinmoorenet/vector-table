@@ -2,13 +2,20 @@ import Modal from '../../Modal';
 import FillPanel from './FillPanel';
 
 export default class FillModal extends Modal {
-    initialize(options) {
+    constructor(options) {
+        super(options);
+
         this.object = options.object;
     }
 
     render() {
-        this.renderWithTemplate();
+        super.render();
 
-        this.renderSubview(new FillPanel({object: this.object}), '.container');
+        this.views.panel = new FillPanel({
+            el: this.el.querySelector('.container'),
+            object: this.object
+        });
+
+        this.views.panel.render();
     }
 }
