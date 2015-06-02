@@ -12,6 +12,11 @@ var currentPackage;
 self.onmessage = function(event) {
     var data = event.data;
 
+    if (global.appStore) {
+        var projectID = (global.appStore.get('app') || {}).projectID;
+        data.currentFrame = (global.dataStore.get(projectID) || {}).currentFrame || 0;
+    }
+
     if (data.message == 'set-package') {
         eventExport.stopListening(currentPackage);
 

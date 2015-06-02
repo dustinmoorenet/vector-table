@@ -1,11 +1,15 @@
-An SVG editor
+# An SVG editor
 
-Build once
+### Build once
 ```
 npm install
 ```
 
-Dev
+## Dev
 ```
 node server.js &; npm run watch
 ```
+
+## Docs
+* [Data Structures](data_structures.md)
+* [Flow](flow.md)

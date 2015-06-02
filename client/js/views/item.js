@@ -10,6 +10,7 @@ export default class Item extends View {
         this.itemId = options.itemId;
         this.shapeViewsById = {};
         this.handleViewsById = {};
+        this.projectID = global.appStore.get('app').projectID;
 
         this.listenTo(global.dataStore, this.itemId, this.render);
     }
@@ -35,7 +36,19 @@ export default class Item extends View {
             return;
         }
 
-        this.renderShapes(item.shapes);
+        var currentFrame = global.dataStore.get(this.projectID).currentFrame || 0;
+
+        var timeLine = item.timeLine || [];
+        var shapes = [];
+        for (let i = timeLine.length - 1; i > -1; i--) {
+            var point = timeLine[i];
+
+            if (point.frame <= currentFrame) {
+                shapes = point.shapes;
+            }
+        }
+
+        this.renderShapes(shapes);
 
         this.renderHandles(item.handles);
 

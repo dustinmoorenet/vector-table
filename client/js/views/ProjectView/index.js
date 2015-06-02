@@ -3,6 +3,7 @@ import View from '../View';
 import ProjectToolbar from '../ProjectToolbar';
 import Controls from '../Controls';
 import Table from '../Table';
+import TimeLine from '../TimeLine';
 
 export default class ProjectView extends View {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
@@ -45,6 +46,11 @@ export default class ProjectView extends View {
             });
 
             this.views.table.render(global.dataStore.get(project.id));
+
+            this.views.timeLine = new TimeLine({
+                el: this.el.querySelector('.time-line'),
+                projectID: project.id
+            });
 
             // this.parent.appendChild(this.el);
 
