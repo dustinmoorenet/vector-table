@@ -1,6 +1,7 @@
 import expect from 'expect';
 import TimeLine from '../../js/controllers/TimeLine';
 import DataStore from '../../js/libs/DataStore';
+import dataStoreData from '../data/datastore';
 import timeLineData from '../data/timeline';
 
 describe('controllers/TimeLine', () => {
@@ -8,9 +9,9 @@ describe('controllers/TimeLine', () => {
     var dataStore;
 
     beforeEach(() => {
-        dataStore = global.dataStore = new DataStore();
+        dataStore = new DataStore();
 
-        timeLine = new TimeLine();
+        timeLine = new TimeLine({itemStore: dataStore});
 
         timeLine.frames.length = 15;
     });
@@ -21,49 +22,19 @@ describe('controllers/TimeLine', () => {
 
     describe('buildFrames', () => {
         it('should build a complex structure', () => {
-            dataStore.set('0000', {
-                id: '0000',
-                timeLine: [
-                    {
-                        frame: 0,
-                        nodes: [
-                            '2345'
-                        ]
-                    },
-                    {
-                        frame: 5,
-                        nodes: [
-                            '2345',
-                            '4567'
-                        ]
-                    },
-                    {
-                        frame: 10,
-                        nodes: [
-                            '4567'
-                        ]
-                    }
-                ]
-            });
+            dataStore.batchSet(dataStoreData);
 
-            dataStore.set('2345', {
-                id: '2345',
-                timeLine: [
-                    {
-                        frame: 0,
-                        transform: 'scale(2) translate(23,0)',
-                        nodes: [
-                            {type: 'Rectangle', x: 56, y: 4},
-                            {type: 'Ellipse', cy: 879, cx: 41},
-                            '1234'
-                        ]
-                    },
-                    {
-                        frame: 3,
-                        transform: 'scale(4) translate(34,56)'
-                    }
-                ]
-            });
+            timeLine.buildFrames();
+
+            expect(timeLine.frames).toEqual(timeLineData);
+        });
+    });
+
+    describe('buildNode', () => {
+        it('should rebuild a node from an existing frame array', () => {
+            dataStore.batchSet(dataStoreData);
+
+            timeLine.buildFrames();
 
             dataStore.set('1234', {
                 id: '1234',
@@ -81,24 +52,32 @@ describe('controllers/TimeLine', () => {
                             {type: 'Ellipse', cy: 432, cx: 21},
                             {type: 'Rectangle', x: 321, y: 12}
                         ]
+                    },
+                    {
+                        frame: 4,
+                        nodes: [
+                            {type: 'Ellipse', cy: 2, cx: 1},
+                            {type: 'Rectangle', x: 3, y: 4}
+                        ]
                     }
                 ]
             });
 
-            dataStore.set('4567', {
-                id: '4567',
-                type: 'Rectangle',
-                x: '1024',
-                y: '265',
-                timeLine: [
-                    {frame: 0}
+            var node = dataStore.get('1234');
+
+            timeLine.buildNode(node, 4);
+
+            expect(timeLine.frames[4]['1234']).toEqual({
+                id: '1234',
+                frame: 4,
+                nodes: [
+                    {type: 'Ellipse', cy: 2, cx: 1},
+                    {type: 'Rectangle', x: 3, y: 4}
                 ]
             });
 
-            timeLine.buildFrames();
-
-            expect(timeLine.frames).toEqual(timeLineData);
+            expect(timeLine.frames[3]['1234'].frame).toBe(2);
+            expect(timeLine.frames[5]['1234'].frame).toBe(4);
         });
-
     });
 });

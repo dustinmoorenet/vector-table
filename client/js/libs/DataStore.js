@@ -71,6 +71,10 @@ export default class DataStore extends Events {
         return this.set(id, undefined, params);
     }
 
+    batchSet(objects) {
+        Object.keys(objects).forEach((id) => this.set(id, objects[id]));
+    }
+
     notifyOnNextTick(id) {
         if (!this.notifyList.length) {
             setTimeout(this.timeToNotify.bind(this));
