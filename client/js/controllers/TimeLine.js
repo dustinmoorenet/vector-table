@@ -6,13 +6,14 @@ export default class TimeLine extends Events {
         super();
 
         this.itemStore = options.itemStore;
+        this.rootID = options.rootID;
 
         this.frames = [];
         this.frames.length = 100;
     }
 
     buildFrames() {
-        var root = this.itemStore.get('0000');
+        var root = this.itemStore.get(this.rootID);
         this.nodeIndex = {};
 
         this.buildNode(root);

@@ -7,4 +7,5 @@ client/sass/iconFonts.scss
 client/tests/bundle.js
 client/tests/mocha.css
 client/tests/mocha.js
+client/tests/tests.bundle.js
 .DS_Store
