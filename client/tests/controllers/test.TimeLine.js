@@ -11,9 +11,7 @@ describe('controllers/TimeLine', () => {
     beforeEach(() => {
         dataStore = new DataStore();
 
-        timeLine = new TimeLine({itemStore: dataStore, rootID: '0000'});
-
-        timeLine.frames.length = 15;
+        timeLine = new TimeLine({itemStore: dataStore, rootID: '0000', frameCount: 15});
     });
 
     afterEach(() => {

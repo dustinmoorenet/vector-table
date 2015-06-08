@@ -1,25 +1,81 @@
 import _ from 'lodash';
 import Events from '../libs/Events';
 
+/*
+Time line needs to:
+* Maintain item states in all frames from dataStore changes
+* Inform a renderer of item state changes
+* Drive a renderer through the time line at a given speed
+
+*/
 export default class TimeLine extends Events {
     constructor(options={}) {
         super();
 
         this.itemStore = options.itemStore;
         this.rootID = options.rootID;
-
+        this._currentFrame = 0;
+        this.repeat = false;
+        this.msBetweenFrames = 1000 / 24;
         this.frames = [];
-        this.frames.length = 100;
+        this.frameCount = options.frameCount || 100;
+
+        this.listenTo(this.itemStore, 'all', this.onItemChanged);
     }
 
-    buildFrames() {
-        var root = this.itemStore.get(this.rootID);
+    get frameCount() {
+        return this.frames.length;
+    }
+
+    set frameCount(frameCount) {
+        var oldFrameCount = this.frames.length;
+
+        this.frames.length = frameCount;
+
+        if (oldFrameCount < frameCount) {
+            this.buildFrames(oldFrameCount);
+        }
+    }
+
+    get currentFrame() {
+        return this._currentFrame;
+    }
+
+    set currentFrame(frame) {
+        if (this._currentFrame === frame) { return; }
+
+        this._currentFrame = frame;
+
+        var items = this.frames[this._currentFrame];
+
+        for (var id in items) {
+            this.trigger(id, items[id]);
+        }
+    }
+
+    get(id) {
+        return this.frames[this._currentFrame][id];
+    }
+
+    onItemChanged(id, item) {
+        console.log('onItemChanged', arguments);
+
+        this.buildNode(item);
+
+        this.trigger(id, this.get(id));
+    }
+
+    buildFrames(startFrame=0) {
         this.nodeIndex = {};
 
-        this.buildNode(root);
+        var root = this.itemStore.get(this.rootID);
+
+        this.buildNode(root, startFrame);
     }
 
     buildNode(node, startFrame=0) {
+        if (!node) { return; }
+
         this.nodeIndex[node.id] = node;
         var timeLine = node.timeLine;
 
@@ -27,14 +83,15 @@ export default class TimeLine extends Events {
 
         var previousFrame;
         var thisFrame;
-        for (var i = startFrame; timeLine && i < this.frames.length; i++) {
+        for (var i = startFrame; timeLine && i < this.frameCount; i++) {
             thisFrame = timeLine.find((frame) => frame.frame === i);
 
             // Item does not exists yet on timeline
-            if (!previousFrame && !thisFrame) { continue; }
-
+            if (!previousFrame && !thisFrame) {
+                thisFrame = null;
+            }
             // This frame is a repeat of the previous frame
-            if (!thisFrame) {
+            else if (!thisFrame) {
                 thisFrame = previousFrame;
             }
             // This frame has changes, build off previous frame or base node
@@ -43,11 +100,11 @@ export default class TimeLine extends Events {
             }
 
             this.frames[i] = this.frames[i] || {};
-            this.frames[i][thisFrame.id] = previousFrame = thisFrame;
+            this.frames[i][node.id] = previousFrame = thisFrame;
 
             var childNode;
             var childID;
-            for (var n = 0; thisFrame.nodes && n < thisFrame.nodes.length; n++) {
+            for (var n = 0; thisFrame && thisFrame.nodes && n < thisFrame.nodes.length; n++) {
                 childNode = thisFrame.nodes[n];
                 childID = typeof childNode === 'string' ? childNode : undefined;
 
@@ -59,8 +116,47 @@ export default class TimeLine extends Events {
                 }
 
                 // Follow the rabbit
-                this.buildNode(childNode);
+                this.buildNode(childNode, startFrame);
             }
         }
+    }
+
+    play(startFrame=0) {
+        this.startTime = +(new Date());
+        this.startFrame = startFrame;
+
+        this.continuePlay(startFrame);
+    }
+
+    continuePlay(frame) {
+        this.currentFrame = frame;
+
+        if (this.stopFlag) {
+            delete this.stopFlag;
+
+            return;
+        }
+
+        setTimeout(() => {
+            var now = +(new Date());
+            var frameCount = this.frame.length;
+            var advanceCount = Math.ceil((now - this.startTime) / this.msBetweenFrames);
+            var nextFrame = this.startFrame + advanceCount;
+
+            if (this.repeat) {
+                nextFrame %= frameCount;
+            }
+            else if (nextFrame >= frameCount) {
+                nextFrame = frameCount - 1;
+
+                this.stopFlag = true;
+            }
+
+            this.continuePlay(nextFrame);
+        }, this.msBetweenFrames);
+    }
+
+    stop() {
+        this.stopFlag = true;
     }
 }
