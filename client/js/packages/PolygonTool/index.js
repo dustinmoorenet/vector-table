@@ -40,7 +40,7 @@ export default class PolygonTool extends Package {
 
         if (!object) {
             exportEvent = {
-                message: 'create-object',
+                message: 'create-item',
                 object: {
                     tool: 'PolygonTool',
                     complete: false,
@@ -64,12 +64,12 @@ export default class PolygonTool extends Package {
             if (event.activeHandle) {
                 object.shapes[0].attr.d += ' Z';
                 object.shapes[0].attr.fill = 'blue';
-                message = 'complete-object';
+                message = 'complete-item';
             }
             else {
                 object.shapes[0].attr.d += ' L' + event.x + ',' + event.y;
                 object.handles.push(handle);
-                message = 'transform-object';
+                message = 'update-item';
             }
 
             exportEvent = {
@@ -129,7 +129,7 @@ export default class PolygonTool extends Package {
         object.shapes[0].attr.d = d;
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }

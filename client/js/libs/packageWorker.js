@@ -28,3 +28,10 @@ self.onmessage = function(event) {
         currentPackage.trigger.call(currentPackage, data.message, data);
     }
 };
+
+/*
+Need to figure out how to message between packages
+And how to query for items from a store that responds with a promise or generator
+And how to conditionally load packages
+And how to route events to selected packages (Tools) or make the event tool specific
+*/

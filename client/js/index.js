@@ -1,3 +1,4 @@
+require('babelify/polyfill');
 var App = require('./controllers/App');
 
 global.app = new App();

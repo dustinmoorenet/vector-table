@@ -1,8 +1,9 @@
 var fs = require('fs');
-import _ from 'lodash';
 import View from '../View';
-import Layer from '../Layer';
+import Item from '../Item';
 import SVG from '../../libs/svg';
+import Background from './Background';
+import Overlay from './Overlay';
 
 export default class Table extends View {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
@@ -30,25 +31,19 @@ export default class Table extends View {
     constructor(options) {
         super(options);
 
-        this.layerViewsById = {};
-        this.items = {};
-
         global.packageWorker.addEventListener('message', function (event) {
-            if (event.data.message === 'create-object') {
+            if (event.data.message === 'create-item') {
                 this.create(event.data);
             }
-            else if (event.data.message === 'transform-object') {
-                this.transform(event.data);
-            }
-            else if (event.data.message === 'update-object') {
+            else if (event.data.message === 'update-item') {
                 this.update(event.data);
             }
-            else if (event.data.message === 'complete-object') {
+            else if (event.data.message === 'complete-item') {
                 this.complete(event.data);
             }
         }.bind(this), false);
 
-        this.listenTo(global.dataStore, options.projectID, this.render);
+        this.listenTo(global.app.user.projectStore.timeLine, options.projectID, this.render);
 
         window.addEventListener('resize', this.resize.bind(this));
     }
@@ -65,42 +60,30 @@ export default class Table extends View {
 
             this.svg = SVG(this.el.querySelector('[data-hook="area"]'));
 
-            this.background = this.svg.rect('100%', '100%').attr('class', 'background');
+            this.background = new Background({
+                parentElement: this.svg
+            })
 
-            this.listenTo(global.dataStore, 'layers', this.addLayers);
+            this.rootItem = new Item({
+                itemID: project.id,
+                parent: this,
+                parentElement: this.svg
+            });
 
-            this.addLayers(global.dataStore.get('layers'));
+            this.rootItem.listenTo(global.app.user.projectStore.timeLine, project.id, this.rootItem.render);
+
+            this.overlay = new Item({
+                parentElement: this.svg
+            });
+
+            this.overlay.el.classList.add('overlay');
+
+            this.overlay.listenTo(global.appStore, 'overlay', this.overlay.render);
 
             setTimeout(this.resize.bind(this));
 
             this.built = true;
         }
-    }
-
-    addLayers(layerIDs) {
-        layerIDs.forEach(function(layerId) {
-            var layer = global.dataStore.get(layerId);
-
-            if (!layer) {
-                delete this.layerViewsById;
-
-                return;
-            }
-
-            var layerView = this.layerViewsById[layerId];
-
-            if (!layerView) {
-                layerView = new Layer({
-                    layerId: layerId,
-                    parent: this,
-                    parentElement: this.svg
-                });
-
-                this.layerViewsById[layerId] = layerView;
-
-                layerView.render(layer);
-            }
-        }, this);
     }
 
     resize() {
@@ -128,7 +111,11 @@ export default class Table extends View {
         var item;
 
         if (itemNode) {
-            item = global.dataStore.get(itemNode.id);
+            item = {
+                id: itemNode.id,
+                full: global.dataStore.get(itemNode.id),
+                current: global.app.user.projectStore.timeLine.get(itemNode.id)
+            };
         }
 
         var handleNode = this.findHandle(event.target);
@@ -163,9 +150,13 @@ export default class Table extends View {
             return;
         }
 
-        var item = global.dataStore.get(this.activeSelection);
+        var item = {
+            id: this.activeSelection,
+            full: global.dataStore.get(this.activeSelection),
+            current: global.app.user.projectStore.timeLine.get(this.activeSelection)
+        };
 
-        if (!item) {
+        if (!item.full && !item.current) {
             return;
         }
 
@@ -182,6 +173,7 @@ export default class Table extends View {
             x: pointer.offsetX,
             y: pointer.offsetY,
             activeHandle: this.activeHandle,
+            currentFrame: 0,
             selection: [
                 item
             ]
@@ -195,9 +187,13 @@ export default class Table extends View {
             return;
         }
 
-        var item = global.dataStore.get(this.activeSelection);
+        var item = {
+            id: this.activeSelection,
+            full: global.dataStore.get(this.activeSelection),
+            current: global.app.user.projectStore.timeLine.get(this.activeSelection)
+        };
 
-        if (!item) {
+        if (!item.full && !item.current) {
             return;
         }
 
@@ -215,10 +211,7 @@ export default class Table extends View {
     }
 
     create(event) {
-        var item = event.object;
-
-        item.id = _.uniqueId('item-');
-
+        var item = event.full;
         var selection = [item.id];
         var params = {recordHistory: !this.activeSelection};
 
@@ -226,12 +219,13 @@ export default class Table extends View {
 
         global.appStore.set('selection', selection, params);
 
-        var activeLayerID = global.appStore.get('app').activeLayerID;
-        var layer = global.dataStore.get(activeLayerID);
+        var focusGroupID = global.appStore.get('app').focusGroupID;
+        var focusGroup = global.dataStore.get(focusGroupID);
 
-        layer.itemIDs.push(item.id);
+        focusGroup.timeLine[0].nodes.push(item.id);
 
-        global.dataStore.set(layer.id, layer, params);
+        global.dataStore.set(focusGroup.id, focusGroup, params);
+        global.appStore.set('overlay', event.handles);
 
         this.activeSelection = item.id;
 
@@ -240,19 +234,8 @@ export default class Table extends View {
         }
     }
 
-    transform(event) {
-        var item = event.object;
-        var params = {recordHistory: !this.activeSelection};
-
-        if (event.activeHandle) {
-            this.activeHandle = event.activeHandle;
-        }
-
-        global.dataStore.set(item.id, item, params);
-    }
-
     update(event) {
-        var item = event.object;
+        var item = event.full;
         var params = {recordHistory: !this.activeSelection};
 
         if (event.activeHandle) {
@@ -260,6 +243,7 @@ export default class Table extends View {
         }
 
         global.dataStore.set(item.id, item, params);
+        global.appStore.set('overlay', event.handles);
     }
 
     complete(event) {
@@ -277,7 +261,7 @@ export default class Table extends View {
 
     findHandle(node) {
         while (true) {
-            if (node === this.svg.node) {
+            if (!node || node === this.svg.node) {
                 return null;
             }
 
@@ -291,7 +275,7 @@ export default class Table extends View {
 
     findItem(node) {
         while (true) {
-            if (node === this.svg.node) {
+            if (!node || node === this.svg.node) {
                 return null;
             }
 

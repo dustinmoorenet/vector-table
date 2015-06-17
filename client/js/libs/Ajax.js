@@ -1,4 +1,19 @@
 import request from 'request';
-import nodefn from 'when/node';
 
-export default nodefn.liftAll(request);
+export default function ajax(args) {
+    args.baseUrl = location.origin || location.protocol + "//" + location.host;
+    args.json = true;
+
+    var promise = new Promise((resolve, reject) => {
+        request(args, (err, res, body) => {
+            if (err) {
+                console.error(err);
+                reject(err);
+            }
+
+            resolve(body);
+        });
+    });
+
+    return promise;
+}

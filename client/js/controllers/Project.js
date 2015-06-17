@@ -1,5 +1,6 @@
-import Events from '../libs/Events';
 import uuid from 'node-uuid';
+import Events from '../libs/Events';
+import TimeLine from './TimeLine';
 
 export default class Project extends Events {
     constructor() {
@@ -53,16 +54,23 @@ export default class Project extends Events {
     new() {
         var projectID = uuid.v4();
 
-        var layerID = uuid.v4();
-        global.dataStore.set('layers', [layerID]);
-        global.dataStore.set(layerID, {id: layerID, visible: true, itemIDs: []});
+        this.timeLine = new TimeLine({
+            itemStore: global.dataStore,
+            rootID: projectID
+        });
 
         var app = global.appStore.get('app');
 
         app.projectID = projectID;
-        app.activeLayerID = layerID;
+        app.focusGroupID = projectID;
         global.appStore.set('app', app);
 
-        global.dataStore.set(projectID, {id: projectID});
+        global.dataStore.set(projectID, {
+            id: projectID,
+            type: 'Group',
+            timeLine: [
+                {frame: 0, nodes: []}
+            ]
+        });
     }
 }

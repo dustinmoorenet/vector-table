@@ -48,7 +48,7 @@ export default class EllipseTool extends Package {
         this.applyHandles(object);
 
         this.trigger('export', {
-            message: 'create-object',
+            message: 'create-item',
             activeHandle: object.handles[2].id, // se
             object: object
         });
@@ -74,7 +74,7 @@ export default class EllipseTool extends Package {
         object.complete = true;
 
         this.trigger('export', {
-            message: 'complete-object',
+            message: 'complete-item',
             object: object
         });
     }
@@ -110,7 +110,7 @@ export default class EllipseTool extends Package {
         });
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             activeHandle: event.activeHandle,
             object: object
         });
@@ -134,7 +134,7 @@ export default class EllipseTool extends Package {
         };
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
@@ -178,7 +178,7 @@ export default class EllipseTool extends Package {
         this.applyHandles(object);
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
@@ -369,7 +369,7 @@ export default class EllipseTool extends Package {
         this.applyHandles(object);
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
@@ -381,7 +381,7 @@ export default class EllipseTool extends Package {
         object.shapes[0].attr.fill = value;
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }

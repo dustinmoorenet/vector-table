@@ -48,17 +48,19 @@ export default class TimeLine extends Events {
 
         var items = this.frames[this._currentFrame];
 
+
         for (var id in items) {
             this.trigger(id, items[id]);
         }
     }
 
     get(id) {
+
         return this.frames[this._currentFrame][id];
     }
 
     onItemChanged(id, item) {
-        console.log('onItemChanged', arguments);
+
 
         this.buildNode(item);
 
@@ -74,6 +76,7 @@ export default class TimeLine extends Events {
     }
 
     buildNode(node, startFrame=0) {
+
         if (!node) { return; }
 
         this.nodeIndex[node.id] = node;

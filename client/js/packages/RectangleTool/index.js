@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import jsonQuery from 'json-query';
 import Package from '../../libs/Package';
+import uuid from 'node-uuid';
 
 /*
 We need to be able to:
@@ -56,35 +57,36 @@ export default class RectangleTool extends Package {
         }
         else {
             this.create({
-                x: event.x,
-                y: event.y,
-                width: 0,
-                height: 0,
-                fill: 'blue',
-                stroke: 'black'
+                timeLine: [
+                    {
+                        frame: 0,
+                        x: event.x,
+                        y: event.y,
+                        width: 0,
+                        height: 0,
+                        fill: 'blue',
+                        stroke: 'black'
+                    }
+                ]
             });
         }
     }
 
     create(attr) {
-
-        var object = {
+        var item = _.extend(attr, {
+            id: uuid.v4(),
             tool: 'RectangleTool',
             mode: 'resize',
-            shapes: [
-                {
-                    type: 'Rectangle',
-                    attr: attr
-                }
-            ]
-        };
+            type: 'Rectangle'
+        });
 
-        this.applyHandles(object);
+        var handles = this.applyHandles(item.timeLine[0]);
 
         this.trigger('export', {
-            message: 'create-object',
-            activeHandle: object.handles[2].id, // se
-            object: object
+            message: 'create-item',
+            //activeHandle: handles[2].id, // se
+            full: item,
+            handles: handles
         });
     }
 
@@ -93,9 +95,9 @@ export default class RectangleTool extends Package {
             return;
         }
 
-        var object = event.selection[0];
+        var handles = event.selection[0].handles;
 
-        var handle = _.find(object.handles, {id: event.activeHandle});
+        var handle = handles.find((handle) => handle.id === event.activeHandle);
 
         if (handle.action.func) {
             this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
@@ -108,38 +110,69 @@ export default class RectangleTool extends Package {
         object.complete = true;
 
         this.trigger('export', {
-            message: 'complete-object',
+            message: 'complete-item',
             object: object
         });
     }
 
     resize(handleIndex, buddyHandleIndex, event) {
-        var object = event.selection[0];
+        var {current, full, handles} = event.selection[0];
+        var currentFrame = event.currentFrame;
 
         // Find handle buddy
-        var attr = object.handles[buddyHandleIndex].attr;
+        var handle = handles[buddyHandleIndex];
 
         // Determine new rectangle from current position and handle buddy
-        _.extend(object.shapes[0].attr, {
-            x: Math.min(event.x, attr.cx),
-            y: Math.min(event.y, attr.cy),
-            width: Math.abs(event.x - attr.cx),
-            height: Math.abs(event.y - attr.cy)
-        });
+        var rectangle = {
+            x: Math.min(event.x, handle.cx),
+            y: Math.min(event.y, handle.cy),
+            width: Math.abs(event.x - handle.cx),
+            height: Math.abs(event.y - handle.cy)
+        };
 
-        this.applyHandles(object);
+        var delta = {};
+        if (rectangle.x !== current.x) {
+            delta.x = rectangle.x;
+        }
+
+        if (rectangle.y !== current.y) {
+            delta.y = rectangle.y;
+        }
+
+        if (rectangle.width !== current.width) {
+            delta.width = rectangle.width;
+        }
+
+        if (rectangle.height !== current.height) {
+            delta.height = rectangle.height;
+        }
+
+        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame == currentFrame);
+        var frame;
+        for (timeLineIndex = full.timeLine.length - 1; frame.frame <= currentFrame; timeLineIndex--) {
+            if (frame.frame === currentFrame) {
+                frame = full.timeLine[timeLineIndex];
+            }
+        }
+
+        if (!frame) {
+            frame = delta;
+            frame.frame = currentFrame;
+
+            full.timeLine.splice(currentFrame, 1, frame);
+        }
+
+        handles = this.applyHandles(rectangle);
 
         // Determine new active handle
-        object.handles.forEach(function(handle) {
-            if (handle.attr.cx === event.x && handle.attr.cy === event.y) {
-                event.activeHandle = handle.id;
-            }
-        });
+        event.activeHandle = handles.find((handle) =>
+            handle.cx === event.x && handle.cy === event.y);
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             activeHandle: event.activeHandle,
-            object: object
+            full: full,
+            handles: handles
         });
     }
 
@@ -161,7 +194,7 @@ export default class RectangleTool extends Package {
         };
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
@@ -206,71 +239,71 @@ export default class RectangleTool extends Package {
         this.applyHandles(object);
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
 
-    applyHandles(object) {
-        object.handles = [];
+    applyHandles(item) {
+        var handles = [];
 
-        if (object.mode === 'resize') {
-            this.resizeHandles(object);
+        if (item.mode === 'resize') {
+            handles = this.resizeHandles(item);
         }
-        else if (object.mode === 'rotate') {
-            this.rotateHandles(object);
+        else if (item.mode === 'rotate') {
+            handles = this.rotateHandles(item);
         }
+
+        return handles;
     }
 
-    resizeHandles(object) {
-        var rect = object.shapes[0].attr;
+    resizeHandles(item) {
+        var handles = [];
 
-        object.handles.push(_.merge({}, RectangleTool.resizeHandle, {
+        handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'nw',
-            attr: {
-                cx: rect.x,
-                cy: rect.y
-            },
+            cx: item.x,
+            cy: item.y,
             action: {
                 partial: [0, 2]
             }
         }));
 
-        object.handles.push(_.merge({}, RectangleTool.resizeHandle, {
+        handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'ne',
-            attr: {
-                cx: rect.x + rect.width,
-                cy: rect.y
-            },
+            cx: item.x + item.width,
+            cy: item.y,
             action: {
                 partial: [1, 3]
             }
         }));
 
-        object.handles.push(_.merge({}, RectangleTool.resizeHandle, {
+        handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'se',
-            attr: {
-                cx: rect.x + rect.width,
-                cy: rect.y + rect.height
-            },
+            cx: item.x + item.width,
+            cy: item.y + item.height,
             action: {
                 partial: [2, 0]
             }
         }));
 
-        object.handles.push(_.merge({}, RectangleTool.resizeHandle, {
+        handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'sw',
-            attr: {
-                cx: rect.x,
-                cy: rect.y + rect.height
-            },
+            cx: item.x,
+            cy: item.y + item.height,
             action: {
                 partial: [3, 1]
             }
         }));
+
+        return {
+            type: 'Group',
+            nodes: handles
+        };
     }
 
     rotateHandles(object) {
+        var handles = [];
         var rect = object.shapes[0].attr;
 
         object.handles.push(_.merge({}, RectangleTool.rotateHandle, {
@@ -316,6 +349,11 @@ export default class RectangleTool extends Package {
                 partial: [3]
             }
         }));
+
+        return {
+            type: 'Group',
+            nodes: handles
+        };
     }
 
     onControlInit() {
@@ -392,7 +430,7 @@ export default class RectangleTool extends Package {
         this.applyHandles(object);
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
@@ -406,7 +444,7 @@ export default class RectangleTool extends Package {
         this.applyHandles(object);
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
@@ -418,7 +456,7 @@ export default class RectangleTool extends Package {
         object.shapes[0].attr.fill = value;
 
         this.trigger('export', {
-            message: 'transform-object',
+            message: 'update-item',
             object: object
         });
     }
@@ -433,13 +471,11 @@ RectangleTool.DEFAULT = {
 
 RectangleTool.resizeHandle = {
     type: 'Ellipse',
-    attr: {
-        cx: 0,
-        cy: 0,
-        rx: RectangleTool.HANDLE_WIDTH,
-        ry: RectangleTool.HANDLE_WIDTH,
-        fill: 'red'
-    },
+    cx: 0,
+    cy: 0,
+    rx: RectangleTool.HANDLE_WIDTH,
+    ry: RectangleTool.HANDLE_WIDTH,
+    fill: 'red',
     action: {
         func: 'resize',
         partial: []
@@ -448,13 +484,11 @@ RectangleTool.resizeHandle = {
 
 RectangleTool.rotateHandle = {
     type: 'Ellipse',
-    attr: {
-        cx: 0,
-        cy: 0,
-        rx: RectangleTool.HANDLE_WIDTH,
-        ry: RectangleTool.HANDLE_WIDTH,
-        fill: 'green'
-    },
+    cx: 0,
+    cy: 0,
+    rx: RectangleTool.HANDLE_WIDTH,
+    ry: RectangleTool.HANDLE_WIDTH,
+    fill: 'green',
     action: {
         func: 'rotate',
         partial: []

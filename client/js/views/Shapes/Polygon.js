@@ -4,7 +4,7 @@ export default class Polygon extends View {
     createElement(options) {
         this._element = options.parentElement.path('M0,0');
 
-        this.el = this._element.node;
+        super.createElement({el: this._element.node});
     }
 
     render(shape) {
@@ -14,9 +14,8 @@ export default class Polygon extends View {
             return;
         }
 
-        this.el.setAttribute('id', shape.id);
-        this.el.setAttribute('fill', shape.attr.fill);
-        this.el.setAttribute('stroke', shape.attr.stroke);
-        this.el.setAttribute('d', shape.attr.d);
+        this.setAttribute('fill', shape.fill);
+        this.setAttribute('stroke', shape.stroke);
+        this.setAttribute('d', shape.d);
     }
 }

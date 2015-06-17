@@ -45,8 +45,6 @@ export default class ProjectView extends View {
                 projectID: project.id
             });
 
-            this.views.table.render(global.dataStore.get(project.id));
-
             this.views.timeLine = new TimeLine({
                 el: this.el.querySelector('.time-line'),
                 projectID: project.id
