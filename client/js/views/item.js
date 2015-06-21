@@ -6,7 +6,6 @@ export default class Item extends View {
         super(options);
 
         this.itemID = options.itemID;
-
     }
 
     createElement(options) {
@@ -35,7 +34,6 @@ export default class Item extends View {
 
             this.built = true;
         }
-
 
         this.el.setAttribute('id', item.id);
 

@@ -80,11 +80,11 @@ export default class RectangleTool extends Package {
             type: 'Rectangle'
         });
 
-        var handles = this.applyHandles(item.timeLine[0]);
+        var handles = this.applyHandles(item.timeLine[0], item.mode);
 
         this.trigger('export', {
             message: 'create-item',
-            //activeHandle: handles[2].id, // se
+            activeHandle: handles.nodes[2].id, // se
             full: item,
             handles: handles
         });
@@ -95,7 +95,7 @@ export default class RectangleTool extends Package {
             return;
         }
 
-        var handles = event.selection[0].handles;
+        var handles = event.handles.nodes;
 
         var handle = handles.find((handle) => handle.id === event.activeHandle);
 
@@ -116,8 +116,9 @@ export default class RectangleTool extends Package {
     }
 
     resize(handleIndex, buddyHandleIndex, event) {
-        var {current, full, handles} = event.selection[0];
+        var {current, full} = event.selection[0];
         var currentFrame = event.currentFrame;
+        var handles = event.handles.nodes;
 
         // Find handle buddy
         var handle = handles[buddyHandleIndex];
@@ -149,9 +150,15 @@ export default class RectangleTool extends Package {
 
         var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame == currentFrame);
         var frame;
-        for (timeLineIndex = full.timeLine.length - 1; frame.frame <= currentFrame; timeLineIndex--) {
-            if (frame.frame === currentFrame) {
-                frame = full.timeLine[timeLineIndex];
+        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
+            let thisFrame = full.timeLine[timeLineIndex];
+
+            if (thisFrame.frame === currentFrame) {
+                frame = thisFrame;
+            }
+
+            if (thisFrame.frame <= currentFrame) {
+                break;
             }
         }
 
@@ -159,18 +166,21 @@ export default class RectangleTool extends Package {
             frame = delta;
             frame.frame = currentFrame;
 
-            full.timeLine.splice(currentFrame, 1, frame);
+            full.timeLine.splice(currentFrame, 0, frame);
+        }
+        else {
+            _.extend(frame, delta);
         }
 
-        handles = this.applyHandles(rectangle);
+        handles = this.applyHandles(rectangle, full.mode);
 
         // Determine new active handle
-        event.activeHandle = handles.find((handle) =>
+        event.activeHandle = handles.nodes.find((handle) =>
             handle.cx === event.x && handle.cy === event.y);
 
         this.trigger('export', {
             message: 'update-item',
-            activeHandle: event.activeHandle,
+            activeHandle: event.activeHandle.id,
             full: full,
             handles: handles
         });
@@ -244,26 +254,26 @@ export default class RectangleTool extends Package {
         });
     }
 
-    applyHandles(item) {
+    applyHandles(rectangle, mode) {
         var handles = [];
 
-        if (item.mode === 'resize') {
-            handles = this.resizeHandles(item);
+        if (mode === 'resize') {
+            handles = this.resizeHandles(rectangle);
         }
-        else if (item.mode === 'rotate') {
-            handles = this.rotateHandles(item);
+        else if (mode === 'rotate') {
+            handles = this.rotateHandles(rectangle);
         }
 
         return handles;
     }
 
-    resizeHandles(item) {
+    resizeHandles(rectangle) {
         var handles = [];
 
         handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'nw',
-            cx: item.x,
-            cy: item.y,
+            cx: rectangle.x,
+            cy: rectangle.y,
             action: {
                 partial: [0, 2]
             }
@@ -271,8 +281,8 @@ export default class RectangleTool extends Package {
 
         handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'ne',
-            cx: item.x + item.width,
-            cy: item.y,
+            cx: rectangle.x + rectangle.width,
+            cy: rectangle.y,
             action: {
                 partial: [1, 3]
             }
@@ -280,8 +290,8 @@ export default class RectangleTool extends Package {
 
         handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'se',
-            cx: item.x + item.width,
-            cy: item.y + item.height,
+            cx: rectangle.x + rectangle.width,
+            cy: rectangle.y + rectangle.height,
             action: {
                 partial: [2, 0]
             }
@@ -289,8 +299,8 @@ export default class RectangleTool extends Package {
 
         handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'sw',
-            cx: item.x,
-            cy: item.y + item.height,
+            cx: rectangle.x,
+            cy: rectangle.y + rectangle.height,
             action: {
                 partial: [3, 1]
             }
@@ -306,45 +316,37 @@ export default class RectangleTool extends Package {
         var handles = [];
         var rect = object.shapes[0].attr;
 
-        object.handles.push(_.merge({}, RectangleTool.rotateHandle, {
+        handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'nw',
-            attr: {
-                cx: rect.x,
-                cy: rect.y
-            },
+            cx: rect.x,
+            cy: rect.y,
             action: {
                 partial: [0]
             }
         }));
 
-        object.handles.push(_.merge({}, RectangleTool.rotateHandle, {
+        handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'ne',
-            attr: {
-                cx: rect.x + rect.width,
-                cy: rect.y
-            },
+            cx: rect.x + rect.width,
+            cy: rect.y,
             action: {
                 partial: [1]
             }
         }));
 
-        object.handles.push(_.merge({}, RectangleTool.rotateHandle, {
+        handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'se',
-            attr: {
-                cx: rect.x + rect.width,
-                cy: rect.y + rect.height
-            },
+            cx: rect.x + rect.width,
+            cy: rect.y + rect.height,
             action: {
                 partial: [2]
             }
         }));
 
-        object.handles.push(_.merge({}, RectangleTool.rotateHandle, {
+        handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'sw',
-            attr: {
-                cx: rect.x,
-                cy: rect.y + rect.height
-            },
+            cx: rect.x,
+            cy: rect.y + rect.height,
             action: {
                 partial: [3]
             }

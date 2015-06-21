@@ -21,6 +21,8 @@ export default class Group extends View {
             return;
         }
 
+        this.setAttribute('transform', shape.transform);
+
         this.renderNodes(shape.nodes);
     }
 
@@ -43,7 +45,7 @@ export default class Group extends View {
                     parentElement: this._element
                 });
 
-                var item = global.dataStore.get(node);
+                var item = global.app.user.projectStore.timeLine.get(node);
 
                 if (item) {
                     view.listenTo(global.app.user.projectStore.timeLine, item.id, view.render);

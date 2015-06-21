@@ -1,4 +1,5 @@
 /* jshint worker:true */
+import 'babelify/polyfill';
 import Events from './Events';
 var eventExport = new Events();
 var packages = {

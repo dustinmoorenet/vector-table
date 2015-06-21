@@ -76,11 +76,11 @@ export default class View extends Events {
     }
 
     setAttribute(attribute, value) {
-        if (value === undefined || value === null || isNaN(value)) {
+        if (value === undefined || value === null || value !== value) {
             this.el.removeAttribute(attribute);
         }
         else {
-            this.el.setAttribute(attribute, value);
+            this.el.setAttribute(attribute, value.toString());
         }
     }
 }

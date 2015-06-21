@@ -3,7 +3,6 @@ import View from '../View';
 import Item from '../Item';
 import SVG from '../../libs/svg';
 import Background from './Background';
-import Overlay from './Overlay';
 
 export default class Table extends View {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
@@ -11,8 +10,7 @@ export default class Table extends View {
     get events() {
         var isTouchDevice = 'ontouchstart' in document.documentElement;
 
-        var events = {
-        };
+        var events = {};
 
         if (isTouchDevice) {
             events['touchstart svg'] = 'pointerStart';
@@ -117,6 +115,7 @@ export default class Table extends View {
                 current: global.app.user.projectStore.timeLine.get(itemNode.id)
             };
         }
+        console.log('start', itemNode, item);
 
         var handleNode = this.findHandle(event.target);
 
@@ -173,6 +172,7 @@ export default class Table extends View {
             x: pointer.offsetX,
             y: pointer.offsetY,
             activeHandle: this.activeHandle,
+            handles: global.appStore.get('overlay'),
             currentFrame: 0,
             selection: [
                 item
