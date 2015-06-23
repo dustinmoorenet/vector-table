@@ -1,8 +1,7 @@
-import View from '../View';
+import Element from './Element';
 import Shapes from '../Shapes';
-import Item from '../Item';
 
-export default class Group extends View {
+export default class Group extends Element {
     constructor(options) {
         super(options);
 
@@ -15,11 +14,9 @@ export default class Group extends View {
     }
 
     render(shape) {
-        if (!shape) {
-            this.remove();
+        super.render(shape);
 
-            return;
-        }
+        if (!shape) { return; }
 
         this.setAttribute('transform', shape.transform);
 
@@ -37,31 +34,24 @@ export default class Group extends View {
 
         for (let i = 0; i < nodes.length; i++) {
             var node = nodes[i];
-            var view;
 
             if (typeof node === 'string') {
-                view = new Item({
-                    itemID: node,
-                    parentElement: this._element
-                });
-
-                var item = global.app.user.projectStore.timeLine.get(node);
-
-                if (item) {
-                    view.listenTo(global.app.user.projectStore.timeLine, item.id, view.render);
-                }
-
-                view.render(item);
+                node = global.app.user.projectStore.timeLine.get(node);
             }
-            else {
+
+            if (node) {
                 var Shape = Shapes[node.type];
 
-                view = new Shape({parentElement: this._element});
+                var view = new Shape({parentElement: this._element});
 
                 view.render(node);
-            }
 
-            this.views.push(view);
+                this.views.push(view);
+
+                if (node.id) {
+                    view.listenTo(global.app.user.projectStore.timeLine, node.id, view.render);
+                }
+            }
         }
     }
 }

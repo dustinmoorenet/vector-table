@@ -1,8 +1,8 @@
 var fs = require('fs');
 import View from '../View';
-import Item from '../Item';
 import SVG from '../../libs/svg';
 import Background from './Background';
+import Group from '../Shapes/Group';
 
 export default class Table extends View {
     get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
@@ -58,19 +58,19 @@ export default class Table extends View {
 
             this.svg = SVG(this.el.querySelector('[data-hook="area"]'));
 
+            this.svg.attr('id', null);
+
             this.background = new Background({
                 parentElement: this.svg
             })
 
-            this.rootItem = new Item({
-                itemID: project.id,
-                parent: this,
+            this.rootItem = new Group({
                 parentElement: this.svg
             });
 
             this.rootItem.listenTo(global.app.user.projectStore.timeLine, project.id, this.rootItem.render);
 
-            this.overlay = new Item({
+            this.overlay = new Group({
                 parentElement: this.svg
             });
 
@@ -105,41 +105,24 @@ export default class Table extends View {
             y: pointer.offsetY
         };
 
-        var itemNode = this.findItem(event.target);
-        var item;
-
-        if (itemNode) {
-            item = {
-                id: itemNode.id,
-                full: global.dataStore.get(itemNode.id),
-                current: global.app.user.projectStore.timeLine.get(itemNode.id)
-            };
-        }
-        console.log('start', itemNode, item);
-
-        var handleNode = this.findHandle(event.target);
-
-        if (handleNode && item) {
-            this.activeHandle = evt.activeHandle = handleNode.id;
-        }
-
+        var {itemID, handleID} = this.getHandle(event.target);
         var selection = global.appStore.get('selection');
+        var previous = global.dataStore.get(selection[0]);
 
-        if (!item && selection.length) {
-            var previous = global.dataStore.get(selection[0]);
-
-            if (previous && !previous.complete) {
-                item = previous;
-            }
+        if (previous && !previous.complete) {
+            itemID = previous.id;
         }
 
-        if (item) {
-            item.selected = true;
-
-            this.activeSelection = item.id;
-
-            evt.selection = [item];
+        if (itemID) {
+            evt.selection = [{
+                id: itemID,
+                full: global.dataStore.get(itemID),
+                current: global.app.user.projectStore.timeLine.get(itemID)
+            }];
         }
+
+        this.activeHandle = evt.activeHandle = handleID;
+        this.activeSelection = itemID;
 
         global.packageWorker.postMessage(evt);
     }
@@ -247,7 +230,7 @@ export default class Table extends View {
     }
 
     complete(event) {
-        var item = event.object;
+        var item = event.full;
 
         delete this.activeSelection;
         delete this.activeHandle;
@@ -259,28 +242,17 @@ export default class Table extends View {
         global.dataStore.set(item.id, item, params);
     }
 
-    findHandle(node) {
+    getHandle(node) {
         while (true) {
             if (!node || node === this.svg.node) {
-                return null;
+                return {};
             }
 
-            if (node.classList.contains('handle')) {
-                return node;
-            }
+            var handleID = node.getAttribute('id');
+            var itemID = node.getAttribute('data-for-item');
 
-            node = node.parentNode;
-        }
-    }
-
-    findItem(node) {
-        while (true) {
-            if (!node || node === this.svg.node) {
-                return null;
-            }
-
-            if (node.classList.contains('item')) {
-                return node;
+            if (handleID) {
+                return {handleID, itemID};
             }
 
             node = node.parentNode;

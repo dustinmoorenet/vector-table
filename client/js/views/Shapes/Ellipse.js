@@ -1,6 +1,6 @@
-import View from '../View';
+import Element from './Element';
 
-export default class Ellipse extends View {
+export default class Ellipse extends Element {
     createElement(options) {
         this._element = options.parentElement.ellipse(0, 0);
 
@@ -8,11 +8,9 @@ export default class Ellipse extends View {
     }
 
     render(shape) {
-        if (!shape) {
-            this.remove();
+        super.render(shape);
 
-            return;
-        }
+        if (!shape) { return; }
 
         this.setAttribute('fill', shape.fill);
         this.setAttribute('stroke', shape.stroke);

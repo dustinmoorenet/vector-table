@@ -80,7 +80,7 @@ export default class RectangleTool extends Package {
             type: 'Rectangle'
         });
 
-        var handles = this.applyHandles(item.timeLine[0], item.mode);
+        var handles = this.applyHandles(item.timeLine[0], item);
 
         this.trigger('export', {
             message: 'create-item',
@@ -105,13 +105,13 @@ export default class RectangleTool extends Package {
     }
 
     onPointerEnd(event) {
-        var object = event.selection[0];
+        var item = event.selection[0].full;
 
-        object.complete = true;
+        item.complete = true;
 
         this.trigger('export', {
             message: 'complete-item',
-            object: object
+            full: item
         });
     }
 
@@ -172,7 +172,7 @@ export default class RectangleTool extends Package {
             _.extend(frame, delta);
         }
 
-        handles = this.applyHandles(rectangle, full.mode);
+        handles = this.applyHandles(rectangle, full);
 
         // Determine new active handle
         event.activeHandle = handles.nodes.find((handle) =>
@@ -246,7 +246,7 @@ export default class RectangleTool extends Package {
         object.mode = object.mode === 'resize' ? 'rotate' : 'resize';
         object.selected = true;
 
-        this.applyHandles(object);
+        this.applyHandles(object, object);
 
         this.trigger('export', {
             message: 'update-item',
@@ -254,26 +254,27 @@ export default class RectangleTool extends Package {
         });
     }
 
-    applyHandles(rectangle, mode) {
+    applyHandles(rectangle, item) {
         var handles = [];
 
-        if (mode === 'resize') {
-            handles = this.resizeHandles(rectangle);
+        if (item.mode === 'resize') {
+            handles = this.resizeHandles(rectangle, item);
         }
-        else if (mode === 'rotate') {
-            handles = this.rotateHandles(rectangle);
+        else if (item.mode === 'rotate') {
+            handles = this.rotateHandles(rectangle, item);
         }
 
         return handles;
     }
 
-    resizeHandles(rectangle) {
+    resizeHandles(rectangle, item) {
         var handles = [];
 
         handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'nw',
             cx: rectangle.x,
             cy: rectangle.y,
+            forItem: item.id,
             action: {
                 partial: [0, 2]
             }
@@ -283,6 +284,7 @@ export default class RectangleTool extends Package {
             id: 'ne',
             cx: rectangle.x + rectangle.width,
             cy: rectangle.y,
+            forItem: item.id,
             action: {
                 partial: [1, 3]
             }
@@ -292,6 +294,7 @@ export default class RectangleTool extends Package {
             id: 'se',
             cx: rectangle.x + rectangle.width,
             cy: rectangle.y + rectangle.height,
+            forItem: item.id,
             action: {
                 partial: [2, 0]
             }
@@ -301,6 +304,7 @@ export default class RectangleTool extends Package {
             id: 'sw',
             cx: rectangle.x,
             cy: rectangle.y + rectangle.height,
+            forItem: item.id,
             action: {
                 partial: [3, 1]
             }
@@ -312,14 +316,14 @@ export default class RectangleTool extends Package {
         };
     }
 
-    rotateHandles(object) {
+    rotateHandles(rectangle, item) {
         var handles = [];
-        var rect = object.shapes[0].attr;
 
         handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'nw',
-            cx: rect.x,
-            cy: rect.y,
+            cx: rectangle.x,
+            cy: rectangle.y,
+            forItem: item.id,
             action: {
                 partial: [0]
             }
@@ -327,8 +331,9 @@ export default class RectangleTool extends Package {
 
         handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'ne',
-            cx: rect.x + rect.width,
-            cy: rect.y,
+            cx: rectangle.x + rectangle.width,
+            cy: rectangle.y,
+            forItem: item.id,
             action: {
                 partial: [1]
             }
@@ -336,8 +341,9 @@ export default class RectangleTool extends Package {
 
         handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'se',
-            cx: rect.x + rect.width,
-            cy: rect.y + rect.height,
+            cx: rectangle.x + rectangle.width,
+            cy: rectangle.y + rectangle.height,
+            forItem: item.id,
             action: {
                 partial: [2]
             }
@@ -345,8 +351,9 @@ export default class RectangleTool extends Package {
 
         handles.push(_.merge({}, RectangleTool.rotateHandle, {
             id: 'sw',
-            cx: rect.x,
-            cy: rect.y + rect.height,
+            cx: rectangle.x,
+            cy: rectangle.y + rectangle.height,
+            forItem: item.id,
             action: {
                 partial: [3]
             }
@@ -429,7 +436,7 @@ export default class RectangleTool extends Package {
 
         lookUp.references[0][lookUp.key] = +value;
 
-        this.applyHandles(object);
+        this.applyHandles(object, object);
 
         this.trigger('export', {
             message: 'update-item',
@@ -443,7 +450,7 @@ export default class RectangleTool extends Package {
         object.shapes[0].attr.width *= 2;
         object.shapes[0].attr.height *= 2;
 
-        this.applyHandles(object);
+        this.applyHandles(object, object);
 
         this.trigger('export', {
             message: 'update-item',

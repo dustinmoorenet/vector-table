@@ -1,6 +1,6 @@
-import View from '../View';
+import Element from './Element';
 
-export default class Polygon extends View {
+export default class Polygon extends Element {
     createElement(options) {
         this._element = options.parentElement.path('M0,0');
 
@@ -8,11 +8,9 @@ export default class Polygon extends View {
     }
 
     render(shape) {
-        if (!shape) {
-            this.remove();
+        super.render(shape);
 
-            return;
-        }
+        if (!shape) { return; }
 
         this.setAttribute('fill', shape.fill);
         this.setAttribute('stroke', shape.stroke);
