@@ -1,6 +1,7 @@
 node_modules
 npm-debug.log
 client/app.bundle.js
+client/worker.bundle.js
 client/css
 client/fonts
 client/sass/iconFonts.scss
@@ -9,3 +10,4 @@ client/tests/mocha.css
 client/tests/mocha.js
 client/tests/tests.bundle.js
 .DS_Store
+*.map

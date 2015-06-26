@@ -1,8 +1,7 @@
-var fs = require('fs');
 import View from '../../View';
 
 export default class Button extends View {
-    get template() { return fs.readFileSync(__dirname + '/Button.html', 'utf8'); }
+    get template() { return require('./Button.html'); }
 
     get events() {
         return {

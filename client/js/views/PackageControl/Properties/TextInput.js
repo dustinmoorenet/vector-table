@@ -1,9 +1,8 @@
-var fs = require('fs');
 import View from '../../View';
 import jsonQuery from 'json-query';
 
 export default class TextInput extends View {
-    get template() { return fs.readFileSync(__dirname + '/TextInput.html', 'utf8'); }
+    get template() { return require('./TextInput.html'); }
 
     get events() {
         return {

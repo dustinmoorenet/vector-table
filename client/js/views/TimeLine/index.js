@@ -1,4 +1,3 @@
-var fs = require('fs');
 import View from '../View';
 
 /*
@@ -56,7 +55,7 @@ The dataStore contains all the items with all the time/shape information. This
 get stored and synced
 */
 export default class TimeLine extends View {
-    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get template() { return require('./index.html'); }
 
     get events() {
         return {

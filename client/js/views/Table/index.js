@@ -1,11 +1,10 @@
-var fs = require('fs');
 import View from '../View';
 import SVG from '../../libs/svg';
 import Background from './Background';
 import Group from '../Shapes/Group';
 
 export default class Table extends View {
-    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get template() { return require('./index.html'); }
 
     get events() {
         var isTouchDevice = 'ontouchstart' in document.documentElement;

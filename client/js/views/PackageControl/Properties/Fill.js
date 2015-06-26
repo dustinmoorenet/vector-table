@@ -1,9 +1,8 @@
-var fs = require('fs');
 import View from '../../View';
 import jsonQuery from 'json-query';
 
 export default class Fill extends View {
-    get template() { return fs.readFileSync(__dirname + '/Fill.html', 'utf8'); }
+    get template() { return require('./Fill.html'); }
 
     get events() {
         return {

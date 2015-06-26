@@ -1,8 +1,7 @@
-var fs = require('fs');
 var Modal = require('../Modal');
 
 export default class LoginModal extends Modal {
-    get panelTemplate() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get panelTemplate() { return require('./index.html'); }
 
     get events() {
         return {

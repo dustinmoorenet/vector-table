@@ -9,7 +9,7 @@ export default class App extends Events {
     constructor() {
         super();
 
-        global.packageWorker = new Worker('../../libs/packageWorker.js');
+        global.packageWorker = new Worker('worker.bundle.js');
         global.dataStore = new DataStore();
         global.appStore = new DataStore();
         global.backup = new Backup(global.dataStore);

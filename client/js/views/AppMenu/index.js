@@ -1,8 +1,7 @@
-var fs = require('fs');
 import View from '../View';
 
 export default class AppMenu extends View {
-    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get template() { return require('./index.html'); }
 
     get events() {
         return {

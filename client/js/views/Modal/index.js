@@ -1,4 +1,3 @@
-var fs = require('fs');
 import View from '../View';
 
 var modalStack = [];
@@ -6,7 +5,7 @@ var modalStack = [];
 export default class Modal extends View {
     get autoRender() { return true; }
 
-    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get template() { return require('./index.html'); }
 
     constructor(...args) {
         super(...args);

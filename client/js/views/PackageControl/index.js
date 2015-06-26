@@ -1,9 +1,8 @@
-var fs = require('fs');
 import View from '../View';
 import Properties from './Properties';
 
 export default class PackageControl extends View {
-    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get template() { return require('./index.html'); }
 
     constructor(options) {
         super(options);

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import when from 'when';
-import ajax from './Ajax';
+import {get, post} from './Ajax';
 
 export default class Backup {
     get SEND_TIMEOUT() { return 5000; }
@@ -36,10 +36,7 @@ export default class Backup {
         }, this);
 
         if (this.hasRemoteBackup) {
-            ajax.post({
-                uri: this.host + '/data',
-                json: allData
-            });
+            post('/data', allData);
         }
 
         delete this.sendTimeout;
@@ -55,8 +52,8 @@ export default class Backup {
         var promise = when.resolve(data);
 
         if (this.hasRemoteBackup) {
-            promise = ajax.get({url: this.host + '/data/' + id})
-                .tap(function(data) {
+            promise = get('/data/' + id)
+                .then(function(data) {
                     window.localStorage.setItem(id, data);
                 });
         }

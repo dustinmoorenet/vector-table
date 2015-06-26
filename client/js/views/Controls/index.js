@@ -1,10 +1,9 @@
-var fs = require('fs');
 import View from '../View';
 import _ from 'lodash';
 import PackageControl from '../PackageControl';
 
 export default class Controls extends View {
-    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get template() { return require('./index.html'); }
 
     get events() {
         return {

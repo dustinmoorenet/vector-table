@@ -1,4 +1,3 @@
-var fs = require('fs');
 import View from '../View';
 import ProjectToolbar from '../ProjectToolbar';
 import Controls from '../Controls';
@@ -6,7 +5,7 @@ import Table from '../Table';
 import TimeLine from '../TimeLine';
 
 export default class ProjectView extends View {
-    get template() { return fs.readFileSync(__dirname + '/index.html', 'utf8'); }
+    get template() { return require('./index.html'); }
 
     constructor(options) {
         super(options);

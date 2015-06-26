@@ -1,8 +1,7 @@
-var fs = require('fs');
 import View from '../../View';
 
 export default class FillPanel extends View {
-    get template() { return fs.readFileSync(__dirname + '/FillPanel.html', 'utf8'); }
+    get template() { return require('./FillPanel.html'); }
 
     get events() {
         return {
