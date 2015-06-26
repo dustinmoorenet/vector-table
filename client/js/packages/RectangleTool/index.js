@@ -49,6 +49,12 @@ export default class RectangleTool extends Package {
     }
 
     onPointerStart(event) {
+        if (event.route) {
+            this[event.route.func].apply(this, _.union(event.route.partial, [event]));
+
+            return;
+        }
+
         var selection = event.selection;
         if (selection && selection.length) {
             if (!event.activeHandle) {
@@ -84,7 +90,7 @@ export default class RectangleTool extends Package {
 
         this.trigger('export', {
             message: 'create-item',
-            activeHandle: handles.nodes[2].id, // se
+            activeHandle: handles.nodes[3], // se
             full: item,
             handles: handles
         });
@@ -95,9 +101,15 @@ export default class RectangleTool extends Package {
             return;
         }
 
+        if (event.route) {
+            this[event.route.func].apply(this, _.union(event.route.partial, [event]));
+
+            return;
+        }
+
         var handles = event.handles.nodes;
 
-        var handle = handles.find((handle) => handle.id === event.activeHandle);
+        var handle = handles.find((handle) => handle.id === event.activeHandle.id);
 
         if (handle.action.func) {
             this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
@@ -105,13 +117,115 @@ export default class RectangleTool extends Package {
     }
 
     onPointerEnd(event) {
-        var item = event.selection[0].full;
+        if (event.route) {
+            this[event.route.func].apply(this, _.union(event.route.partial, [event]));
 
-        item.complete = true;
+            return;
+        }
+
+        var full = event.selection[0].full;
+
+        full.complete = true;
 
         this.trigger('export', {
             message: 'complete-item',
-            full: item
+            full: full,
+            handles: event.handles
+        });
+    }
+
+    moveStart(event) {
+
+    }
+
+    moveMove(event) {
+        var {current, full} = event.selection[0];
+        var currentFrame = event.currentFrame;
+        var handles = event.handles;
+
+        var delta = {
+            x: event.x - event.origin.x,
+            y: event.y - event.origin.y
+        };
+
+        var transform = `translate(${delta.x}, ${delta.y})`;
+        handles.transform = transform;
+
+        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame == currentFrame);
+        var frame;
+        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
+            let thisFrame = full.timeLine[timeLineIndex];
+
+            if (thisFrame.frame === currentFrame) {
+                frame = thisFrame;
+            }
+
+            if (thisFrame.frame <= currentFrame) {
+                break;
+            }
+        }
+
+        if (!frame) {
+            frame = _.extend({transform: transform}, current);
+            frame.frame = currentFrame;
+
+            full.timeLine.splice(currentFrame, 0, frame);
+        }
+        else {
+            frame.transform = transform;
+        }
+
+        this.trigger('export', {
+            message: 'update-item',
+            activeHandle: event.activeHandle,
+            full: full,
+            handles: handles
+        });
+    }
+
+    moveEnd(event) {
+        var {current, full} = event.selection[0];
+        var currentFrame = event.currentFrame;
+
+        full.complete = true;
+        var rectangle = {
+            x: current.x + (event.x - event.origin.x),
+            y: current.y + (event.y - event.origin.y),
+            width: current.width,
+            height: current.height,
+            transform: null
+        };
+
+        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame == currentFrame);
+        var frame;
+        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
+            let thisFrame = full.timeLine[timeLineIndex];
+
+            if (thisFrame.frame === currentFrame) {
+                frame = thisFrame;
+            }
+
+            if (thisFrame.frame <= currentFrame) {
+                break;
+            }
+        }
+
+        if (!frame) {
+            frame = _.extend({}, current, rectangle);
+            frame.frame = currentFrame;
+
+            full.timeLine.splice(currentFrame, 0, frame);
+        }
+        else {
+            _.extend(frame, rectangle);
+        }
+
+        var handles = this.applyHandles(rectangle, full);
+
+        this.trigger('export', {
+            message: 'complete-item',
+            full: full,
+            handles: handles
         });
     }
 
@@ -180,7 +294,7 @@ export default class RectangleTool extends Package {
 
         this.trigger('export', {
             message: 'update-item',
-            activeHandle: event.activeHandle.id,
+            activeHandle: event.activeHandle,
             full: full,
             handles: handles
         });
@@ -270,13 +384,43 @@ export default class RectangleTool extends Package {
     resizeHandles(rectangle, item) {
         var handles = [];
 
+        handles.push({
+            id: 'body',
+            type: 'Rectangle',
+            x: rectangle.x,
+            y: rectangle.y,
+            width: rectangle.width,
+            height: rectangle.height,
+            fill: 'rgba(0,0,0,0)',
+            stroke: null,
+            forItem: item.id,
+            action: {
+                func: 'move',
+                partial: []
+            },
+            routes: {
+                'pointer-start': {
+                    func: 'moveStart',
+                    partial: []
+                },
+                'pointer-move': {
+                    func: 'moveMove',
+                    partial: []
+                },
+                'pointer-end': {
+                    func: 'moveEnd',
+                    partial: []
+                }
+            }
+        });
+
         handles.push(_.merge({}, RectangleTool.resizeHandle, {
             id: 'nw',
             cx: rectangle.x,
             cy: rectangle.y,
             forItem: item.id,
             action: {
-                partial: [0, 2]
+                partial: [1, 3]
             }
         }));
 
@@ -286,7 +430,7 @@ export default class RectangleTool extends Package {
             cy: rectangle.y,
             forItem: item.id,
             action: {
-                partial: [1, 3]
+                partial: [2, 4]
             }
         }));
 
@@ -296,7 +440,7 @@ export default class RectangleTool extends Package {
             cy: rectangle.y + rectangle.height,
             forItem: item.id,
             action: {
-                partial: [2, 0]
+                partial: [3, 1]
             }
         }));
 
@@ -306,7 +450,7 @@ export default class RectangleTool extends Package {
             cy: rectangle.y + rectangle.height,
             forItem: item.id,
             action: {
-                partial: [3, 1]
+                partial: [4, 2]
             }
         }));
 
@@ -325,7 +469,7 @@ export default class RectangleTool extends Package {
             cy: rectangle.y,
             forItem: item.id,
             action: {
-                partial: [0]
+                partial: [1]
             }
         }));
 
@@ -335,7 +479,7 @@ export default class RectangleTool extends Package {
             cy: rectangle.y,
             forItem: item.id,
             action: {
-                partial: [1]
+                partial: [2]
             }
         }));
 
@@ -345,7 +489,7 @@ export default class RectangleTool extends Package {
             cy: rectangle.y + rectangle.height,
             forItem: item.id,
             action: {
-                partial: [2]
+                partial: [3]
             }
         }));
 
@@ -355,7 +499,7 @@ export default class RectangleTool extends Package {
             cy: rectangle.y + rectangle.height,
             forItem: item.id,
             action: {
-                partial: [3]
+                partial: [4]
             }
         }));
 

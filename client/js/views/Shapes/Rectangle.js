@@ -18,5 +18,6 @@ export default class Rectangle extends Element {
         this.setAttribute('y', shape.y);
         this.setAttribute('width', shape.width);
         this.setAttribute('height', shape.height);
+        this.setAttribute('transform', shape.transform);
     }
 }

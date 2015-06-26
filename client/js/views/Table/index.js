@@ -121,8 +121,20 @@ export default class Table extends View {
             }];
         }
 
-        this.activeHandle = evt.activeHandle = handleID;
+        if (handleID) {
+            var handles = global.appStore.get('overlay');
+
+            var handle = handles.nodes.find((handle) => handle.id === handleID);
+
+            this.activeHandle = evt.activeHandle = handle;
+
+            if (handle.routes && handle.routes['pointer-start']) {
+                evt.route = handle.routes['pointer-start'];
+            }
+        }
+
         this.activeSelection = itemID;
+        this.activeOrigin = {x: evt.x, y: evt.y};
 
         global.packageWorker.postMessage(evt);
     }
@@ -154,6 +166,7 @@ export default class Table extends View {
             message: 'pointer-move',
             x: pointer.offsetX,
             y: pointer.offsetY,
+            origin: this.activeOrigin,
             activeHandle: this.activeHandle,
             handles: global.appStore.get('overlay'),
             currentFrame: 0,
@@ -161,6 +174,10 @@ export default class Table extends View {
                 item
             ]
         };
+
+        if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-move']) {
+            evt.route = this.activeHandle.routes['pointer-move'];
+        }
 
         global.packageWorker.postMessage(evt);
     }
@@ -180,17 +197,35 @@ export default class Table extends View {
             return;
         }
 
-        delete this.activeSelection;
-        delete this.activeHandle;
+        var pointer;
+        if (event.pointers) {
+            pointer = event.pointers[0];
+        }
+        else {
+            pointer = {offsetX: event.offsetX, offsetY: event.offsetY};
+        }
 
         var evt = {
             message: 'pointer-end',
+            x: pointer.offsetX,
+            y: pointer.offsetY,
+            origin: this.activeOrigin,
+            handles: global.appStore.get('overlay'),
+            currentFrame: 0,
             selection: [
                 item
             ]
         };
 
+        if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-end']) {
+            evt.route = this.activeHandle.routes['pointer-end'];
+        }
+
         global.packageWorker.postMessage(evt);
+
+        delete this.activeSelection;
+        delete this.activeHandle;
+        delete this.activeOrigin;
     }
 
     create(event) {
@@ -240,6 +275,7 @@ export default class Table extends View {
         item.complete = true;
 
         global.dataStore.set(item.id, item, params);
+        global.appStore.set('overlay', event.handles);
     }
 
     getHandle(node) {
