@@ -67,29 +67,31 @@ export default class TimeLine extends View {
     constructor(options) {
         super(options);
 
-        this.projectID = options.projectID;
+        this.timeLine = options.timeLine;
 
-        this.listenTo(global.dataStore, this.projectID, this.render);
+        this.listenTo(this.timeLine, 'currentFrame', this.render);
 
-        this.render(global.dataStore.get(this.projectID));
+        this.render(0);
     }
 
-    render(project) {
+    render(currentFrame) {
         if (!this.built) {
             super.render();
 
             this.slider = this.el.querySelector('[type="range"]');
             this.input = this.el.querySelector('[type="text"]');
+            this.play = this.el.querySelector('.play');
+            this.stop = this.el.querySelector('.stop');
 
             this.input.addEventListener('change', () => this.onText());
             this.slider.addEventListener('change', () => this.onSlide());
+            this.play.addEventListener('click', () => this.onPlay());
+            this.stop.addEventListener('click', () => this.onStop());
 
             this.built = true;
         }
 
-        if (!project) { return; }
-
-        this.slider.value = this.input.value = project.currentFrame || 0;
+        this.slider.value = this.input.value = currentFrame || 0;
     }
 
     onText() {
@@ -101,14 +103,14 @@ export default class TimeLine extends View {
     }
 
     setFrame(frame) {
-        var project = global.dataStore.get(this.projectID);
+        this.timeLine.currentFrame = frame;
+    }
 
-        if (!project) { return; }
+    onPlay() {
+        this.timeLine.play(this.timeLine.currentFrame, true);
+    }
 
-        if (frame !== project.currentFrame) {
-            project.currentFrame = frame;
-
-            global.dataStore.set(this.projectID, project);
-        }
+    onStop() {
+        this.timeLine.stop();
     }
 }

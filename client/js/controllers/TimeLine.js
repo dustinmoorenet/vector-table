@@ -48,20 +48,18 @@ export default class TimeLine extends Events {
 
         var items = this.frames[this._currentFrame];
 
-
         for (var id in items) {
             this.trigger(id, items[id]);
         }
+
+        this.trigger('currentFrame', frame);
     }
 
     get(id) {
-
         return this.frames[this._currentFrame][id];
     }
 
     onItemChanged(id, item) {
-
-
         this.buildNode(item);
 
         this.trigger(id, this.get(id));
@@ -76,7 +74,6 @@ export default class TimeLine extends Events {
     }
 
     buildNode(node, startFrame=0) {
-
         if (!node) { return; }
 
         this.nodeIndex[node.id] = node;
@@ -124,9 +121,10 @@ export default class TimeLine extends Events {
         }
     }
 
-    play(startFrame=0) {
+    play(startFrame=0, repeat=false) {
         this.startTime = +(new Date());
         this.startFrame = startFrame;
+        this.repeat = repeat;
 
         this.continuePlay(startFrame);
     }
@@ -142,7 +140,7 @@ export default class TimeLine extends Events {
 
         setTimeout(() => {
             var now = +(new Date());
-            var frameCount = this.frame.length;
+            var frameCount = this.frames.length;
             var advanceCount = Math.ceil((now - this.startTime) / this.msBetweenFrames);
             var nextFrame = this.startFrame + advanceCount;
 

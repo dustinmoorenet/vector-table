@@ -168,7 +168,7 @@ export default class Table extends View {
             origin: this.activeOrigin,
             activeHandle: this.activeHandle,
             handles: global.appStore.get('overlay'),
-            currentFrame: 0,
+            currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             selection: [
                 item
             ]
@@ -210,7 +210,7 @@ export default class Table extends View {
             y: pointer.offsetY,
             origin: this.activeOrigin,
             handles: global.appStore.get('overlay'),
-            currentFrame: 0,
+            currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             selection: [
                 item
             ]

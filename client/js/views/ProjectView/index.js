@@ -46,7 +46,7 @@ export default class ProjectView extends View {
 
             this.views.timeLine = new TimeLine({
                 el: this.el.querySelector('.time-line'),
-                projectID: project.id
+                timeLine: global.app.user.projectStore.timeLine
             });
 
             // this.parent.appendChild(this.el);
