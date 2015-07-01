@@ -18,8 +18,6 @@ export default class Group extends Element {
 
         if (!shape) { return; }
 
-        this.setAttribute('transform', shape.transform);
-
         this.renderNodes(shape.nodes);
     }
 

@@ -61,7 +61,7 @@ export default class Table extends View {
 
             this.background = new Background({
                 parentElement: this.svg
-            })
+            });
 
             this.rootItem = new Group({
                 parentElement: this.svg
@@ -101,7 +101,8 @@ export default class Table extends View {
         var evt = {
             message: 'pointer-start',
             x: pointer.offsetX,
-            y: pointer.offsetY
+            y: pointer.offsetY,
+            currentFrame: global.app.user.projectStore.timeLine.currentFrame,
         };
 
         var {itemID, handleID} = this.getHandle(event.target);
