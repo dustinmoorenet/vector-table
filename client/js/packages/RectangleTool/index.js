@@ -574,7 +574,7 @@ export default class RectangleTool extends Package {
                         id: 'x',
                         type: 'TextInput',
                         binding: {
-                            value: 'shapes[0].attr.x',
+                            value: 'x',
                             onChange: 'set-value'
                         }
                     },
@@ -582,7 +582,7 @@ export default class RectangleTool extends Package {
                         id: 'y',
                         type: 'TextInput',
                         binding: {
-                            value: 'shapes[0].attr.y',
+                            value: 'y',
                             onChange: 'set-value'
                         }
                     },
@@ -590,7 +590,7 @@ export default class RectangleTool extends Package {
                         id: 'width',
                         type: 'TextInput',
                         binding: {
-                            value: 'shapes[0].attr.width',
+                            value: 'width',
                             onChange: 'set-value'
                         }
                     },
@@ -598,7 +598,7 @@ export default class RectangleTool extends Package {
                         id: 'height',
                         type: 'TextInput',
                         binding: {
-                            value: 'shapes[0].attr.height',
+                            value: 'height',
                             onChange: 'set-value'
                         }
                     },
@@ -606,8 +606,8 @@ export default class RectangleTool extends Package {
                         id: 'fill',
                         type: 'Fill',
                         binding: {
-                            value: 'shapes[0].attr.fill',
-                            onChange: 'set-fill'
+                            value: 'fill',
+                            onChange: 'set-value'
                         }
                     },
                     {
@@ -623,44 +623,83 @@ export default class RectangleTool extends Package {
     }
 
     setValue(event) {
-        var object = event.selection[0];
+        var {full, current} = event.selection[0];
+        var currentFrame = event.currentFrame;
         var value = event.value;
         var binding = event.binding;
-        var lookUp = jsonQuery(binding.value, {data: object});
 
-        lookUp.references[0][lookUp.key] = +value;
+        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
+        var frame;
+        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
+            let thisFrame = full.timeLine[timeLineIndex];
 
-        this.applyHandles(object, object);
+            if (thisFrame.frame === currentFrame) {
+                frame = thisFrame;
+            }
+
+            if (thisFrame.frame <= currentFrame) {
+                break;
+            }
+        }
+
+        if (!frame) {
+            frame = _.extend({}, current);
+            frame.frame = currentFrame;
+
+            full.timeLine.splice(currentFrame, 0, frame);
+        }
+
+        var lookUp = jsonQuery(binding.value, {data: frame});
+
+        if (!isNaN(+value)) {
+            value = +value;
+        }
+
+        lookUp.references[0][lookUp.key] = value;
+
+        var handles = this.applyHandles(frame, full);
 
         this.trigger('export', {
             message: 'update-item',
-            object: object
+            full: full,
+            handles: handles
         });
     }
 
     doubleSize(event) {
-        var object = event.selection[0];
+        var {full, current} = event.selection[0];
+        var currentFrame = event.currentFrame;
 
-        object.shapes[0].attr.width *= 2;
-        object.shapes[0].attr.height *= 2;
+        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
+        var frame;
+        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
+            let thisFrame = full.timeLine[timeLineIndex];
 
-        this.applyHandles(object, object);
+            if (thisFrame.frame === currentFrame) {
+                frame = thisFrame;
+            }
+
+            if (thisFrame.frame <= currentFrame) {
+                break;
+            }
+        }
+
+        if (!frame) {
+            frame = _.extend({}, current);
+            frame.frame = currentFrame;
+
+            full.timeLine.splice(currentFrame, 0, frame);
+        }
+
+        frame.width *= 2;
+        frame.height *= 2;
+
+        var handles = this.applyHandles(frame, full);
 
         this.trigger('export', {
             message: 'update-item',
-            object: object
-        });
-    }
-
-    setFill(event) {
-        var object = event.selection[0];
-        var value = event.value;
-
-        object.shapes[0].attr.fill = value;
-
-        this.trigger('export', {
-            message: 'update-item',
-            object: object
+            full: full,
+            handles: handles
         });
     }
 }

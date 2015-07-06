@@ -28,7 +28,7 @@ export default class Fill extends View {
         }
 
         if (boundItem) {
-            this.boundItemId = boundItem.id;
+            this.boundItemID = boundItem.id;
 
             this.renderElement(boundItem);
         }
@@ -52,8 +52,13 @@ export default class Fill extends View {
 
         var evt = {
             message: this.config.binding.onChange,
+            currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             selection: [
-                global.dataStore.get(this.boundItemId)
+                {
+                    id: this.boundItemID,
+                    full: global.dataStore.get(this.boundItemID),
+                    current: global.app.user.projectStore.timeLine.get(this.boundItemID)
+                }
             ],
             value: value,
             binding: this.config.binding

@@ -43,7 +43,7 @@ export default class PackageControl extends View {
         var Property = Properties[property.type];
 
         if (!Property) {
-            return;
+            return null;
         }
 
         property = new Property({
@@ -57,17 +57,17 @@ export default class PackageControl extends View {
     }
 
     selectionChanged(selection) {
-        if (this.boundItemId) {
-            this.stopListening(global.dataStore, this.boundItemId);
+        if (this.boundItemID) {
+            this.stopListening(global.dataStore, this.boundItemID);
         }
 
-        this.boundItemId = (selection || [])[0];
+        this.boundItemID = (selection || [])[0];
 
         var boundItem;
-        if (this.boundItemId) {
-            this.listenTo(global.dataStore, this.boundItemId, this.renderBoundItem);
+        if (this.boundItemID) {
+            this.listenTo(global.app.user.projectStore.timeLine, this.boundItemID, this.renderBoundItem);
 
-            boundItem = global.dataStore.get(this.boundItemId);
+            boundItem = global.app.user.projectStore.timeLine.get(this.boundItemID);
         }
 
         this.renderBoundItem(boundItem);
