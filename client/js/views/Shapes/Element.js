@@ -53,5 +53,11 @@ export default class Element extends View {
 
             realTransformList.appendItem(transform);
         }
+
+        // This seems like a bug in chrome. Transform is not really cleared
+        // unless something is there. Just awful.
+        if (realTransformList.length === 0) {
+            this.setAttribute('transform', 'translate(0 0)');
+        }
     }
 }

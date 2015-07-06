@@ -45,7 +45,6 @@ export default class RectangleTool extends Package {
         this.on('control-init', this.onControlInit, this);
         this.on('set-value', this.setValue, this);
         this.on('double-size', this.doubleSize, this);
-        this.on('set-fill', this.setFill, this);
     }
 
     routeEvent(event) {
