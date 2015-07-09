@@ -105,32 +105,12 @@ export default class RectangleTool extends Package {
             y: event.y - event.origin.y
         };
 
-        var translate = ['translate', delta.x, delta.y];
+        var transform = ['translate', delta.x, delta.y];
 
-        this.applyTransform(translate, handles);
+        this.applyTransform({transform, item: current, prepend: true});
+        this.applyTransform({transform, item: handles, prepend: true});
 
-        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
-        var frame;
-        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
-            let thisFrame = full.timeLine[timeLineIndex];
-
-            if (thisFrame.frame === currentFrame) {
-                frame = thisFrame;
-            }
-
-            if (thisFrame.frame <= currentFrame) {
-                break;
-            }
-        }
-
-        if (!frame) {
-            frame = _.extend({}, current);
-            frame.frame = currentFrame;
-
-            full.timeLine.splice(currentFrame, 0, frame);
-        }
-
-        this.applyTransform(translate, frame);
+        this.setFrame(current, currentFrame, full);
 
         this.trigger('export', {
             message: 'update-item',
@@ -152,33 +132,24 @@ export default class RectangleTool extends Package {
             height: current.height
         };
 
-        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
-        var frame;
-        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
-            let thisFrame = full.timeLine[timeLineIndex];
+        _.extend(current, rectangle);
 
-            if (thisFrame.frame === currentFrame) {
-                frame = thisFrame;
-            }
+        this.applyTransform({transform: ['translate'], item: current, prepend: true});
 
-            if (thisFrame.frame <= currentFrame) {
-                break;
-            }
+        var rotateTransform = current.transform.find((transform) => transform[0] === 'rotate');
+        if (rotateTransform) {
+            let origin = {
+                x: current.x + current.width / 2,
+                y: current.y + current.height / 2
+            };
+
+            rotateTransform[2] = origin.x;
+            rotateTransform[3] = origin.y;
         }
 
-        if (!frame) {
-            frame = _.extend({}, current, rectangle);
-            frame.frame = currentFrame;
+        this.setFrame(current, currentFrame, full);
 
-            full.timeLine.splice(currentFrame, 0, frame);
-        }
-        else {
-            _.extend(frame, rectangle);
-        }
-
-        frame.transform.pop();
-
-        var handles = this.applyHandles(rectangle, full);
+        var handles = this.applyHandles(current, full);
 
         this.trigger('export', {
             message: 'complete-item',
@@ -203,48 +174,11 @@ export default class RectangleTool extends Package {
             height: Math.abs(event.y - handle.cy)
         };
 
-        var delta = {};
-        if (rectangle.x !== current.x) {
-            delta.x = rectangle.x;
-        }
+        _.extend(current, rectangle);
 
-        if (rectangle.y !== current.y) {
-            delta.y = rectangle.y;
-        }
+        this.setFrame(current, currentFrame, full);
 
-        if (rectangle.width !== current.width) {
-            delta.width = rectangle.width;
-        }
-
-        if (rectangle.height !== current.height) {
-            delta.height = rectangle.height;
-        }
-
-        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
-        var frame;
-        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
-            let thisFrame = full.timeLine[timeLineIndex];
-
-            if (thisFrame.frame === currentFrame) {
-                frame = thisFrame;
-            }
-
-            if (thisFrame.frame <= currentFrame) {
-                break;
-            }
-        }
-
-        if (!frame) {
-            frame = delta;
-            frame.frame = currentFrame;
-
-            full.timeLine.splice(currentFrame, 0, frame);
-        }
-        else {
-            _.extend(frame, delta);
-        }
-
-        handles = this.applyHandles(rectangle, full);
+        handles = this.applyHandles(current, full);
 
         // Determine new active handle
         event.activeHandle = handles.nodes.find((h) => h.cx === event.x && h.cy === event.y);
@@ -272,32 +206,12 @@ export default class RectangleTool extends Package {
         });
         var degrees = this.degreesFromTwoPoints(origin, event);
 
-        var rotate = ['rotate', degrees - start, origin.x, origin.y];
+        var transform = ['rotate', degrees - start, origin.x, origin.y];
 
-        this.applyTransform(rotate, handles);
+        this.applyTransform({transform, item: handles});
+        this.applyTransform({transform, item: current});
 
-        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
-        var frame;
-        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
-            let thisFrame = full.timeLine[timeLineIndex];
-
-            if (thisFrame.frame === currentFrame) {
-                frame = thisFrame;
-            }
-
-            if (thisFrame.frame <= currentFrame) {
-                break;
-            }
-        }
-
-        if (!frame) {
-            frame = _.extend({}, current);
-            frame.frame = currentFrame;
-
-            full.timeLine.splice(currentFrame, 0, frame);
-        }
-
-        this.applyTransform(rotate, frame);
+        this.setFrame(current, currentFrame, full);
 
         this.trigger('export', {
             message: 'update-item',
@@ -319,17 +233,60 @@ export default class RectangleTool extends Package {
         return degrees;
     }
 
-    applyTransform(value, item) {
+    applyTransform({transform, item, prepend=false}) {
         var transformList = item.transform || [];
 
-        if (transformList.length && transformList[transformList.length - 1][0] === value[0]) {
-            transformList[transformList.length - 1] = value;
+        var existed = false;
+        for (var i = 0; i < transformList.length; i++) {
+            if (transformList[i][0] === transform[0]) {
+                if (transform.length > 1) {
+                    transformList[i] = transform;
+                } else {
+                    transformList.splice(i, 1);
+                }
+
+                existed = true;
+
+                break;
+            }
         }
-        else {
-            transformList.push(value);
+
+        if (!existed) {
+            if (prepend) {
+                transformList.unshift(transform);
+            }
+            else {
+                transformList.push(transform);
+            }
         }
 
         item.transform = transformList;
+    }
+
+    setFrame(frame, frameNumber, full) {
+        var timeLineIndex;
+        var found = false;
+        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
+            let thisFrame = full.timeLine[timeLineIndex];
+
+            if (thisFrame.frame === frameNumber) {
+                found = true;
+            }
+
+            if (thisFrame.frame <= frameNumber) {
+                break;
+            }
+        }
+
+        if (!found) {
+            frame = _.extend({}, frame);
+            frame.frame = frameNumber;
+
+            full.timeLine.splice(timeLineIndex, 0, frame);
+        }
+        else {
+            full.timeLine[timeLineIndex] = frame;
+        }
     }
 
     onTap(event) {
@@ -355,6 +312,49 @@ export default class RectangleTool extends Package {
         var {full, current} = event.selection[0];
 
         full.mode = full.mode === 'resize' ? 'rotate' : 'resize';
+
+        var handles = this.applyHandles(current, full);
+
+        this.trigger('export', {
+            message: 'update-item',
+            full: full,
+            handles: handles
+        });
+    }
+
+    setValue(event) {
+        var {full, current} = event.selection[0];
+        var currentFrame = event.currentFrame;
+        var value = event.value;
+        var binding = event.binding;
+
+        this.setFrame(current, currentFrame, full);
+
+        var lookUp = jsonQuery(binding.value, {data: current});
+
+        if (!isNaN(+value)) {
+            value = +value;
+        }
+
+        lookUp.references[0][lookUp.key] = value;
+
+        var handles = this.applyHandles(current, full);
+
+        this.trigger('export', {
+            message: 'update-item',
+            full: full,
+            handles: handles
+        });
+    }
+
+    doubleSize(event) {
+        var {full, current} = event.selection[0];
+        var currentFrame = event.currentFrame;
+
+        this.setFrame(current, currentFrame, full);
+
+        current.width *= 2;
+        current.height *= 2;
 
         var handles = this.applyHandles(current, full);
 
@@ -464,7 +464,8 @@ export default class RectangleTool extends Package {
 
         return {
             type: 'Group',
-            nodes: handles
+            nodes: handles,
+            transform: rectangle.transform
         };
     }
 
@@ -554,7 +555,8 @@ export default class RectangleTool extends Package {
 
         return {
             type: 'Group',
-            nodes: handles
+            nodes: handles,
+            transform: rectangle.transform
         };
     }
 
@@ -618,87 +620,6 @@ export default class RectangleTool extends Package {
                     }
                 ]
             }
-        });
-    }
-
-    setValue(event) {
-        var {full, current} = event.selection[0];
-        var currentFrame = event.currentFrame;
-        var value = event.value;
-        var binding = event.binding;
-
-        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
-        var frame;
-        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
-            let thisFrame = full.timeLine[timeLineIndex];
-
-            if (thisFrame.frame === currentFrame) {
-                frame = thisFrame;
-            }
-
-            if (thisFrame.frame <= currentFrame) {
-                break;
-            }
-        }
-
-        if (!frame) {
-            frame = _.extend({}, current);
-            frame.frame = currentFrame;
-
-            full.timeLine.splice(currentFrame, 0, frame);
-        }
-
-        var lookUp = jsonQuery(binding.value, {data: frame});
-
-        if (!isNaN(+value)) {
-            value = +value;
-        }
-
-        lookUp.references[0][lookUp.key] = value;
-
-        var handles = this.applyHandles(frame, full);
-
-        this.trigger('export', {
-            message: 'update-item',
-            full: full,
-            handles: handles
-        });
-    }
-
-    doubleSize(event) {
-        var {full, current} = event.selection[0];
-        var currentFrame = event.currentFrame;
-
-        var timeLineIndex = full.timeLine.findIndex((frame) => frame.frame === currentFrame);
-        var frame;
-        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
-            let thisFrame = full.timeLine[timeLineIndex];
-
-            if (thisFrame.frame === currentFrame) {
-                frame = thisFrame;
-            }
-
-            if (thisFrame.frame <= currentFrame) {
-                break;
-            }
-        }
-
-        if (!frame) {
-            frame = _.extend({}, current);
-            frame.frame = currentFrame;
-
-            full.timeLine.splice(currentFrame, 0, frame);
-        }
-
-        frame.width *= 2;
-        frame.height *= 2;
-
-        var handles = this.applyHandles(frame, full);
-
-        this.trigger('export', {
-            message: 'update-item',
-            full: full,
-            handles: handles
         });
     }
 }
