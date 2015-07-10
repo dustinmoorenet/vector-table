@@ -120,11 +120,15 @@ export default class Table extends View {
                 current: global.app.user.projectStore.timeLine.get(itemID)
             }];
         }
+        else {
+            evt.selection = [];
+        }
+
+        evt.handles = global.appStore.get('overlay');
 
         if (handleID) {
-            var handles = global.appStore.get('overlay');
 
-            var handle = handles.nodes.find((handle) => handle.id === handleID);
+            var handle = evt.handles.nodes.find((handle) => handle.id === handleID);
 
             this.activeHandle = evt.activeHandle = handle;
 

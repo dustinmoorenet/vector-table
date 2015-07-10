@@ -1,118 +1,94 @@
 import Package from '../../libs/Package';
 import _ from 'lodash';
+import uuid from 'node-uuid';
 
 export default class PolygonTool extends Package {
     constructor() {
         super();
-
-        this.on('pointer-start', this.onPointerStart, this);
-        this.on('pointer-move', this.onPointerMove, this);
     }
 
-    onPointerStart(event) {
+    defaultRoute(event) {
         var exportEvent;
-        var object = event.selection && event.selection[0];
-
-        // its moving a handle
-        if (object && object.complete) {
-            return;
-        }
-
-        if (object && object.tool !== 'PolygonTool') {
-            object = undefined;
-        }
+        var {current, full} = event.selection[0] || {};
+        var id = full && full.id || uuid.v4();
+        var currentFrame = event.currentFrame;
+        var handles = event.handles;
 
         var handle = {
-            id: 'handle-' + (object && object.handles.length + 1 || 1),
+            id: 'handle-' + (handles && handles.nodes.length + 1 || 1),
             type: 'Ellipse',
-            attr: {
-                cx: event.x,
-                cy: event.y,
-                rx: PolygonTool.HANDLE_WIDTH,
-                ry: PolygonTool.HANDLE_WIDTH,
-                fill: 'red'
-            },
-            action: {
-                func: 'move',
-                partial: []
+            cx: event.x,
+            cy: event.y,
+            rx: PolygonTool.HANDLE_WIDTH,
+            ry: PolygonTool.HANDLE_WIDTH,
+            fill: 'red',
+            forItem: id,
+            routes: {
+                'pointer-start': 'handleStart',
+                'pointer-move': 'handleMove',
+                'pointer-end': 'handleEnd'
             }
         };
 
-        if (!object) {
+        if (!full) {
             exportEvent = {
                 message: 'create-item',
-                object: {
+                full: {
+                    id: id,
                     tool: 'PolygonTool',
+                    type: 'Polygon',
                     complete: false,
-                    shapes: [
-                        {
-                            type: 'Polygon',
-                            attr: {
-                                d: 'M' + event.x + ',' + event.y,
-                                stroke: 'black',
-                                fill: 'none'
-                            }
-                        }
-                    ],
-                    handles: [handle]
+                    timeLine: [{
+                        frame: currentFrame,
+                        d: 'M' + event.x + ',' + event.y,
+                        stroke: 'black',
+                        fill: 'none'
+                    }]
+                },
+                handles: {
+                    type: 'Group',
+                    nodes: [handle]
                 }
             };
         }
         else {
-            var message;
+            current.d += ' L' + event.x + ',' + event.y;
+            handles.nodes.push(handle);
 
-            if (event.activeHandle) {
-                object.shapes[0].attr.d += ' Z';
-                object.shapes[0].attr.fill = 'blue';
-                message = 'complete-item';
-            }
-            else {
-                object.shapes[0].attr.d += ' L' + event.x + ',' + event.y;
-                object.handles.push(handle);
-                message = 'update-item';
-            }
+            this.setFrame(current, currentFrame, full);
 
             exportEvent = {
-                message: message,
-                object: object
+                message: 'update-item',
+                full: full,
+                handles: handles
             };
         }
 
         this.trigger('export', exportEvent);
     }
 
-    onPointerMove(event) {
-        if (!event.activeHandle) {
-            return;
-        }
-
-        var object = event.selection[0];
-
-        var handle = _.find(object.handles, {id: event.activeHandle});
-
-        if (handle.action.func) {
-            this[handle.action.func].apply(this, _.union(handle.action.partial, [event]));
-        }
+    handleStart() {
+        this.moveCount = 0;
     }
 
-    move(event) {
-        if (!event.selection) {
-            return;
-        }
+    handleMove(event) {
+        var {current, full} = event.selection[0] || {};
+        var currentFrame = event.currentFrame;
+        var handles = event.handles;
+        this.moveCount++;
 
-        var object = event.selection[0];
         var d = '';
 
-        object.handles.forEach(function(handle, index) {
+        handles.nodes.forEach(function(handle, index) {
             var point = {};
 
-            if (event.activeHandle === handle.id) {
+            if (event.activeHandle.id === handle.id) {
                 point = {x: event.x, y: event.y};
-                handle.attr.cx = event.x;
-                handle.attr.cy = event.y;
+                handle.cx = event.x;
+                handle.cy = event.y;
             }
             else {
-                point = {x: handle.attr.cx, y: handle.attr.cy};
+                point = {x: handle.cx, y: handle.cy};
             }
 
             if (index === 0) {
@@ -122,16 +98,37 @@ export default class PolygonTool extends Package {
             }
         });
 
-        if (object.shapes[0].attr.d.match(/z$/i)) {
+        if (current.d.match(/z$/i)) {
             d += ' Z';
         }
 
-        object.shapes[0].attr.d = d;
+        current.d = d;
+
+        this.setFrame(current, currentFrame, full);
 
         this.trigger('export', {
             message: 'update-item',
-            object: object
+            full: full,
+            handles: handles
         });
+    }
+
+    handleEnd(event) {
+        var {current, full} = event.selection[0] || {};
+        var currentFrame = event.currentFrame;
+
+        if (this.moveCount === 0 && !current.d.match(/z$/i)) {
+            current.d += ' Z';
+            current.fill = 'blue';
+
+            this.setFrame(current, currentFrame, full);
+
+            this.trigger('export', {
+                message: 'complete-item',
+                full: full,
+                handles: event.handles
+            });
+        }
     }
 }
 
