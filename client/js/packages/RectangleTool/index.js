@@ -1,63 +1,12 @@
 import _ from 'lodash';
-import jsonQuery from 'json-query';
 import Package from '../../libs/Package';
 import uuid from 'node-uuid';
-
-/*
-We need to be able to:
-- Establish a rectangle
-- Change rectangle:
- - Size (width, height or both from handles and property changes)
- - Scale (transform scale or x,y,width,height I don't know)
- - Position (change in x,y)
-*/
-
-/*
-The handles need to be part of a layer that is not saved
-shapes is for savable items
-and
-overlay is for controls
-
-if you want the controls to display they need to be exported
-this gives total control to the tool to visualize the controls
-
-need to only visualize controls for objects applicable to this tool
-
-have controls have callbacks that map to functions here
-the controls are temporary and will be removed from the DOM when unselected
-
-create object (no handles/unselected)
-
-add handles when
-  mode change
-  on selected (which is just a mode change)
-
-
-*/
 
 export default class RectangleTool extends Package {
     constructor() {
         super();
 
-        this.on('pointer-start', this.routeEvent, this);
-        this.on('pointer-move', this.routeEvent, this);
-        this.on('pointer-end', this.routeEvent, this);
-        this.on('control-init', this.onControlInit, this);
-        this.on('set-value', this.setValue, this);
         this.on('double-size', this.doubleSize, this);
-    }
-
-    routeEvent(event) {
-        if (!event.route && !event.activeHandle && event.message === 'pointer-start') {
-            this.defaultRoute(event);
-        }
-        else if (event.route) {
-            var func = typeof event.route === 'string' ? event.route : event.route.func;
-
-            var args = event.route.partial ? _.union(event.route.partial, [event]) : [event];
-
-            this[func].apply(this, args);
-        }
     }
 
     defaultRoute(event) {
@@ -95,31 +44,6 @@ export default class RectangleTool extends Package {
         });
     }
 
-    moveMove(event) {
-        var {current, full} = event.selection[0];
-        var currentFrame = event.currentFrame;
-        var handles = event.handles;
-
-        var delta = {
-            x: event.x - event.origin.x,
-            y: event.y - event.origin.y
-        };
-
-        var transform = ['translate', delta.x, delta.y];
-
-        this.applyTransform({transform, item: current, prepend: true});
-        this.applyTransform({transform, item: handles, prepend: true});
-
-        this.setFrame(current, currentFrame, full);
-
-        this.trigger('export', {
-            message: 'update-item',
-            activeHandle: event.activeHandle,
-            full: full,
-            handles: handles
-        });
-    }
-
     moveEnd(event) {
         var {current, full} = event.selection[0];
         var currentFrame = event.currentFrame;
@@ -127,9 +51,7 @@ export default class RectangleTool extends Package {
         full.complete = true;
         var rectangle = {
             x: current.x + (event.x - event.origin.x),
-            y: current.y + (event.y - event.origin.y),
-            width: current.width,
-            height: current.height
+            y: current.y + (event.y - event.origin.y)
         };
 
         _.extend(current, rectangle);
@@ -153,6 +75,36 @@ export default class RectangleTool extends Package {
 
         this.trigger('export', {
             message: 'complete-item',
+            full: full,
+            handles: handles
+        });
+    }
+
+    rotateMove(handleIndex, event) {
+        var {current, full} = event.selection[0];
+        var currentFrame = event.currentFrame;
+        var handles = event.handles;
+
+        var origin = {
+            x: current.x + current.width / 2,
+            y: current.y + current.height / 2
+        };
+        var start = this.degreesFromTwoPoints(origin, {
+            x: handles.nodes[handleIndex].cx,
+            y: handles.nodes[handleIndex].cy
+        });
+        var degrees = this.degreesFromTwoPoints(origin, event);
+
+        var transform = ['rotate', degrees - start, origin.x, origin.y];
+
+        this.applyTransform({transform, item: handles});
+        this.applyTransform({transform, item: current});
+
+        this.setFrame(current, currentFrame, full);
+
+        this.trigger('export', {
+            message: 'update-item',
+            activeHandle: event.activeHandle,
             full: full,
             handles: handles
         });
@@ -191,104 +143,6 @@ export default class RectangleTool extends Package {
         });
     }
 
-    rotateMove(handleIndex, event) {
-        var {current, full} = event.selection[0];
-        var currentFrame = event.currentFrame;
-        var handles = event.handles;
-
-        var origin = {
-            x: current.x + current.width / 2,
-            y: current.y + current.height / 2
-        };
-        var start = this.degreesFromTwoPoints(origin, {
-            x: handles.nodes[handleIndex].cx,
-            y: handles.nodes[handleIndex].cy
-        });
-        var degrees = this.degreesFromTwoPoints(origin, event);
-
-        var transform = ['rotate', degrees - start, origin.x, origin.y];
-
-        this.applyTransform({transform, item: handles});
-        this.applyTransform({transform, item: current});
-
-        this.setFrame(current, currentFrame, full);
-
-        this.trigger('export', {
-            message: 'update-item',
-            activeHandle: event.activeHandle,
-            full: full,
-            handles: handles
-        });
-    }
-
-    degreesFromTwoPoints(point1, point2) {
-        var radius = Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
-        var radians = Math.acos((point2.x - point1.x) / radius);
-        var degrees = radians * 180 / Math.PI;
-
-        if (point2.y < point1.y) {
-            degrees = 360 - degrees;
-        }
-
-        return degrees;
-    }
-
-    applyTransform({transform, item, prepend=false}) {
-        var transformList = item.transform || [];
-
-        var existed = false;
-        for (var i = 0; i < transformList.length; i++) {
-            if (transformList[i][0] === transform[0]) {
-                if (transform.length > 1) {
-                    transformList[i] = transform;
-                } else {
-                    transformList.splice(i, 1);
-                }
-
-                existed = true;
-
-                break;
-            }
-        }
-
-        if (!existed) {
-            if (prepend) {
-                transformList.unshift(transform);
-            }
-            else {
-                transformList.push(transform);
-            }
-        }
-
-        item.transform = transformList;
-    }
-
-    setFrame(frame, frameNumber, full) {
-        var timeLineIndex;
-        var found = false;
-        for (timeLineIndex = full.timeLine.length - 1; timeLineIndex >= 0; timeLineIndex--) {
-            let thisFrame = full.timeLine[timeLineIndex];
-
-            if (thisFrame.frame === frameNumber) {
-                found = true;
-            }
-
-            if (thisFrame.frame <= frameNumber) {
-                break;
-            }
-        }
-
-        if (!found) {
-            frame = _.extend({}, frame);
-            frame.frame = frameNumber;
-
-            full.timeLine.splice(timeLineIndex, 0, frame);
-        }
-        else {
-            full.timeLine[timeLineIndex] = frame;
-        }
-    }
-
     onTap(event) {
         var object = event.object;
 
@@ -308,45 +162,6 @@ export default class RectangleTool extends Package {
 
     }
 
-    toggleStart(event) {
-        var {full, current} = event.selection[0];
-
-        full.mode = full.mode === 'resize' ? 'rotate' : 'resize';
-
-        var handles = this.applyHandles(current, full);
-
-        this.trigger('export', {
-            message: 'update-item',
-            full: full,
-            handles: handles
-        });
-    }
-
-    setValue(event) {
-        var {full, current} = event.selection[0];
-        var currentFrame = event.currentFrame;
-        var value = event.value;
-        var binding = event.binding;
-
-        this.setFrame(current, currentFrame, full);
-
-        var lookUp = jsonQuery(binding.value, {data: current});
-
-        if (!isNaN(+value)) {
-            value = +value;
-        }
-
-        lookUp.references[0][lookUp.key] = value;
-
-        var handles = this.applyHandles(current, full);
-
-        this.trigger('export', {
-            message: 'update-item',
-            full: full,
-            handles: handles
-        });
-    }
-
     doubleSize(event) {
         var {full, current} = event.selection[0];
         var currentFrame = event.currentFrame;
@@ -363,19 +178,6 @@ export default class RectangleTool extends Package {
             full: full,
             handles: handles
         });
-    }
-
-    applyHandles(rectangle, item) {
-        var handles = [];
-
-        if (item.mode === 'resize') {
-            handles = this.resizeHandles(rectangle, item);
-        }
-        else if (item.mode === 'rotate') {
-            handles = this.rotateHandles(rectangle, item);
-        }
-
-        return handles;
     }
 
     resizeHandles(rectangle, item) {
