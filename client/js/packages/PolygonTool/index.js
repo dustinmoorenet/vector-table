@@ -13,9 +13,10 @@ export default class PolygonTool extends Package {
         var id = full && full.id || uuid.v4();
         var currentFrame = event.currentFrame;
         var handles = event.handles;
+        var dLength = current && current.d.length || 0;
 
         var handle = {
-            id: 'handle-' + (handles && handles.nodes.length + 1 || 1),
+            id: `handle-${dLength}`,
             type: 'Ellipse',
             cx: event.x,
             cy: event.y,
@@ -40,7 +41,7 @@ export default class PolygonTool extends Package {
                     complete: false,
                     timeLine: [{
                         frame: currentFrame,
-                        d: 'M' + event.x + ',' + event.y,
+                        d: [['M', event.x, event.y]],
                         stroke: 'black',
                         fill: 'none'
                     }]
@@ -52,7 +53,7 @@ export default class PolygonTool extends Package {
             };
         }
         else {
-            current.d += ' L' + event.x + ',' + event.y;
+            current.d.push(['L', event.x, event.y]);
             handles.nodes.push(handle);
 
             this.setFrame(current, currentFrame, full);
@@ -77,32 +78,15 @@ export default class PolygonTool extends Package {
         var handles = event.handles;
         this.moveCount++;
 
-        var d = '';
+        var handle = handles.nodes.find((handle) => handle.id === event.activeHandle.id);
 
-        handles.nodes.forEach(function(handle, index) {
-            var point = {};
+        var dIndex = handle.id.match(/handle-(\d+)/)[1];
 
-            if (event.activeHandle.id === handle.id) {
-                point = {x: event.x, y: event.y};
-                handle.cx = event.x;
-                handle.cy = event.y;
-            }
-            else {
-                point = {x: handle.cx, y: handle.cy};
-            }
-
-            if (index === 0) {
-                d = 'M' + point.x + ',' + point.y;
-            } else {
-                d += ' L' + point.x + ',' + point.y;
-            }
-        });
-
-        if (current.d.match(/z$/i)) {
-            d += ' Z';
-        }
-
-        current.d = d;
+        var move = current.d[dIndex];
+        move[1] = event.x;
+        move[2] = event.y;
+        handle.cx = event.x;
+        handle.cy = event.y;
 
         this.setFrame(current, currentFrame, full);
 
@@ -117,8 +101,8 @@ export default class PolygonTool extends Package {
         var {current, full} = event.selection[0] || {};
         var currentFrame = event.currentFrame;
 
-        if (this.moveCount === 0 && !current.d.match(/z$/i)) {
-            current.d += ' Z';
+        if (this.moveCount === 0 && current.d[current.d.length - 1][0] !== 'Z') {
+            current.d.push(['Z']);
             current.fill = 'blue';
 
             this.setFrame(current, currentFrame, full);
