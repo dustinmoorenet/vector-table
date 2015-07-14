@@ -143,7 +143,7 @@ export default class Package extends Events {
             frame = _.extend({}, frame);
             frame.frame = frameNumber;
 
-            full.timeLine.splice(timeLineIndex, 0, frame);
+            full.timeLine.splice(timeLineIndex + 1, 0, frame);
         }
         else {
             full.timeLine[timeLineIndex] = frame;
