@@ -13,6 +13,10 @@
         "camelcase": [0],
         "no-underscore-dangle": [0],
         "comma-dangle": [0],
-        "no-trailing-spaces": [0]
+        "no-trailing-spaces": [0],
+        "no-loop-func": [0],
+        "no-shadow": [0],
+        "new-cap": [0],
+        "no-constant-condition": [0]
     }
 }

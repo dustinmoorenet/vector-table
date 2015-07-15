@@ -166,10 +166,10 @@ export default class RectangleTool extends Package {
         var {full, current} = event.selection[0];
         var currentFrame = event.currentFrame;
 
-        this.setFrame(current, currentFrame, full);
-
         current.width *= 2;
         current.height *= 2;
+
+        this.setFrame(current, currentFrame, full);
 
         var handles = this.applyHandles(current, full);
 

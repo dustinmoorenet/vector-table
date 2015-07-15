@@ -12,8 +12,6 @@ export default class Ellipse extends Element {
 
         if (!shape) { return; }
 
-        this.setAttribute('fill', shape.fill);
-        this.setAttribute('stroke', shape.stroke);
         this.setAttribute('cx', shape.cx);
         this.setAttribute('cy', shape.cy);
         this.setAttribute('rx', shape.rx);

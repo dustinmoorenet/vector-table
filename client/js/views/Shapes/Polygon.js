@@ -12,8 +12,6 @@ export default class Polygon extends Element {
 
         if (!shape) { return; }
 
-        this.setAttribute('fill', shape.fill);
-        this.setAttribute('stroke', shape.stroke);
         this.applyD(shape.d);
     }
 

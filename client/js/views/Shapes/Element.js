@@ -25,6 +25,10 @@ export default class Element extends View {
 
         this.setAttribute('id', shape.id);
         this.setAttribute('data-for-item', shape.forItem);
+        this.setAttribute('fill', shape.fill);
+        this.setAttribute('stroke', shape.stroke);
+        this.setAttribute('stroke-linecap', shape['stroke-linecap']);
+        this.setAttribute('stroke-width', shape['stroke-width']);
 
         this.applyTransform(shape.transform);
 
