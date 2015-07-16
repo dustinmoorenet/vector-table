@@ -4,19 +4,24 @@ import Package from '../../libs/Package';
 
 export default class EllipseTool extends Package {
     defaultRoute(event) {
-        this.create({
-            timeLine: [
-                {
-                    frame: event.currentFrame,
-                    cx: event.x,
-                    cy: event.y,
-                    rx: 0,
-                    ry: 0,
-                    fill: 'blue',
-                    stroke: 'black'
-                }
-            ]
-        });
+        if (event.selection.length) {
+            this.select(event);
+        }
+        else {
+            this.create({
+                timeLine: [
+                    {
+                        frame: event.currentFrame,
+                        cx: event.x,
+                        cy: event.y,
+                        rx: 0,
+                        ry: 0,
+                        fill: 'blue',
+                        stroke: 'black'
+                    }
+                ]
+            });
+        }
     }
 
     create(attr) {

@@ -10,19 +10,24 @@ export default class RectangleTool extends Package {
     }
 
     defaultRoute(event) {
-        this.create({
-            timeLine: [
-                {
-                    frame: event.currentFrame,
-                    x: event.x,
-                    y: event.y,
-                    width: 0,
-                    height: 0,
-                    fill: 'blue',
-                    stroke: 'black'
-                }
-            ]
-        });
+        if (event.selection.length) {
+            this.select(event);
+        }
+        else {
+            this.create({
+                timeLine: [
+                    {
+                        frame: event.currentFrame,
+                        x: event.x,
+                        y: event.y,
+                        width: 0,
+                        height: 0,
+                        fill: 'blue',
+                        stroke: 'black'
+                    }
+                ]
+            });
+        }
     }
 
     create(attr) {

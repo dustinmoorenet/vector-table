@@ -52,13 +52,22 @@ export default class PolygonTool extends Package {
                 handles: handles
             };
         }
-        else {
+        else if (!full.complete) {
             var move = ['L', event.x, event.y];
             current.d.push(move);
             handles.nodes[0].d.push(move);
             handles.nodes.push(handle);
 
             this.setFrame(current, currentFrame, full);
+
+            exportEvent = {
+                message: 'update-item',
+                full: full,
+                handles: handles
+            };
+        }
+        else {
+            handles = this.applyHandles(current.d, full);
 
             exportEvent = {
                 message: 'update-item',

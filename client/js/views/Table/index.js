@@ -283,19 +283,33 @@ export default class Table extends View {
     }
 
     getHandle(node) {
+        var focusGroupID = global.appStore.get('app').focusGroupID;
+        var focusGroupNode = this.svg.node.querySelector(`[id="${focusGroupID}"]`);
+        var handleID;
+        var itemID;
+
         while (true) {
-            if (!node || node === this.svg.node) {
-                return {};
+            if (!node || node === this.svg.node || node === focusGroupNode) {
+                break;
             }
 
-            var handleID = node.getAttribute('id');
-            var itemID = node.getAttribute('data-for-item');
+            handleID = node.getAttribute('id');
+            itemID = node.getAttribute('data-for-item');
 
-            if (handleID) {
-                return {handleID, itemID};
+            if (itemID) {
+                // Is from overlay and we have what we need
+                break;
+            }
+            else if (handleID) {
+                // item selected from shapes but we need to bubble up to focus
+                // group level
+                itemID = handleID;
+                handleID = null;
             }
 
             node = node.parentNode;
         }
+
+        return {handleID, itemID};
     }
 }

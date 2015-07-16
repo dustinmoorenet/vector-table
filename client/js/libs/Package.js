@@ -14,6 +14,10 @@ export default class Package extends Events {
     }
 
     routeEvent(event) {
+        if (event.selection.length && event.selection[0].full.tool !== this.constructor.name) {
+            return;
+        }
+
         if (!event.route && !event.activeHandle && event.message === 'pointer-start') {
             this.defaultRoute(event);
         }
@@ -29,6 +33,18 @@ export default class Package extends Events {
     defaultRoute() { }
 
     onControlInit() { }
+
+    select(event) {
+        var {current, full} = event.selection[0];
+        var handles = this.applyHandles(current, full);
+
+        this.trigger('export', {
+            message: 'update-item',
+            activeHandle: event.activeHandle,
+            full: full,
+            handles: handles
+        });
+    }
 
     moveMove(event) {
         var {current, full} = event.selection[0];
