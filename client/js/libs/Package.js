@@ -14,7 +14,7 @@ export default class Package extends Events {
     }
 
     routeEvent(event) {
-        if (event.selection.length && event.selection[0].full.tool !== this.constructor.name) {
+        if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
         }
 
@@ -35,19 +35,19 @@ export default class Package extends Events {
     onControlInit() { }
 
     select(event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var handles = this.applyHandles(current, full);
 
         this.trigger('export', {
-            message: 'update-item',
+            message: 'set-selection',
             activeHandle: event.activeHandle,
-            full: full,
+            selection: [event.item.id],
             handles: handles
         });
     }
 
     moveMove(event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
         var handles = event.handles;
 
@@ -65,8 +65,13 @@ export default class Package extends Events {
 
         this.trigger('export', {
             message: 'update-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
             activeHandle: event.activeHandle,
-            full: full,
+            selection: [event.item.id],
             handles: handles
         });
     }
@@ -84,7 +89,7 @@ export default class Package extends Events {
     }
 
     toggleStart(event) {
-        var {full, current} = event.selection[0];
+        var {full, current} = event.item;
 
         full.mode = full.mode === 'resize' ? 'rotate' : 'resize';
 
@@ -92,7 +97,13 @@ export default class Package extends Events {
 
         this.trigger('export', {
             message: 'update-item',
-            full: full,
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [event.item.id],
             handles: handles
         });
     }
@@ -167,7 +178,7 @@ export default class Package extends Events {
     }
 
     setValue(event) {
-        var {full, current} = event.selection[0];
+        var {full, current} = event.item;
         var currentFrame = event.currentFrame;
         var value = event.value;
         var binding = event.binding;
@@ -186,8 +197,32 @@ export default class Package extends Events {
 
         this.trigger('export', {
             message: 'update-item',
-            full: full,
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [event.item.id],
             handles: handles
+        });
+    }
+
+    getItem(itemID) {
+        this.trigger('export', {
+            message: 'get-item',
+            itemID: itemID
+        });
+
+        return new Promise((resolve, reject) => {
+            this.once(`item:${itemID}`, (event) => {
+                if (event.item) {
+                    resolve(event.item);
+                }
+                else {
+                    reject(new Error('No item found'));
+                }
+            });
         });
     }
 }

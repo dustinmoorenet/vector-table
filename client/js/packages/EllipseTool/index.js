@@ -4,7 +4,7 @@ import Package from '../../libs/Package';
 
 export default class EllipseTool extends Package {
     defaultRoute(event) {
-        if (event.selection.length) {
+        if (event.item) {
             this.select(event);
         }
         else {
@@ -29,22 +29,26 @@ export default class EllipseTool extends Package {
             id: uuid.v4(),
             tool: 'EllipseTool',
             mode: 'resize',
-            type: 'Ellipse',
-            complete: true
+            type: 'Ellipse'
         });
 
         var handles = this.applyHandles(item.timeLine[0], item);
 
         this.trigger('export', {
             message: 'create-item',
+            item: item
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
             activeHandle: handles.nodes[3], // se
-            full: item,
+            selection: [item.id],
             handles: handles
         });
     }
 
     moveEnd(event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
 
         full.complete = true;
@@ -55,7 +59,7 @@ export default class EllipseTool extends Package {
 
         _.extend(current, ellipse);
 
-        this.applyTransform({transform: ['translate'], item: current, prepend: true});
+        this.applyTransform({transform: ['translate', 0, 0], item: current, prepend: true});
 
         var rotateTransform = current.transform.find((transform) => transform[0] === 'rotate');
         if (rotateTransform) {
@@ -68,14 +72,20 @@ export default class EllipseTool extends Package {
         var handles = this.applyHandles(current, full);
 
         this.trigger('export', {
-            message: 'complete-item',
-            full: full,
+            message: 'update-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [event.item.id],
             handles: handles
         });
     }
 
     resizeMove(handleIndex, buddyHandleIndex, event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
         var handles = event.handles.nodes;
 
@@ -102,14 +112,19 @@ export default class EllipseTool extends Package {
 
         this.trigger('export', {
             message: 'update-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
             activeHandle: event.activeHandle,
-            full: full,
+            selection: [event.item.id],
             handles: handles
         });
     }
 
     rotateMove(handleIndex, event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
         var handles = event.handles;
 
@@ -132,8 +147,13 @@ export default class EllipseTool extends Package {
 
         this.trigger('export', {
             message: 'update-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
             activeHandle: event.activeHandle,
-            full: full,
+            selection: [event.item.id],
             handles: handles
         });
     }

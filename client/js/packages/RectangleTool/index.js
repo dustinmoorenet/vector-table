@@ -10,7 +10,7 @@ export default class RectangleTool extends Package {
     }
 
     defaultRoute(event) {
-        if (event.selection.length) {
+        if (event.item) {
             this.select(event);
         }
         else {
@@ -35,25 +35,28 @@ export default class RectangleTool extends Package {
             id: uuid.v4(),
             tool: 'RectangleTool',
             mode: 'resize',
-            type: 'Rectangle',
-            complete: true
+            type: 'Rectangle'
         });
 
         var handles = this.applyHandles(item.timeLine[0], item);
 
         this.trigger('export', {
             message: 'create-item',
+            item: item
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
             activeHandle: handles.nodes[3], // se
-            full: item,
+            selection: [item.id],
             handles: handles
         });
     }
 
     moveEnd(event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
 
-        full.complete = true;
         var rectangle = {
             x: current.x + (event.x - event.origin.x),
             y: current.y + (event.y - event.origin.y)
@@ -61,7 +64,7 @@ export default class RectangleTool extends Package {
 
         _.extend(current, rectangle);
 
-        this.applyTransform({transform: ['translate'], item: current, prepend: true});
+        this.applyTransform({transform: ['translate', 0, 0], item: current, prepend: true});
 
         var rotateTransform = current.transform.find((transform) => transform[0] === 'rotate');
         if (rotateTransform) {
@@ -79,14 +82,20 @@ export default class RectangleTool extends Package {
         var handles = this.applyHandles(current, full);
 
         this.trigger('export', {
-            message: 'complete-item',
-            full: full,
+            message: 'update-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [event.item.id],
             handles: handles
         });
     }
 
     rotateMove(handleIndex, event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
         var handles = event.handles;
 
@@ -109,14 +118,19 @@ export default class RectangleTool extends Package {
 
         this.trigger('export', {
             message: 'update-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
             activeHandle: event.activeHandle,
-            full: full,
+            selection: [event.item.id],
             handles: handles
         });
     }
 
     resizeMove(handleIndex, buddyHandleIndex, event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
         var handles = event.handles.nodes;
 
@@ -142,8 +156,13 @@ export default class RectangleTool extends Package {
 
         this.trigger('export', {
             message: 'update-item',
+            item: full,
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
             activeHandle: event.activeHandle,
-            full: full,
+            selection: [event.item.id],
             handles: handles
         });
     }
@@ -168,7 +187,7 @@ export default class RectangleTool extends Package {
     }
 
     doubleSize(event) {
-        var {full, current} = event.selection[0];
+        var {full, current} = event.item;
         var currentFrame = event.currentFrame;
 
         current.width *= 2;
@@ -180,7 +199,12 @@ export default class RectangleTool extends Package {
 
         this.trigger('export', {
             message: 'update-item',
-            full: full,
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            selection: [event.item.id],
             handles: handles
         });
     }

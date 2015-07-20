@@ -28,17 +28,20 @@ export default class Table extends View {
     constructor(options) {
         super(options);
 
-        global.packageWorker.addEventListener('message', function (event) {
+        global.packageWorker.addEventListener('message', (event) => {
             if (event.data.message === 'create-item') {
-                this.create(event.data);
+                this.createItem(event.data);
             }
             else if (event.data.message === 'update-item') {
-                this.update(event.data);
+                this.updateItem(event.data);
             }
-            else if (event.data.message === 'complete-item') {
-                this.complete(event.data);
+            else if (event.data.message === 'set-selection') {
+                this.setSelection(event.data);
             }
-        }.bind(this), false);
+            else if (event.data.message === 'get-item') {
+                this.getItem(event.data);
+            }
+        }, false);
 
         this.listenTo(global.app.user.projectStore.timeLine, options.projectID, this.render);
 
@@ -88,14 +91,12 @@ export default class Table extends View {
     }
 
     pointerStart(event) {
-        this.activeSelection = [];
-
         var pointer;
         if (event.pointers) {
             pointer = event.pointers[0];
         }
         else {
-            pointer = {offsetX: event.offsetX, offsetY: event.offsetY};
+            pointer = event;
         }
 
         var evt = {
@@ -106,28 +107,18 @@ export default class Table extends View {
         };
 
         var {itemID, handleID} = this.getHandle(event.target);
-        var selection = global.appStore.get('selection');
-        var previous = global.dataStore.get(selection[0]);
-
-        if (previous && !previous.complete) {
-            itemID = previous.id;
-        }
 
         if (itemID) {
-            evt.selection = [{
+            evt.item = {
                 id: itemID,
                 full: global.dataStore.get(itemID),
                 current: global.app.user.projectStore.timeLine.get(itemID)
-            }];
-        }
-        else {
-            evt.selection = [];
+            };
         }
 
         evt.handles = global.appStore.get('overlay');
 
         if (handleID) {
-
             var handle = evt.handles.nodes.find((handle) => handle.id === handleID);
 
             this.activeHandle = evt.activeHandle = handle;
@@ -137,21 +128,23 @@ export default class Table extends View {
             }
         }
 
-        this.activeSelection = itemID;
+        this.activeItemID = itemID;
         this.activeOrigin = {x: evt.x, y: evt.y};
+
+        evt.selection = global.appStore.get('selection') || [];
 
         global.packageWorker.postMessage(evt);
     }
 
     pointerMove(event) {
-        if (!this.activeSelection) {
+        if (!this.activeItemID) {
             return;
         }
 
         var item = {
-            id: this.activeSelection,
-            full: global.dataStore.get(this.activeSelection),
-            current: global.app.user.projectStore.timeLine.get(this.activeSelection)
+            id: this.activeItemID,
+            full: global.dataStore.get(this.activeItemID),
+            current: global.app.user.projectStore.timeLine.get(this.activeItemID)
         };
 
         if (!item.full && !item.current) {
@@ -163,7 +156,7 @@ export default class Table extends View {
             pointer = event.pointers[0];
         }
         else {
-            pointer = {offsetX: event.offsetX, offsetY: event.offsetY};
+            pointer = event;
         }
 
         var evt = {
@@ -174,9 +167,8 @@ export default class Table extends View {
             activeHandle: this.activeHandle,
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
-            selection: [
-                item
-            ]
+            item: item,
+            selection: global.appStore.get('selection') || []
         };
 
         if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-move']) {
@@ -187,14 +179,14 @@ export default class Table extends View {
     }
 
     pointerEnd() {
-        if (!this.activeSelection) {
+        if (!this.activeItemID) {
             return;
         }
 
         var item = {
-            id: this.activeSelection,
-            full: global.dataStore.get(this.activeSelection),
-            current: global.app.user.projectStore.timeLine.get(this.activeSelection)
+            id: this.activeItemID,
+            full: global.dataStore.get(this.activeItemID),
+            current: global.app.user.projectStore.timeLine.get(this.activeItemID)
         };
 
         if (!item.full && !item.current) {
@@ -206,7 +198,7 @@ export default class Table extends View {
             pointer = event.pointers[0];
         }
         else {
-            pointer = {offsetX: event.offsetX, offsetY: event.offsetY};
+            pointer = event;
         }
 
         var evt = {
@@ -216,9 +208,8 @@ export default class Table extends View {
             origin: this.activeOrigin,
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
-            selection: [
-                item
-            ]
+            item: item,
+            selection: global.appStore.get('selection') || []
         };
 
         if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-end']) {
@@ -227,19 +218,16 @@ export default class Table extends View {
 
         global.packageWorker.postMessage(evt);
 
-        delete this.activeSelection;
+        delete this.activeItemID;
         delete this.activeHandle;
         delete this.activeOrigin;
     }
 
-    create(event) {
-        var item = event.full;
-        var selection = [item.id];
-        var params = {recordHistory: !this.activeSelection};
+    createItem(event) {
+        var item = event.item;
+        var params = {recordHistory: !this.activeItemID};
 
         global.dataStore.set(item.id, item, params);
-
-        global.appStore.set('selection', selection, params);
 
         var focusGroupID = global.appStore.get('app').focusGroupID;
         var focusGroup = global.dataStore.get(focusGroupID);
@@ -247,38 +235,24 @@ export default class Table extends View {
         focusGroup.timeLine[0].nodes.push(item.id);
 
         global.dataStore.set(focusGroup.id, focusGroup, params);
-        global.appStore.set('overlay', event.handles);
 
-        this.activeSelection = item.id;
+        this.activeItemID = item.id;
+    }
 
+    updateItem(event) {
+        var item = event.item;
+        var params = {recordHistory: !this.activeItemID};
+
+        global.dataStore.set(item.id, item, params);
+    }
+
+    setSelection(event) {
         if (event.activeHandle) {
             this.activeHandle = event.activeHandle;
         }
-    }
 
-    update(event) {
-        var item = event.full;
-        var params = {recordHistory: !this.activeSelection};
+        global.appStore.set('selection', event.selection);
 
-        if (event.activeHandle) {
-            this.activeHandle = event.activeHandle;
-        }
-
-        global.dataStore.set(item.id, item, params);
-        global.appStore.set('overlay', event.handles);
-    }
-
-    complete(event) {
-        var item = event.full;
-
-        delete this.activeSelection;
-        delete this.activeHandle;
-
-        var params = {recordHistory: true};
-
-        item.complete = true;
-
-        global.dataStore.set(item.id, item, params);
         global.appStore.set('overlay', event.handles);
     }
 
@@ -311,5 +285,17 @@ export default class Table extends View {
         }
 
         return {handleID, itemID};
+    }
+
+    getItem(event) {
+        var itemID = event.itemID;
+
+        global.packageWorker.postMessage({
+            message: `item:${itemID}`,
+            item: {
+                full: global.dataStore.get(itemID),
+                current: global.app.user.projectStore.timeLine.get(itemID)
+            }
+        });
     }
 }

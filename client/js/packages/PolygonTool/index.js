@@ -7,14 +7,62 @@ export default class PolygonTool extends Package {
     }
 
     defaultRoute(event) {
-        var exportEvent;
-        var {current, full} = event.selection[0] || {};
-        var id = full && full.id || uuid.v4();
+        if (event.selection[0] && this.unfinishedItemID === event.selection[0]) {
+            this.getItem(this.unfinishedItemID)
+                .then((item) => this.addHandle(event, item));
+        }
+        else if (event.item) {
+            this.select(event);
+        }
+        else {
+            this.create(event);
+        }
+    }
+
+    create(event) {
+        var currentFrame = event.currentFrame;
+
+        var full = {
+            id: uuid.v4(),
+            tool: 'PolygonTool',
+            type: 'Polygon',
+            complete: false,
+            timeLine: [{
+                frame: currentFrame,
+                d: [['M', event.x, event.y]],
+                stroke: 'black',
+                fill: 'none'
+            }]
+        };
+
+        var handles = this.applyHandles(full.timeLine[0].d, full);
+
+        this.unfinishedItemID = full.id;
+
+        this.trigger('export', {
+            message: 'create-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [full.id],
+            handles: handles
+        });
+    }
+
+    addHandle(event, item) {
+        var {current, full} = item;
         var currentFrame = event.currentFrame;
         var handles = event.handles;
         var dLength = current && current.d.length || 0;
 
-        var handle = {
+        var move = ['L', event.x, event.y];
+        current.d.push(move);
+        handles.nodes[0].d.push(move);
+
+        handles.nodes.push({
             id: `handle-${dLength}`,
             type: 'Ellipse',
             cx: event.x,
@@ -22,61 +70,40 @@ export default class PolygonTool extends Package {
             rx: PolygonTool.HANDLE_WIDTH,
             ry: PolygonTool.HANDLE_WIDTH,
             fill: 'red',
-            forItem: id,
+            forItem: full.id,
             routes: {
                 'pointer-start': 'handleStart',
                 'pointer-move': 'handleMove',
                 'pointer-end': 'handleEnd'
             }
-        };
+        });
 
-        if (!full) {
-            full = {
-                id: id,
-                tool: 'PolygonTool',
-                type: 'Polygon',
-                complete: false,
-                timeLine: [{
-                    frame: currentFrame,
-                    d: [['M', event.x, event.y]],
-                    stroke: 'black',
-                    fill: 'none'
-                }]
-            };
+        this.setFrame(current, currentFrame, full);
 
-            handles = this.applyHandles(full.timeLine[0].d, full);
+        this.trigger('export', {
+            message: 'update-item',
+            item: full
+        });
 
-            exportEvent = {
-                message: 'create-item',
-                full: full,
-                handles: handles
-            };
-        }
-        else if (!full.complete) {
-            var move = ['L', event.x, event.y];
-            current.d.push(move);
-            handles.nodes[0].d.push(move);
-            handles.nodes.push(handle);
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [full.id],
+            handles: handles
+        });
+    }
 
-            this.setFrame(current, currentFrame, full);
+    select(event) {
+        var {current, full} = event.item;
 
-            exportEvent = {
-                message: 'update-item',
-                full: full,
-                handles: handles
-            };
-        }
-        else {
-            handles = this.applyHandles(current.d, full);
+        var handles = this.applyHandles(current.d, full);
 
-            exportEvent = {
-                message: 'update-item',
-                full: full,
-                handles: handles
-            };
-        }
-
-        this.trigger('export', exportEvent);
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [full.id],
+            handles: handles
+        });
     }
 
     handleStart() {
@@ -84,7 +111,7 @@ export default class PolygonTool extends Package {
     }
 
     handleMove(event) {
-        var {current, full} = event.selection[0] || {};
+        var {current, full} = event.item || {};
         var currentFrame = event.currentFrame;
         var handles = event.handles;
         this.moveCount++;
@@ -104,34 +131,48 @@ export default class PolygonTool extends Package {
 
         this.trigger('export', {
             message: 'update-item',
-            full: full,
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [full.id],
             handles: handles
         });
     }
 
     handleEnd(event) {
-        var {current, full} = event.selection[0] || {};
+        var {current, full} = event.item || {};
         var currentFrame = event.currentFrame;
         var handles = event.handles;
 
-        if (this.moveCount === 0 && current.d[current.d.length - 1][0] !== 'Z') {
+        if (this.unfinishedItemID && this.moveCount === 0 && current.d[current.d.length - 1][0] !== 'Z') {
             current.d.push(['Z']);
             current.fill = 'blue';
             handles.nodes[0].d.push(['Z']);
             handles.nodes[0].fill = 'rgba(0,0,0,0)';
 
+            delete this.unfinishedItemID;
+
             this.setFrame(current, currentFrame, full);
 
             this.trigger('export', {
-                message: 'complete-item',
-                full: full,
-                handles: event.handles
+                message: 'update-item',
+                item: full
+            });
+
+            this.trigger('export', {
+                message: 'set-selection',
+                activeHandle: event.activeHandle,
+                selection: [full.id],
+                handles: handles
             });
         }
     }
 
     moveEnd(event) {
-        var {current, full} = event.selection[0];
+        var {current, full} = event.item;
         var currentFrame = event.currentFrame;
 
         var translate = {
@@ -148,15 +189,21 @@ export default class PolygonTool extends Package {
             move[2] += translate.y;
         }
 
-        this.applyTransform({transform: ['translate'], item: current, prepend: true});
+        this.applyTransform({transform: ['translate', 0, 0], item: current, prepend: true});
 
         this.setFrame(current, currentFrame, full);
 
         var handles = this.applyHandles(current.d, full);
 
         this.trigger('export', {
-            message: 'complete-item',
-            full: full,
+            message: 'update-item',
+            item: full
+        });
+
+        this.trigger('export', {
+            message: 'set-selection',
+            activeHandle: event.activeHandle,
+            selection: [full.id],
             handles: handles
         });
     }

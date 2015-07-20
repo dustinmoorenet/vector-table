@@ -1,5 +1,5 @@
 export default function ajax(method, url, args) {
-    var promise = new Promise( function (resolve, reject) {
+    var promise = new Promise((resolve, reject) => {
 
         // Instantiates the XMLHttpRequest
         var client = new XMLHttpRequest();
@@ -21,16 +21,17 @@ export default function ajax(method, url, args) {
         client.open(method, uri);
         client.send();
 
-        client.onload = function () {
-            if (this.status == 200) {
+        client.onload = function() {
+            if (this.status === 200) {
                 // Performs the function "resolve" when this.status is equal to 200
                 resolve(this.response);
-            } else {
+            }
+            else {
                 // Performs the function "reject" when this.status is different than 200
                 reject(this.statusText);
             }
         };
-        client.onerror = function () {
+        client.onerror = function() {
             reject(this.statusText);
         };
     });
