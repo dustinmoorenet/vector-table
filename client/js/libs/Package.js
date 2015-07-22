@@ -225,4 +225,25 @@ export default class Package extends Events {
             });
         });
     }
+
+    getItemsInBox(box) {
+        var requestID = _.uniqueId();
+
+        this.trigger('export', {
+            message: 'get-items-in-box',
+            requestID,
+            box
+        });
+
+        return new Promise((resolve, reject) => {
+            this.once(`items-in-box:${requestID}`, (event) => {
+                if (event.items) {
+                    resolve(event.items);
+                }
+                else {
+                    reject(new Error('Something bad happened while looking for items in a box'));
+                }
+            });
+        });
+    }
 }

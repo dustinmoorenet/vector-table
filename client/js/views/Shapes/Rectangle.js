@@ -16,5 +16,9 @@ export default class Rectangle extends Element {
         this.setAttribute('y', shape.y);
         this.setAttribute('width', shape.width);
         this.setAttribute('height', shape.height);
+
+        if (shape.id) {
+            global.app.user.projectStore.boundingBoxes.set(shape.id, this.el.getBoundingClientRect());
+        }
     }
 }

@@ -1,6 +1,7 @@
 import uuid from 'node-uuid';
 import Events from '../libs/Events';
 import TimeLine from './TimeLine';
+import BoundingBoxes from './BoundingBoxes';
 
 export default class Project extends Events {
     constructor() {
@@ -58,6 +59,8 @@ export default class Project extends Events {
             itemStore: global.dataStore,
             rootID: projectID
         });
+
+        this.boundingBoxes = new BoundingBoxes();
 
         var app = global.appStore.get('app');
 

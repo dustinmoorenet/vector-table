@@ -3,6 +3,7 @@ import 'babelify/polyfill';
 import Events from './Events';
 var eventExport = new Events();
 var packages = {
+    SelectionTool: new (require('../packages/SelectionTool'))(),
     RectangleTool: new (require('../packages/RectangleTool'))(),
     EllipseTool: new (require('../packages/EllipseTool'))(),
     PolygonTool: new (require('../packages/PolygonTool'))()
@@ -18,7 +19,7 @@ self.onmessage = function(event) {
         data.currentFrame = (global.dataStore.get(projectID) || {}).currentFrame || 0;
     }
 
-    if (data.message == 'set-package') {
+    if (data.message === 'set-package') {
         eventExport.stopListening(currentPackage);
 
         currentPackage = packages[data.packageName];

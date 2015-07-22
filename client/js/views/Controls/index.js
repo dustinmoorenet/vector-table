@@ -7,6 +7,7 @@ export default class Controls extends View {
 
     get events() {
         return {
+            'click [data-hook="SelectionTool"]': 'getSelection',
             'click [data-hook="RectangleTool"]': 'drawSquare',
             'click [data-hook="EllipseTool"]': 'drawCircle',
             'click [data-hook="PolygonTool"]': 'drawPolygon'
@@ -57,6 +58,10 @@ export default class Controls extends View {
                 message: 'control-init'
             });
         }
+    }
+
+    getSelection() {
+        this.setCurrentPackage('SelectionTool');
     }
 
     drawSquare() {

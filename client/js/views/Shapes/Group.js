@@ -38,7 +38,14 @@ export default class Group extends Element {
             }
 
             if (node) {
-                var Shape = Shapes[node.type];
+                var Shape;
+
+                if (node.type === 'Group') {
+                    Shape = Group;
+                }
+                else {
+                    Shape = Shapes[node.type];
+                }
 
                 var view = new Shape({parentElement: this._element});
 

@@ -41,6 +41,9 @@ export default class Table extends View {
             else if (event.data.message === 'get-item') {
                 this.getItem(event.data);
             }
+            else if (event.data.message === 'get-items-in-box') {
+                this.getItemsInBox(event.data);
+            }
         }, false);
 
         this.listenTo(global.app.user.projectStore.timeLine, options.projectID, this.render);
@@ -88,6 +91,8 @@ export default class Table extends View {
 
     resize() {
         this.svg.size(this.el.offsetWidth, this.el.offsetHeight);
+
+        global.app.user.projectStore.boundingBoxes.rootOffset = this.svg.node.getBoundingClientRect();
     }
 
     pointerStart(event) {
@@ -114,6 +119,8 @@ export default class Table extends View {
                 full: global.dataStore.get(itemID),
                 current: global.app.user.projectStore.timeLine.get(itemID)
             };
+
+            this.activeItemID = itemID;
         }
 
         evt.handles = global.appStore.get('overlay');
@@ -128,7 +135,6 @@ export default class Table extends View {
             }
         }
 
-        this.activeItemID = itemID;
         this.activeOrigin = {x: evt.x, y: evt.y};
 
         evt.selection = global.appStore.get('selection') || [];
@@ -137,17 +143,7 @@ export default class Table extends View {
     }
 
     pointerMove(event) {
-        if (!this.activeItemID) {
-            return;
-        }
-
-        var item = {
-            id: this.activeItemID,
-            full: global.dataStore.get(this.activeItemID),
-            current: global.app.user.projectStore.timeLine.get(this.activeItemID)
-        };
-
-        if (!item.full && !item.current) {
+        if (!this.activeOrigin) {
             return;
         }
 
@@ -167,9 +163,16 @@ export default class Table extends View {
             activeHandle: this.activeHandle,
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
-            item: item,
             selection: global.appStore.get('selection') || []
         };
+
+        if (this.activeItemID) {
+            evt.item = {
+                id: this.activeItemID,
+                full: global.dataStore.get(this.activeItemID),
+                current: global.app.user.projectStore.timeLine.get(this.activeItemID)
+            };
+        }
 
         if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-move']) {
             evt.route = this.activeHandle.routes['pointer-move'];
@@ -179,20 +182,6 @@ export default class Table extends View {
     }
 
     pointerEnd() {
-        if (!this.activeItemID) {
-            return;
-        }
-
-        var item = {
-            id: this.activeItemID,
-            full: global.dataStore.get(this.activeItemID),
-            current: global.app.user.projectStore.timeLine.get(this.activeItemID)
-        };
-
-        if (!item.full && !item.current) {
-            return;
-        }
-
         var pointer;
         if (event.pointers) {
             pointer = event.pointers[0];
@@ -208,12 +197,19 @@ export default class Table extends View {
             origin: this.activeOrigin,
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
-            item: item,
             selection: global.appStore.get('selection') || []
         };
 
         if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-end']) {
             evt.route = this.activeHandle.routes['pointer-end'];
+        }
+
+        if (this.activeItemID) {
+            evt.item = {
+                id: this.activeItemID,
+                full: global.dataStore.get(this.activeItemID),
+                current: global.app.user.projectStore.timeLine.get(this.activeItemID)
+            };
         }
 
         global.packageWorker.postMessage(evt);
@@ -296,6 +292,35 @@ export default class Table extends View {
                 full: global.dataStore.get(itemID),
                 current: global.app.user.projectStore.timeLine.get(itemID)
             }
+        });
+    }
+
+    getItemsInBox(event) {
+        var {box, requestID} = event;
+        var focusGroupID = global.appStore.get('app').focusGroupID;
+        var focusGroup = global.app.user.projectStore.timeLine.get(focusGroupID);
+
+        var items = [];
+        focusGroup.nodes.forEach((nodeID) => {
+            if (!nodeID) { return; }
+
+            var itemBox = global.app.user.projectStore.boundingBoxes.get(nodeID);
+
+            if (itemBox.x >= box.x &&
+                itemBox.y >= box.y &&
+                itemBox.x + itemBox.width <= box.x + box.width &&
+                itemBox.y + itemBox.height <= box.y + box.height
+            ) {
+                items.push({
+                    id: nodeID,
+                    box: itemBox
+                });
+            }
+        });
+
+        global.packageWorker.postMessage({
+            message: `items-in-box:${requestID}`,
+            items
         });
     }
 }
