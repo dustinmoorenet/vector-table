@@ -14,10 +14,6 @@ export default class Package extends Events {
     }
 
     routeEvent(event) {
-        if (event.item && event.item.full.tool !== this.constructor.name) {
-            return;
-        }
-
         if (!event.route && !event.activeHandle && event.message === 'pointer-start') {
             this.defaultRoute(event);
         }
@@ -242,6 +238,24 @@ export default class Package extends Events {
                 }
                 else {
                     reject(new Error('Something bad happened while looking for items in a box'));
+                }
+            });
+        });
+    }
+
+    getBoxForItem(itemID) {
+        this.trigger('export', {
+            message: 'get-box-for-item',
+            itemID
+        });
+
+        return new Promise((resolve, reject) => {
+            this.once(`box-for-item:${itemID}`, (event) => {
+                if (event.box) {
+                    resolve(event.box);
+                }
+                else {
+                    reject(new Error(`Something bad happened while looking for the box of item: ${itemID}`));
                 }
             });
         });

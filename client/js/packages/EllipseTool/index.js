@@ -3,6 +3,14 @@ import uuid from 'node-uuid';
 import Package from '../../libs/Package';
 
 export default class EllipseTool extends Package {
+    routeEvent(event) {
+        if (event.item && event.item.full.tool !== this.constructor.name) {
+            return;
+        }
+
+        super.routeEvent(event);
+    }
+
     defaultRoute(event) {
         if (event.item) {
             this.select(event);

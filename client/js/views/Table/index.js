@@ -44,6 +44,9 @@ export default class Table extends View {
             else if (event.data.message === 'get-items-in-box') {
                 this.getItemsInBox(event.data);
             }
+            else if (event.data.message === 'get-box-for-item') {
+                this.getBoxForItem(event.data);
+            }
         }, false);
 
         this.listenTo(global.app.user.projectStore.timeLine, options.projectID, this.render);
@@ -109,6 +112,12 @@ export default class Table extends View {
             x: pointer.offsetX,
             y: pointer.offsetY,
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
+            keys: {
+                alt: event.altKey,
+                ctrl: event.ctrlKey,
+                shift: event.shiftKey,
+                meta: event.metaKey
+            }
         };
 
         var {itemID, handleID} = this.getHandle(event.target);
@@ -160,6 +169,12 @@ export default class Table extends View {
             x: pointer.offsetX,
             y: pointer.offsetY,
             origin: this.activeOrigin,
+            keys: {
+                alt: event.altKey,
+                ctrl: event.ctrlKey,
+                shift: event.shiftKey,
+                meta: event.metaKey
+            },
             activeHandle: this.activeHandle,
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
@@ -195,6 +210,12 @@ export default class Table extends View {
             x: pointer.offsetX,
             y: pointer.offsetY,
             origin: this.activeOrigin,
+            keys: {
+                alt: event.altKey,
+                ctrl: event.ctrlKey,
+                shift: event.shiftKey,
+                meta: event.metaKey
+            },
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             selection: global.appStore.get('selection') || []
@@ -322,5 +343,16 @@ export default class Table extends View {
             message: `items-in-box:${requestID}`,
             items
         });
+    }
+
+    getBoxForItem(event) {
+        var itemID = event.itemID;
+        var box = global.app.user.projectStore.boundingBoxes.get(itemID);
+
+        global.packageWorker.postMessage({
+            message: `box-for-item:${itemID}`,
+            box
+        });
+
     }
 }

@@ -9,6 +9,14 @@ export default class RectangleTool extends Package {
         this.on('double-size', this.doubleSize, this);
     }
 
+    routeEvent(event) {
+        if (event.item && event.item.full.tool !== this.constructor.name) {
+            return;
+        }
+
+        super.routeEvent(event);
+    }
+
     defaultRoute(event) {
         if (event.item) {
             this.select(event);

@@ -13,6 +13,10 @@ export default class Polygon extends Element {
         if (!shape) { return; }
 
         this.applyD(shape.d);
+
+        if (shape.id) {
+            global.app.user.projectStore.boundingBoxes.set(shape.id, this.el.getBoundingClientRect());
+        }
     }
 
     applyD(d=[]) {

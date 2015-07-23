@@ -16,5 +16,9 @@ export default class Ellipse extends Element {
         this.setAttribute('cy', shape.cy);
         this.setAttribute('rx', shape.rx);
         this.setAttribute('ry', shape.ry);
+
+        if (shape.id) {
+            global.app.user.projectStore.boundingBoxes.set(shape.id, this.el.getBoundingClientRect());
+        }
     }
 }

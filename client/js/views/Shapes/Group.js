@@ -7,6 +7,7 @@ export default class Group extends Element {
 
         this.views = [];
     }
+
     createElement(options) {
         this._element = options.parentElement.group();
 
@@ -19,6 +20,10 @@ export default class Group extends Element {
         if (!shape) { return; }
 
         this.renderNodes(shape.nodes);
+
+        if (shape.id) {
+            global.app.user.projectStore.boundingBoxes.set(shape.id, this.el.getBoundingClientRect());
+        }
     }
 
     renderNodes(nodes) {

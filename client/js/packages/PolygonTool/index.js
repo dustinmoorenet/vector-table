@@ -6,6 +6,14 @@ export default class PolygonTool extends Package {
         super();
     }
 
+    routeEvent(event) {
+        if (event.item && event.item.full.tool !== this.constructor.name) {
+            return;
+        }
+
+        super.routeEvent(event);
+    }
+
     defaultRoute(event) {
         if (event.selection[0] && this.unfinishedItemID === event.selection[0]) {
             this.getItem(this.unfinishedItemID)
