@@ -71,13 +71,20 @@ export default class SelectionTool extends Package {
             width: 0,
             height: 0
         };
+        var handles;
 
-        var handles = this.applyHandles({rectangle: box});
+        if (event.keys.shift) {
+            handles = event.handles;
+        }
+
+        var {items, selection} = this.addToSelection({oldHandles: handles});
+
+        handles = this.applyHandles({rectangle: box, items});
 
         this.trigger('export', {
             message: 'set-selection',
             activeHandle: handles.nodes[0],
-            selection: [],
+            selection,
             handles
         });
     }
@@ -89,11 +96,16 @@ export default class SelectionTool extends Package {
             width: Math.abs(event.x - event.origin.x),
             height: Math.abs(event.y - event.origin.y)
         };
+        var handles;
+
+        if (event.keys.shift) {
+            handles = event.handles;
+        }
 
         this.getItemsInBox(box)
-            .then((items) => {
-                var handles = this.applyHandles({rectangle: box, items});
-                var selection = items.map((item) => item.id);
+            .then((newItems) => {
+                var {items, selection} = this.addToSelection({oldHandles: handles, newItems});
+                handles = this.applyHandles({rectangle: box, items});
 
                 this.trigger('export', {
                     message: 'set-selection',
@@ -158,5 +170,32 @@ export default class SelectionTool extends Package {
             fill: 'none',
             forItem: item.id
         };
+    }
+
+    extractItemsFromNodes(nodes) {
+        return nodes.map((node) => {
+            return {
+                id: node.forItem,
+                box: {
+                    x: node.x,
+                    y: node.y,
+                    width: node.width,
+                    height: node.height
+                }
+            };
+        });
+    }
+
+    addToSelection({oldHandles, newItems=[]}) {
+        var items = [];
+
+        if (oldHandles) {
+            items = this.extractItemsFromNodes(oldHandles.nodes[oldHandles.nodes.length - 1].nodes);
+        }
+
+        items = items.concat(newItems);
+        var selection = items.map((item) => item.id);
+
+        return {selection, items};
     }
 }
