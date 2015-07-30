@@ -1,6 +1,12 @@
 import Package from '../../libs/Package';
 
 export default class SelectionTool extends Package {
+    constructor(...args) {
+        super(...args);
+
+        this.listenTo(this.eventExport, 'select', this.select);
+    }
+
     defaultRoute(event) {
         if (event.item) {
             this.itemSelect(event);
@@ -8,6 +14,25 @@ export default class SelectionTool extends Package {
         else {
             this.startBoxSelection(event);
         }
+    }
+
+    select(event) {
+        Promise.all(event.selection.map((itemID) => {
+                return this.getBoxForItem(itemID)
+                    .then((box) => this.applyHandles({items: [{id: itemID, box}]}));
+            }))
+            .then((handles) => {
+                handles = {
+                    type: 'Group',
+                    nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
+                };
+
+                this.eventExport.trigger('export', {
+                    message: 'set-selection',
+                    selection: event.selection,
+                    handles
+                });
+            });
     }
 
     itemSelect(event) {
@@ -36,7 +61,7 @@ export default class SelectionTool extends Package {
                     nodes.splice(indexOfNode, 1);
                 }
 
-                this.trigger('export', {
+                this.eventExport.trigger('export', {
                     message: 'set-selection',
                     selection,
                     handles
@@ -56,7 +81,7 @@ export default class SelectionTool extends Package {
                     handles = this.applyHandles({items: [{id: itemID, box}]});
                 }
 
-                this.trigger('export', {
+                this.eventExport.trigger('export', {
                     message: 'set-selection',
                     selection,
                     handles
@@ -81,7 +106,7 @@ export default class SelectionTool extends Package {
 
         handles = this.applyHandles({rectangle: box, items});
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: handles.nodes[0],
             selection,
@@ -107,7 +132,7 @@ export default class SelectionTool extends Package {
                 var {items, selection} = this.addToSelection({oldHandles: handles, newItems});
                 handles = this.applyHandles({rectangle: box, items});
 
-                this.trigger('export', {
+                this.eventExport.trigger('export', {
                     message: 'set-selection',
                     activeHandle: handles.nodes[0],
                     selection,
@@ -121,7 +146,7 @@ export default class SelectionTool extends Package {
 
         handles.nodes.shift();
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             selection: event.selection,
             handles

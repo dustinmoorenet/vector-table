@@ -16,38 +16,47 @@ export default class EllipseTool extends Package {
             this.select(event);
         }
         else {
-            this.create({
-                timeLine: [
-                    {
-                        frame: event.currentFrame,
-                        cx: event.x,
-                        cy: event.y,
-                        rx: 0,
-                        ry: 0,
-                        fill: 'blue',
-                        stroke: 'black'
-                    }
-                ]
-            });
+            this.create(event);
         }
     }
 
-    create(attr) {
-        var item = _.extend(attr, {
+    create(event) {
+        var item = {
             id: uuid.v4(),
             tool: 'EllipseTool',
             mode: 'resize',
-            type: 'Ellipse'
-        });
+            type: 'Ellipse',
+            timeLine: [
+                {
+                    frame: event.currentFrame,
+                    cx: event.x,
+                    cy: event.y,
+                    rx: 0,
+                    ry: 0,
+                    fill: 'blue',
+                    stroke: 'black'
+                }
+            ]
+        };
+        var focusGroup = event.focusGroup;
+
+        focusGroup.current.nodes.push(item.id);
+
+        this.setFrame(focusGroup.current, event.currentFrame, focusGroup.full);
 
         var handles = this.applyHandles(item.timeLine[0], item);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'create-item',
             item: item
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
+            message: 'update-item',
+            item: focusGroup.full
+        });
+
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: handles.nodes[3], // se
             selection: [item.id],
@@ -79,12 +88,12 @@ export default class EllipseTool extends Package {
 
         var handles = this.applyHandles(current, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [event.item.id],
@@ -118,12 +127,12 @@ export default class EllipseTool extends Package {
         // Determine new active handle
         event.activeHandle = handles.nodes.find((h) => h.cx === event.x && h.cy === event.y);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [event.item.id],
@@ -153,12 +162,12 @@ export default class EllipseTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [event.item.id],
@@ -367,7 +376,7 @@ export default class EllipseTool extends Package {
     }
 
     onControlInit() {
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'package-control',
             control: {
                 title: 'Ellipse Tool',

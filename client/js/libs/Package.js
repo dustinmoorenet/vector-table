@@ -3,14 +3,28 @@ import jsonQuery from 'json-query';
 import Events from './Events';
 
 export default class Package extends Events {
-    constructor() {
+    constructor(eventExport) {
         super();
+        this.eventExport = eventExport;
 
-        this.on('pointer-start', this.routeEvent, this);
-        this.on('pointer-move', this.routeEvent, this);
-        this.on('pointer-end', this.routeEvent, this);
-        this.on('control-init', this.onControlInit, this);
-        this.on('set-value', this.setValue, this);
+        this.listenTo(eventExport, 'set-package', this.setPackage);
+    }
+
+    setPackage(event) {
+        if (event.packageName === this.constructor.name) {
+            this.listenTo(this.eventExport, 'pointer-start', this.routeEvent);
+            this.listenTo(this.eventExport, 'pointer-move', this.routeEvent);
+            this.listenTo(this.eventExport, 'pointer-end', this.routeEvent);
+            this.listenTo(this.eventExport, 'control-init', this.onControlInit);
+            this.listenTo(this.eventExport, 'set-value', this.setValue);
+        }
+        else {
+            this.stopListening(this.eventExport, 'pointer-start');
+            this.stopListening(this.eventExport, 'pointer-move');
+            this.stopListening(this.eventExport, 'pointer-end');
+            this.stopListening(this.eventExport, 'control-init');
+            this.stopListening(this.eventExport, 'set-value');
+        }
     }
 
     routeEvent(event) {
@@ -34,7 +48,7 @@ export default class Package extends Events {
         var {current, full} = event.item;
         var handles = this.applyHandles(current, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [event.item.id],
@@ -59,12 +73,12 @@ export default class Package extends Events {
 
         this.setFrame(current, currentFrame, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [event.item.id],
@@ -91,12 +105,12 @@ export default class Package extends Events {
 
         var handles = this.applyHandles(current, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [event.item.id],
@@ -191,12 +205,12 @@ export default class Package extends Events {
 
         var handles = this.applyHandles(current, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [event.item.id],
@@ -205,13 +219,13 @@ export default class Package extends Events {
     }
 
     getItem(itemID) {
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'get-item',
             itemID: itemID
         });
 
         return new Promise((resolve, reject) => {
-            this.once(`item:${itemID}`, (event) => {
+            this.eventExport.once(`item:${itemID}`, (event) => {
                 if (event.item) {
                     resolve(event.item);
                 }
@@ -225,14 +239,14 @@ export default class Package extends Events {
     getItemsInBox(box) {
         var requestID = _.uniqueId();
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'get-items-in-box',
             requestID,
             box
         });
 
         return new Promise((resolve, reject) => {
-            this.once(`items-in-box:${requestID}`, (event) => {
+            this.eventExport.once(`items-in-box:${requestID}`, (event) => {
                 if (event.items) {
                     resolve(event.items);
                 }
@@ -244,13 +258,13 @@ export default class Package extends Events {
     }
 
     getBoxForItem(itemID) {
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'get-box-for-item',
             itemID
         });
 
         return new Promise((resolve, reject) => {
-            this.once(`box-for-item:${itemID}`, (event) => {
+            this.eventExport.once(`box-for-item:${itemID}`, (event) => {
                 if (event.box) {
                     resolve(event.box);
                 }

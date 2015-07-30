@@ -76,4 +76,14 @@ export default class Project extends Events {
             ]
         });
     }
+
+    getFocusGroup() {
+        var focusGroupID = global.appStore.get('app').focusGroupID;
+
+        return {
+            id: focusGroupID,
+            full: global.dataStore.get(focusGroupID),
+            current: this.timeLine.get(focusGroupID)
+        };
+    }
 }

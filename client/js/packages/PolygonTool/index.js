@@ -2,10 +2,6 @@ import Package from '../../libs/Package';
 import uuid from 'node-uuid';
 
 export default class PolygonTool extends Package {
-    constructor() {
-        super();
-    }
-
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
@@ -42,17 +38,27 @@ export default class PolygonTool extends Package {
                 fill: 'none'
             }]
         };
+        var focusGroup = event.focusGroup;
+
+        focusGroup.current.nodes.push(full.id);
+
+        this.setFrame(focusGroup.current, currentFrame, focusGroup.full);
 
         var handles = this.applyHandles(full.timeLine[0].d, full);
 
         this.unfinishedItemID = full.id;
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'create-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
+            message: 'update-item',
+            item: focusGroup.full
+        });
+
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [full.id],
@@ -88,12 +94,12 @@ export default class PolygonTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [full.id],
@@ -106,7 +112,7 @@ export default class PolygonTool extends Package {
 
         var handles = this.applyHandles(current.d, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [full.id],
@@ -137,12 +143,12 @@ export default class PolygonTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [full.id],
@@ -165,12 +171,12 @@ export default class PolygonTool extends Package {
 
             this.setFrame(current, currentFrame, full);
 
-            this.trigger('export', {
+            this.eventExport.trigger('export', {
                 message: 'update-item',
                 item: full
             });
 
-            this.trigger('export', {
+            this.eventExport.trigger('export', {
                 message: 'set-selection',
                 activeHandle: event.activeHandle,
                 selection: [full.id],
@@ -203,12 +209,12 @@ export default class PolygonTool extends Package {
 
         var handles = this.applyHandles(current.d, full);
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'update-item',
             item: full
         });
 
-        this.trigger('export', {
+        this.eventExport.trigger('export', {
             message: 'set-selection',
             activeHandle: event.activeHandle,
             selection: [full.id],

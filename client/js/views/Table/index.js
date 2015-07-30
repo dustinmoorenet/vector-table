@@ -112,6 +112,7 @@ export default class Table extends View {
             x: pointer.offsetX,
             y: pointer.offsetY,
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
+            focusGroup: global.app.user.projectStore.getFocusGroup(),
             keys: {
                 alt: event.altKey,
                 ctrl: event.ctrlKey,
@@ -178,6 +179,7 @@ export default class Table extends View {
             activeHandle: this.activeHandle,
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
+            focusGroup: global.app.user.projectStore.getFocusGroup(),
             selection: global.appStore.get('selection') || []
         };
 
@@ -218,6 +220,7 @@ export default class Table extends View {
             },
             handles: global.appStore.get('overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
+            focusGroup: global.app.user.projectStore.getFocusGroup(),
             selection: global.appStore.get('selection') || []
         };
 
@@ -245,13 +248,6 @@ export default class Table extends View {
         var params = {recordHistory: !this.activeItemID};
 
         global.dataStore.set(item.id, item, params);
-
-        var focusGroupID = global.appStore.get('app').focusGroupID;
-        var focusGroup = global.dataStore.get(focusGroupID);
-
-        focusGroup.timeLine[0].nodes.push(item.id);
-
-        global.dataStore.set(focusGroup.id, focusGroup, params);
 
         this.activeItemID = item.id;
     }
