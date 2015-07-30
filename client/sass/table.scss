@@ -2,9 +2,13 @@
     background: green;
 
     [data-hook="area"] {
+        position: relative;
     }
 
     svg {
+        position: absolute;
+        vertical-align:top;
+        overflow: hidden;
     }
 
     .background {
