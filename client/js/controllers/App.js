@@ -22,6 +22,12 @@ export default class App extends Events {
                     message: 'set-package',
                     packageName: app.currentPackage,
                 });
+
+                global.packageWorker.postMessage({
+                    message: 'select',
+                    packageName: app.currentPackage,
+                    selection: global.appStore.get('selection') || []
+                });
             }
         });
 

@@ -17,6 +17,8 @@ export default class SelectionTool extends Package {
     }
 
     select(event) {
+        if (event.packageName !== this.constructor.name) { return; }
+
         Promise.all(event.selection.map((itemID) => {
                 return this.getBoxForItem(itemID)
                     .then((box) => this.applyHandles({items: [{id: itemID, box}]}));
@@ -192,6 +194,7 @@ export default class SelectionTool extends Package {
             width: item.box.width,
             height: item.box.height,
             stroke: 'red',
+            'stroke-width': 2,
             fill: 'none',
             forItem: item.id
         };

@@ -2,6 +2,12 @@ import Package from '../../libs/Package';
 import uuid from 'node-uuid';
 
 export default class PolygonTool extends Package {
+    constructor(...args) {
+        super(...args);
+
+        this.listenTo(this.eventExport, 'select', this.select);
+    }
+
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
@@ -10,13 +16,42 @@ export default class PolygonTool extends Package {
         super.routeEvent(event);
     }
 
+    select(event) {
+        if (event.packageName !== this.constructor.name) { return; }
+
+        Promise.all(event.selection.map((itemID) => {
+                return this.getItem(itemID)
+                    .then((item) => {
+                        if (item.full.type !== 'Polygon') {
+                            return {
+                                nodes: []
+                            };
+                        }
+
+                        return this.applyHandles(item.current.d, item.full);
+                    });
+            }))
+            .then((handles) => {
+                handles = {
+                    type: 'Group',
+                    nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
+                };
+
+                this.eventExport.trigger('export', {
+                    message: 'set-selection',
+                    selection: event.selection,
+                    handles
+                });
+            });
+    }
+
     defaultRoute(event) {
         if (event.selection[0] && this.unfinishedItemID === event.selection[0]) {
             this.getItem(this.unfinishedItemID)
                 .then((item) => this.addHandle(event, item));
         }
         else if (event.item) {
-            this.select(event);
+            this.itemSelect(event);
         }
         else {
             this.create(event);
@@ -107,7 +142,7 @@ export default class PolygonTool extends Package {
         });
     }
 
-    select(event) {
+    itemSelect(event) {
         var {current, full} = event.item;
 
         var handles = this.applyHandles(current.d, full);

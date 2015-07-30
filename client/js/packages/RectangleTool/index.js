@@ -5,6 +5,8 @@ import uuid from 'node-uuid';
 export default class RectangleTool extends Package {
     constructor(...args) {
         super(...args);
+
+        this.listenTo(this.eventExport, 'select', this.select);
     }
 
     setPackage(event) {
@@ -16,6 +18,35 @@ export default class RectangleTool extends Package {
         else {
             this.stopListening(this.eventExport, 'double-size');
         }
+    }
+
+    select(event) {
+        if (event.packageName !== this.constructor.name) { return; }
+
+        Promise.all(event.selection.map((itemID) => {
+                return this.getItem(itemID)
+                    .then((item) => {
+                        if (item.full.type !== 'Rectangle') {
+                            return {
+                                nodes: []
+                            };
+                        }
+
+                        return this.applyHandles(item.current, item.full);
+                    });
+            }))
+            .then((handles) => {
+                handles = {
+                    type: 'Group',
+                    nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
+                };
+
+                this.eventExport.trigger('export', {
+                    message: 'set-selection',
+                    selection: event.selection,
+                    handles
+                });
+            });
     }
 
     routeEvent(event) {
