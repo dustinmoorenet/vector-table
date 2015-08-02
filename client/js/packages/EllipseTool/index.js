@@ -3,12 +3,6 @@ import uuid from 'node-uuid';
 import Package from '../../libs/Package';
 
 export default class EllipseTool extends Package {
-    constructor(...args) {
-        super(...args);
-
-        this.listenTo(this.eventExport, 'select', this.select);
-    }
-
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
@@ -18,8 +12,6 @@ export default class EllipseTool extends Package {
     }
 
     select(event) {
-        if (event.packageName !== this.constructor.name) { return; }
-
         Promise.all(event.selection.map((itemID) => {
                 return this.getItem(itemID)
                     .then((item) => {
@@ -48,7 +40,7 @@ export default class EllipseTool extends Package {
 
     defaultRoute(event) {
         if (event.item) {
-            this.select(event);
+            this.selectItem(event);
         }
         else {
             this.create(event);

@@ -1,12 +1,6 @@
 import Package from '../../libs/Package';
 
 export default class SelectionTool extends Package {
-    constructor(...args) {
-        super(...args);
-
-        this.listenTo(this.eventExport, 'select', this.select);
-    }
-
     defaultRoute(event) {
         if (event.item) {
             this.itemSelect(event);
@@ -17,8 +11,6 @@ export default class SelectionTool extends Package {
     }
 
     select(event) {
-        if (event.packageName !== this.constructor.name) { return; }
-
         Promise.all(event.selection.map((itemID) => {
                 return this.getBoxForItem(itemID)
                     .then((box) => this.applyHandles({items: [{id: itemID, box}]}));

@@ -2,12 +2,6 @@ import Package from '../../libs/Package';
 import uuid from 'node-uuid';
 
 export default class PolygonTool extends Package {
-    constructor(...args) {
-        super(...args);
-
-        this.listenTo(this.eventExport, 'select', this.select);
-    }
-
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
@@ -17,8 +11,6 @@ export default class PolygonTool extends Package {
     }
 
     select(event) {
-        if (event.packageName !== this.constructor.name) { return; }
-
         Promise.all(event.selection.map((itemID) => {
                 return this.getItem(itemID)
                     .then((item) => {

@@ -17,6 +17,7 @@ export default class Package extends Events {
             this.listenTo(this.eventExport, 'pointer-end', this.routeEvent);
             this.listenTo(this.eventExport, 'control-init', this.onControlInit);
             this.listenTo(this.eventExport, 'set-value', this.setValue);
+            this.listenTo(this.eventExport, 'select', this.select);
         }
         else {
             this.stopListening(this.eventExport, 'pointer-start');
@@ -24,6 +25,7 @@ export default class Package extends Events {
             this.stopListening(this.eventExport, 'pointer-end');
             this.stopListening(this.eventExport, 'control-init');
             this.stopListening(this.eventExport, 'set-value');
+            this.stopListening(this.eventExport, 'select');
         }
     }
 
@@ -44,7 +46,9 @@ export default class Package extends Events {
 
     onControlInit() { }
 
-    select(event) {
+    select() { }
+
+    selectItem(event) {
         var {current, full} = event.item;
         var handles = this.applyHandles(current, full);
 

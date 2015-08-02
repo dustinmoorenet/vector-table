@@ -3,12 +3,6 @@ import Package from '../../libs/Package';
 import uuid from 'node-uuid';
 
 export default class RectangleTool extends Package {
-    constructor(...args) {
-        super(...args);
-
-        this.listenTo(this.eventExport, 'select', this.select);
-    }
-
     setPackage(event) {
         super.setPackage(event);
 
@@ -21,8 +15,6 @@ export default class RectangleTool extends Package {
     }
 
     select(event) {
-        if (event.packageName !== this.constructor.name) { return; }
-
         Promise.all(event.selection.map((itemID) => {
                 return this.getItem(itemID)
                     .then((item) => {
@@ -59,7 +51,7 @@ export default class RectangleTool extends Package {
 
     defaultRoute(event) {
         if (event.item) {
-            this.select(event);
+            this.selectItem(event);
         }
         else {
             this.create(event);

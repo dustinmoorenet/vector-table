@@ -19,7 +19,16 @@ export default class BoundingBoxes extends Events {
     }
 
     get(itemID) {
-        return this.boxes[itemID];
+        return new Promise((resolve) => {
+            if (itemID in this.boxes) {
+                resolve(this.boxes[itemID]);
+            }
+            else {
+                this.once(itemID, (box) => {
+                    resolve(box);
+                });
+            }
+        });
     }
 
     set(itemID, box) {
@@ -29,5 +38,7 @@ export default class BoundingBoxes extends Events {
             width: box.width,
             height: box.height
         };
+
+        this.trigger(itemID, this.boxes[itemID]);
     }
 }

@@ -313,42 +313,49 @@ export default class Table extends View {
     }
 
     getItemsInBox(event) {
-        var {box, requestID} = event;
+        var {box: bigBox, requestID} = event;
         var focusGroupID = global.appStore.get('app').focusGroupID;
         var focusGroup = global.app.user.projectStore.timeLine.get(focusGroupID);
 
-        var items = [];
-        focusGroup.nodes.forEach((nodeID) => {
-            if (!nodeID) { return; }
+        var promiseOfItems = [];
+        focusGroup.nodes.forEach((nodeOrID) => {
+            if (typeof nodeOrID !== 'string') { return; }
 
-            var itemBox = global.app.user.projectStore.boundingBoxes.get(nodeID);
+            var promise = global.app.user.projectStore.boundingBoxes.get(nodeOrID)
+                .then((box) => { return {id: nodeOrID, box}; });
 
-            if (itemBox.x >= box.x &&
-                itemBox.y >= box.y &&
-                itemBox.x + itemBox.width <= box.x + box.width &&
-                itemBox.y + itemBox.height <= box.y + box.height
-            ) {
-                items.push({
-                    id: nodeID,
-                    box: itemBox
+            promiseOfItems.push(promise);
+        });
+
+        Promise.all(promiseOfItems)
+            .then((itemBoxes) => {
+                var items = itemBoxes.reduce((items, {id, box}) => {
+                    if (box.x >= bigBox.x &&
+                        box.y >= bigBox.y &&
+                        box.x + box.width <= bigBox.x + bigBox.width &&
+                        box.y + box.height <= bigBox.y + bigBox.height
+                    ) {
+                        items.push({id, box});
+                    }
+
+                    return items;
+                }, []);
+
+                global.packageWorker.postMessage({
+                    message: `items-in-box:${requestID}`,
+                    items
                 });
-            }
-        });
-
-        global.packageWorker.postMessage({
-            message: `items-in-box:${requestID}`,
-            items
-        });
+            });
     }
 
     getBoxForItem(event) {
         var itemID = event.itemID;
-        var box = global.app.user.projectStore.boundingBoxes.get(itemID);
-
-        global.packageWorker.postMessage({
-            message: `box-for-item:${itemID}`,
-            box
-        });
-
+        global.app.user.projectStore.boundingBoxes.get(itemID)
+            .then((box) => {
+                global.packageWorker.postMessage({
+                    message: `box-for-item:${itemID}`,
+                    box
+                });
+            });
     }
 }
