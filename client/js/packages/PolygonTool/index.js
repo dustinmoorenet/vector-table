@@ -2,6 +2,8 @@ import Package from '../../libs/Package';
 import uuid from 'node-uuid';
 
 export default class PolygonTool extends Package {
+    get title() { return 'Polygon Tool'; }
+
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;

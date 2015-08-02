@@ -3,6 +3,8 @@ import Package from '../../libs/Package';
 import uuid from 'node-uuid';
 
 export default class RectangleTool extends Package {
+    get title() { return 'Rectangle Tool'; }
+
     setPackage(event) {
         super.setPackage(event);
 
@@ -444,7 +446,7 @@ export default class RectangleTool extends Package {
         this.eventExport.trigger('export', {
             message: 'package-control',
             control: {
-                title: 'Rectangle Tool',
+                title: this.title,
                 properties: [
                     {
                         id: 'id',

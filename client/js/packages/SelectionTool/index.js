@@ -1,6 +1,8 @@
 import Package from '../../libs/Package';
 
 export default class SelectionTool extends Package {
+    get title() { return 'Selection Tool'; }
+
     defaultRoute(event) {
         if (event.item) {
             this.itemSelect(event);

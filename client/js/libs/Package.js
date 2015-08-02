@@ -3,6 +3,8 @@ import jsonQuery from 'json-query';
 import Events from './Events';
 
 export default class Package extends Events {
+    get title() { return 'Base Package'; }
+
     constructor(eventExport) {
         super();
         this.eventExport = eventExport;
@@ -44,7 +46,15 @@ export default class Package extends Events {
 
     defaultRoute() { }
 
-    onControlInit() { }
+    onControlInit() {
+        this.eventExport.trigger('export', {
+            message: 'package-control',
+            control: {
+                title: this.title,
+                properties: []
+            }
+        });
+    }
 
     select() { }
 

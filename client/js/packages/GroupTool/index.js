@@ -3,6 +3,8 @@ import _ from 'lodash';
 import Package from '../../libs/Package';
 
 export default class GroupTool extends Package {
+    get title() { return 'Group Tool'; }
+
     constructor(...args) {
         super(...args);
 

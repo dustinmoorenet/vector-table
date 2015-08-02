@@ -3,6 +3,8 @@ import uuid from 'node-uuid';
 import Package from '../../libs/Package';
 
 export default class EllipseTool extends Package {
+    get title() { return 'Ellipse Tool'; }
+
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
@@ -406,7 +408,7 @@ export default class EllipseTool extends Package {
         this.eventExport.trigger('export', {
             message: 'package-control',
             control: {
-                title: 'Ellipse Tool',
+                title: this.title,
                 properties: [
                     {
                         id: 'id',
