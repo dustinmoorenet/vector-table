@@ -45,6 +45,6 @@ export default class Button extends View {
             binding: this.config.binding
         };
 
-        global.packageWorker.postMessage(evt);
+        global.app.sendWork(evt);
     }
 }

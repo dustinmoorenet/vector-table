@@ -9,7 +9,9 @@ export default class App extends Events {
     constructor() {
         super();
 
-        global.packageWorker = new Worker('worker.bundle.js');
+        this.packageWorker = new Worker('worker.bundle.js');
+        this.packageWorker.addEventListener('message', (event) => this.fromWorker(event));
+
         global.dataStore = new DataStore();
         global.appStore = new DataStore();
         global.backup = new Backup(global.dataStore);
@@ -18,12 +20,12 @@ export default class App extends Events {
 
         global.appStore.on('app', (app, previousApp) => {
             if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
-                global.packageWorker.postMessage({
+                global.app.sendWork({
                     message: 'set-package',
                     packageName: app.currentPackage,
                 });
 
-                global.packageWorker.postMessage({
+                global.app.sendWork({
                     message: 'select',
                     packageName: app.currentPackage,
                     selection: global.appStore.get('selection') || []
@@ -50,5 +52,13 @@ export default class App extends Events {
         if (!app.userID) {
             new LoginModal();
         }
+    }
+
+    sendWork(event) {
+        this.packageWorker.postMessage(event);
+    }
+
+    fromWorker(event) {
+        this.trigger(event.data.message, event.data);
     }
 }

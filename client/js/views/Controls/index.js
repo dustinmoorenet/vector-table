@@ -54,7 +54,7 @@ export default class Controls extends View {
         }
 
         if (currentPackage) {
-            global.packageWorker.postMessage({
+            global.app.sendWork({
                 message: 'control-init'
             });
         }

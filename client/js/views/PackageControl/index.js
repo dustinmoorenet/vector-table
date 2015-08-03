@@ -13,13 +13,11 @@ export default class PackageControl extends View {
 
         this.selectionChanged(global.appStore.get('selection'));
 
-        global.packageWorker.addEventListener('message', (event) => this.onMessage(event), false);
+        this.listenTo(global.app, 'package-control', this.onMessage);
     }
 
     onMessage(event) {
-        if (event.data.message !== 'package-control') { return; }
-
-        this.render(event.data.control);
+        this.render(event.control);
     }
 
     render(packageControl) {

@@ -127,6 +127,8 @@ export default class TimeLine extends Events {
         this.repeat = repeat;
 
         this.continuePlay(startFrame);
+
+        this.saveSelection();
     }
 
     continuePlay(frame) {
@@ -134,6 +136,8 @@ export default class TimeLine extends Events {
 
         if (this.stopFlag) {
             delete this.stopFlag;
+
+            this.restoreSelection();
 
             return;
         }
@@ -159,5 +163,26 @@ export default class TimeLine extends Events {
 
     stop() {
         this.stopFlag = true;
+    }
+
+    saveSelection() {
+        this.savedSelection = global.appStore.get('selection');
+
+        global.app.trigger(
+            'set-selection',
+            {
+                selection: [],
+            }
+        );
+    }
+
+    restoreSelection() {
+        var app = global.appStore.get('app');
+
+        global.app.sendWork({
+            message: 'select',
+            selection: this.savedSelection || [],
+            packageName: app.currentPackage
+        });
     }
 }

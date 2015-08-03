@@ -28,27 +28,12 @@ export default class Table extends View {
     constructor(options) {
         super(options);
 
-        global.packageWorker.addEventListener('message', (event) => {
-            if (event.data.message === 'create-item') {
-                this.createItem(event.data);
-            }
-            else if (event.data.message === 'update-item') {
-                this.updateItem(event.data);
-            }
-            else if (event.data.message === 'set-selection') {
-                this.setSelection(event.data);
-            }
-            else if (event.data.message === 'get-item') {
-                this.getItem(event.data);
-            }
-            else if (event.data.message === 'get-items-in-box') {
-                this.getItemsInBox(event.data);
-            }
-            else if (event.data.message === 'get-box-for-item') {
-                this.getBoxForItem(event.data);
-            }
-        }, false);
-
+        this.listenTo(global.app, 'create-item', this.createItem);
+        this.listenTo(global.app, 'update-item', this.updateItem);
+        this.listenTo(global.app, 'set-selection', this.setSelection);
+        this.listenTo(global.app, 'get-item', this.getItem);
+        this.listenTo(global.app, 'get-items-in-box', this.getItemsInBox);
+        this.listenTo(global.app, 'get-box-for-item', this.getBoxForItem);
         this.listenTo(global.app.user.projectStore.timeLine, options.projectID, this.render);
 
         window.addEventListener('resize', this.resize.bind(this));
@@ -84,7 +69,16 @@ export default class Table extends View {
 
             this.overlay.el.classList.add('overlay');
 
-            this.overlay.listenTo(global.appStore, 'overlay', this.overlay.render);
+            this.overlay.listenTo(global.appStore, 'overlay', (data) => {
+                if (!data) {
+                    data = {
+                        type: 'Group',
+                        nodes: []
+                    };
+                }
+
+                this.overlay.render(data);
+            });
 
             setTimeout(this.resize.bind(this));
 
@@ -149,7 +143,7 @@ export default class Table extends View {
 
         evt.selection = global.appStore.get('selection') || [];
 
-        global.packageWorker.postMessage(evt);
+        global.app.sendWork(evt);
     }
 
     pointerMove(event) {
@@ -195,7 +189,7 @@ export default class Table extends View {
             evt.route = this.activeHandle.routes['pointer-move'];
         }
 
-        global.packageWorker.postMessage(evt);
+        global.app.sendWork(evt);
     }
 
     pointerEnd() {
@@ -236,7 +230,7 @@ export default class Table extends View {
             };
         }
 
-        global.packageWorker.postMessage(evt);
+        global.app.sendWork(evt);
 
         delete this.activeItemID;
         delete this.activeHandle;
@@ -303,7 +297,7 @@ export default class Table extends View {
     getItem(event) {
         var itemID = event.itemID;
 
-        global.packageWorker.postMessage({
+        global.app.sendWork({
             message: `item:${itemID}`,
             item: {
                 full: global.dataStore.get(itemID),
@@ -341,7 +335,7 @@ export default class Table extends View {
                     return items;
                 }, []);
 
-                global.packageWorker.postMessage({
+                global.app.sendWork({
                     message: `items-in-box:${requestID}`,
                     items
                 });
@@ -352,7 +346,7 @@ export default class Table extends View {
         var itemID = event.itemID;
         global.app.user.projectStore.boundingBoxes.get(itemID)
             .then((box) => {
-                global.packageWorker.postMessage({
+                global.app.sendWork({
                     message: `box-for-item:${itemID}`,
                     box
                 });

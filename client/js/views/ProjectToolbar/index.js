@@ -45,7 +45,7 @@ export default class ProjectToolbar extends View {
     }
 
     groupAction(message) {
-        global.packageWorker.postMessage({
+        global.app.sendWork({
             packageName: 'GroupTool',
             message: message,
             focusGroup: global.app.user.projectStore.getFocusGroup(),
