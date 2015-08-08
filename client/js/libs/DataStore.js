@@ -35,16 +35,25 @@ export default class DataStore extends Events {
         super();
 
         this.currentStore = {};
-        this.history = [{}];
+        this.history = [{data: {}, label: 'initial'}];
         this.cursor = 0;
         this.notifyList = [];
     }
 
     restore(data) {
-        this.history = [data];
-        this.currentStore = _.deepClone(this.history[0]);
+        this.history = [{data, label: 'initial'}];
+        this.currentStore = _.clone(this.history[0].data);
         this.cursor = 0;
         this.notifyList = [];
+
+        Object.keys(data).forEach((id) => {
+            this.notifyOnNextTick(id);
+        });
+    }
+
+    markHistory(label) {
+        this.recordHistory = true;
+        this.historyLabel = label;
     }
 
     get(id) {
@@ -56,7 +65,6 @@ export default class DataStore extends Events {
 
     set(id, object, params) {
         params = params || {};
-        this.recordHistory = params.recordHistory !== false;
 
         if (object === undefined) {
             delete this.currentStore[id];
@@ -110,7 +118,7 @@ export default class DataStore extends Events {
     }
 
     setHistory() {
-        if (this.recordHistory === false) {
+        if (!this.recordHistory) {
             return;
         }
 
@@ -118,25 +126,27 @@ export default class DataStore extends Events {
 
         this.currentStore = _.clone(history);
 
-        this.history.splice(0, this.cursor, history);
+        this.history.splice(0, this.cursor, {data: history, label: this.historyLabel});
 
         this.history.splice(this.MAX_HISTORY, this.history.length);
 
         this.cursor = 0;
 
-        this.previousStore = this.history[1];
+        this.previousStore = this.history[1].data;
+
+        this.recordHistory = false;
     }
 
     undo() {
-        if (this.cursor >= this.MAX_HISTORY - 1) {
+        if (this.cursor >= this.MAX_HISTORY - 1 || this.cursor >= this.history.length - 1) {
             return;
         }
 
-        var now = this.history[this.cursor];
+        var now = this.history[this.cursor].data;
 
         this.cursor++;
 
-        var before = this.history[this.cursor];
+        var before = this.history[this.cursor].data;
 
         this.previousStore = _.clone(now);
         this.currentStore = _.clone(before);
@@ -145,7 +155,7 @@ export default class DataStore extends Events {
             var previousObject = before[id];
 
             if (currentObject !== previousObject) {
-                this.set(id, previousObject, {recordHistory: false});
+                this.set(id, previousObject);
             }
         });
     }
@@ -155,11 +165,11 @@ export default class DataStore extends Events {
             return;
         }
 
-        var now = this.history[this.cursor];
+        var now = this.history[this.cursor].data;
 
         this.cursor--;
 
-        var after = this.history[this.cursor];
+        var after = this.history[this.cursor].data;
 
         this.previousStore = _.clone(now);
         this.currentStore = _.clone(after);
@@ -168,7 +178,7 @@ export default class DataStore extends Events {
             var currentObject = now[id];
 
             if (currentObject !== futureObject) {
-                this.set(id, futureObject, {recordHistory: false});
+                this.set(id, futureObject);
             }
         });
     }

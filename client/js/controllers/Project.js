@@ -68,13 +68,17 @@ export default class Project extends Events {
         app.focusGroupID = projectID;
         global.appStore.set('app', app);
 
-        global.dataStore.set(projectID, {
+        var data = {};
+
+        data[projectID] = {
             id: projectID,
             type: 'Group',
             timeLine: [
                 {frame: 0, nodes: []}
             ]
-        });
+        };
+
+        global.dataStore.restore(data);
 
         global.dataStore.setProjectMeta(projectID, 'selection', []);
     }

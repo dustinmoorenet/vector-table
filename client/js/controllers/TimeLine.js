@@ -60,6 +60,8 @@ export default class TimeLine extends Events {
     }
 
     onItemChanged(id, item) {
+        if (id.length !== 36) { return; }
+
         this.buildNode(item);
 
         this.trigger(id, this.get(id));

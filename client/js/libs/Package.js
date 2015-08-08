@@ -13,6 +13,13 @@ export default class Package extends Events {
     }
 
     setPackage(event) {
+        this.stopListening(this.eventExport, 'pointer-start');
+        this.stopListening(this.eventExport, 'pointer-move');
+        this.stopListening(this.eventExport, 'pointer-end');
+        this.stopListening(this.eventExport, 'control-init');
+        this.stopListening(this.eventExport, 'set-value');
+        this.stopListening(this.eventExport, 'select');
+
         if (event.packageName === this.constructor.name) {
             this.listenTo(this.eventExport, 'pointer-start', this.routeEvent);
             this.listenTo(this.eventExport, 'pointer-move', this.routeEvent);
@@ -20,14 +27,6 @@ export default class Package extends Events {
             this.listenTo(this.eventExport, 'control-init', this.onControlInit);
             this.listenTo(this.eventExport, 'set-value', this.setValue);
             this.listenTo(this.eventExport, 'select', this.select);
-        }
-        else {
-            this.stopListening(this.eventExport, 'pointer-start');
-            this.stopListening(this.eventExport, 'pointer-move');
-            this.stopListening(this.eventExport, 'pointer-end');
-            this.stopListening(this.eventExport, 'control-init');
-            this.stopListening(this.eventExport, 'set-value');
-            this.stopListening(this.eventExport, 'select');
         }
     }
 
@@ -151,6 +150,11 @@ export default class Package extends Events {
             message: 'update-item',
             item: full,
             history: `${this.title} updated item`
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'mark-history',
+            label: 'Some Event'
         });
     }
 
