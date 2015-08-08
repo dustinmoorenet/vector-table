@@ -64,9 +64,13 @@ export default class Package extends Events {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -94,9 +98,13 @@ export default class Package extends Events {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -126,9 +134,23 @@ export default class Package extends Events {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
+        });
+    }
+
+    pointerEnd(event) {
+        var {full} = event.item;
+
+        this.eventExport.trigger('export', {
+            message: 'update-item',
+            item: full,
+            history: `${this.title} updated item`
         });
     }
 
@@ -226,9 +248,13 @@ export default class Package extends Events {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 

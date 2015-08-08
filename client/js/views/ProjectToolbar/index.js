@@ -45,11 +45,13 @@ export default class ProjectToolbar extends View {
     }
 
     groupAction(message) {
+        var projectID = global.appStore.get('app').projectID;
+
         global.app.sendWork({
             packageName: 'GroupTool',
             message: message,
             focusGroup: global.app.user.projectStore.getFocusGroup(),
-            selection: global.appStore.get('selection') || [],
+            selection: global.dataStore.getProjectMeta(projectID, 'selection'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame
         });
     }

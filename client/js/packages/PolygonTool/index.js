@@ -33,7 +33,11 @@ export default class PolygonTool extends Package {
 
                 this.eventExport.trigger('export', {
                     message: 'set-selection',
-                    selection: event.selection,
+                    selection: event.selection
+                });
+
+                this.eventExport.trigger('export', {
+                    message: 'set-overlay',
                     handles
                 });
             });
@@ -89,9 +93,13 @@ export default class PolygonTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [full.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [full.id],
-            handles: handles
+            handles
         });
     }
 
@@ -130,9 +138,13 @@ export default class PolygonTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [full.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [full.id],
-            handles: handles
+            handles
         });
     }
 
@@ -143,9 +155,13 @@ export default class PolygonTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [full.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [full.id],
-            handles: handles
+            handles
         });
     }
 
@@ -179,9 +195,13 @@ export default class PolygonTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [full.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [full.id],
-            handles: handles
+            handles
         });
     }
 
@@ -207,9 +227,13 @@ export default class PolygonTool extends Package {
 
             this.eventExport.trigger('export', {
                 message: 'set-selection',
+                selection: [full.id]
+            });
+
+            this.eventExport.trigger('export', {
+                message: 'set-overlay',
                 activeHandle: event.activeHandle,
-                selection: [full.id],
-                handles: handles
+                handles
             });
         }
     }
@@ -245,9 +269,13 @@ export default class PolygonTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [full.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [full.id],
-            handles: handles
+            handles
         });
     }
 

@@ -166,14 +166,14 @@ export default class TimeLine extends Events {
     }
 
     saveSelection() {
-        this.savedSelection = global.appStore.get('selection');
+        var app = global.appStore.get('app');
+        this.savedSelection = global.dataStore.getProjectMeta(app.projectID, 'selection');
 
-        global.app.trigger(
-            'set-selection',
-            {
-                selection: [],
-            }
-        );
+        global.app.sendWork({
+            message: 'select',
+            packageName: app.currentPackage,
+            selection: []
+        });
     }
 
     restoreSelection() {

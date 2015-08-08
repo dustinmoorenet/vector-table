@@ -16,6 +16,16 @@ the user must refresh the entire project
 During normal changes, the hash is passed with each update to the remote client
 and the client pings will be the same as the master so no delta will be needed.
 
+
+TODO
+Have each package save to history and determine if they want to create a save point
+There is no end save and there is one on start which is both wrong
+
+NOTE
+The result of changes in the DataStore is UI rendering and it is not for internal
+messaging between components. Doing this should prevent feed back loops.
+example: 'selection' changes do not cause 'overlay' changes
+A package can set the selection and or the overlay
 */
 
 export default class DataStore extends Events {
@@ -52,7 +62,7 @@ export default class DataStore extends Events {
             delete this.currentStore[id];
         }
         else if (params.merge) {
-            this.currentStore[id] = _.merge({}, this.currentStore[id], object);
+            this.currentStore[id] = _.cloneDeep(_.merge({}, this.currentStore[id], object));
         }
         else {
             this.currentStore[id] = _.cloneDeep(object);
@@ -92,11 +102,11 @@ export default class DataStore extends Events {
 
         this.notifyList = [];
 
-        list.forEach(function(id) {
+        list.forEach((id) => {
             var previousObject = (this.previousStore || {})[id];
 
             this.trigger(id, this.get(id), previousObject);
-        }.bind(this));
+        });
     }
 
     setHistory() {
@@ -131,13 +141,13 @@ export default class DataStore extends Events {
         this.previousStore = _.clone(now);
         this.currentStore = _.clone(before);
 
-        _.forEach(now, function(currentObject, id) {
+        _.forEach(now, (currentObject, id) => {
             var previousObject = before[id];
 
             if (currentObject !== previousObject) {
                 this.set(id, previousObject, {recordHistory: false});
             }
-        }.bind(this));
+        });
     }
 
     redo() {
@@ -154,12 +164,24 @@ export default class DataStore extends Events {
         this.previousStore = _.clone(now);
         this.currentStore = _.clone(after);
 
-        _.forEach(after, function(futureObject, id) {
+        _.forEach(after, (futureObject, id) => {
             var currentObject = now[id];
 
             if (currentObject !== futureObject) {
                 this.set(id, futureObject, {recordHistory: false});
             }
-        }.bind(this));
+        });
+    }
+
+    getProjectMeta(projectID, id) {
+        return this.get(this.getProjectMetaID(projectID, id));
+    }
+
+    setProjectMeta(projectID, id, data) {
+        return this.set(this.getProjectMetaID(projectID, id), data);
+    }
+
+    getProjectMetaID(projectID, id) {
+        return `${projectID}::${id}`;
     }
 }

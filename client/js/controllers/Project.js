@@ -48,8 +48,8 @@ export default class Project extends Events {
 
     }
 
-    loadProjectList(projects) {
-        this.projectList = new ProjectList(projects);
+    loadProjectList() {
+
     }
 
     new() {
@@ -75,6 +75,8 @@ export default class Project extends Events {
                 {frame: 0, nodes: []}
             ]
         });
+
+        global.dataStore.setProjectMeta(projectID, 'selection', []);
     }
 
     getFocusGroup() {

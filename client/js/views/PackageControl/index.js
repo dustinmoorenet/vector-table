@@ -9,9 +9,10 @@ export default class PackageControl extends View {
 
         this.propertyViews = [];
 
-        this.listenTo(global.appStore, 'selection', this.selectionChanged);
+        var projectID = global.appStore.get('app').projectID;
+        this.listenTo(global.dataStore, global.dataStore.getProjectMetaID(projectID, 'selection'), this.selectionChanged);
 
-        this.selectionChanged(global.appStore.get('selection'));
+        this.selectionChanged(global.dataStore.getProjectMeta(projectID, 'selection'));
 
         this.listenTo(global.app, 'package-control', this.onMessage);
     }

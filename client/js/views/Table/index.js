@@ -31,6 +31,7 @@ export default class Table extends View {
         this.listenTo(global.app, 'create-item', this.createItem);
         this.listenTo(global.app, 'update-item', this.updateItem);
         this.listenTo(global.app, 'set-selection', this.setSelection);
+        this.listenTo(global.app, 'set-overlay', this.setOverlay);
         this.listenTo(global.app, 'get-item', this.getItem);
         this.listenTo(global.app, 'get-items-in-box', this.getItemsInBox);
         this.listenTo(global.app, 'get-box-for-item', this.getBoxForItem);
@@ -69,7 +70,7 @@ export default class Table extends View {
 
             this.overlay.el.classList.add('overlay');
 
-            this.overlay.listenTo(global.appStore, 'overlay', (data) => {
+            this.overlay.listenTo(global.dataStore, global.dataStore.getProjectMetaID(project.id, 'overlay'), (data) => {
                 if (!data) {
                     data = {
                         type: 'Group',
@@ -107,6 +108,7 @@ export default class Table extends View {
             y: pointer.offsetY,
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             focusGroup: global.app.user.projectStore.getFocusGroup(),
+            projectID: global.appStore.get('app').projectID,
             keys: {
                 alt: event.altKey,
                 ctrl: event.ctrlKey,
@@ -127,7 +129,7 @@ export default class Table extends View {
             this.activeItemID = itemID;
         }
 
-        evt.handles = global.appStore.get('overlay');
+        evt.handles = global.dataStore.getProjectMeta(evt.projectID, 'overlay');
 
         if (handleID) {
             var handle = evt.handles.nodes.find((handle) => handle.id === handleID);
@@ -141,7 +143,7 @@ export default class Table extends View {
 
         this.activeOrigin = {x: evt.x, y: evt.y};
 
-        evt.selection = global.appStore.get('selection') || [];
+        evt.selection = global.dataStore.getProjectMeta(evt.projectID, 'selection');
 
         global.app.sendWork(evt);
     }
@@ -159,6 +161,8 @@ export default class Table extends View {
             pointer = event;
         }
 
+        var projectID = global.appStore.get('app').projectID;
+
         var evt = {
             message: 'pointer-move',
             x: pointer.offsetX,
@@ -171,10 +175,11 @@ export default class Table extends View {
                 meta: event.metaKey
             },
             activeHandle: this.activeHandle,
-            handles: global.appStore.get('overlay'),
+            handles: global.dataStore.getProjectMeta(projectID, 'overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             focusGroup: global.app.user.projectStore.getFocusGroup(),
-            selection: global.appStore.get('selection') || []
+            projectID,
+            selection: global.dataStore.getProjectMeta(projectID, 'selection')
         };
 
         if (this.activeItemID) {
@@ -201,6 +206,8 @@ export default class Table extends View {
             pointer = event;
         }
 
+        var projectID = global.appStore.get('app').projectID;
+
         var evt = {
             message: 'pointer-end',
             x: pointer.offsetX,
@@ -212,10 +219,11 @@ export default class Table extends View {
                 shift: event.shiftKey,
                 meta: event.metaKey
             },
-            handles: global.appStore.get('overlay'),
+            handles: global.dataStore.getProjectMeta(projectID, 'overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             focusGroup: global.app.user.projectStore.getFocusGroup(),
-            selection: global.appStore.get('selection') || []
+            projectID,
+            selection: global.dataStore.getProjectMeta(projectID, 'selection')
         };
 
         if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-end']) {
@@ -239,7 +247,7 @@ export default class Table extends View {
 
     createItem(event) {
         var item = event.item;
-        var params = {recordHistory: !this.activeItemID};
+        var params = {recordHistory: !!event.history};
 
         global.dataStore.set(item.id, item, params);
 
@@ -248,19 +256,25 @@ export default class Table extends View {
 
     updateItem(event) {
         var item = event.item;
-        var params = {recordHistory: !this.activeItemID};
+        var params = {recordHistory: !!event.history};
 
         global.dataStore.set(item.id, item, params);
     }
 
     setSelection(event) {
+        var projectID = global.appStore.get('app').projectID;
+
+        global.dataStore.setProjectMeta(projectID, 'selection', event.selection);
+    }
+
+    setOverlay(event) {
         if (event.activeHandle) {
             this.activeHandle = event.activeHandle;
         }
 
-        global.appStore.set('selection', event.selection);
+        var projectID = global.appStore.get('app').projectID;
 
-        global.appStore.set('overlay', event.handles);
+        global.dataStore.setProjectMeta(projectID, 'overlay', event.handles);
     }
 
     getHandle(node) {

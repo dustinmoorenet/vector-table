@@ -47,7 +47,6 @@ export default class GroupTool extends Package {
             item: group
         });
 
-        // FIXME This does not work the second time?
         this.eventExport.trigger('select', {
             selection: [group.id]
         });

@@ -16,8 +16,6 @@ export default class App extends Events {
         global.appStore = new DataStore();
         global.backup = new Backup(global.dataStore);
 
-        global.appStore.set('selection', []);
-
         global.appStore.on('app', (app, previousApp) => {
             if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
                 global.app.sendWork({
@@ -25,11 +23,14 @@ export default class App extends Events {
                     packageName: app.currentPackage,
                 });
 
-                global.app.sendWork({
-                    message: 'select',
-                    packageName: app.currentPackage,
-                    selection: global.appStore.get('selection') || []
-                });
+                var selection = global.dataStore.getProjectMeta(app.projectID, 'selection');
+                if (selection) {
+                    global.app.sendWork({
+                        message: 'select',
+                        packageName: app.currentPackage,
+                        selection
+                    });
+                }
             }
         });
 

@@ -34,7 +34,11 @@ export default class EllipseTool extends Package {
 
                 this.eventExport.trigger('export', {
                     message: 'set-selection',
-                    selection: event.selection,
+                    selection: event.selection
+                });
+
+                this.eventExport.trigger('export', {
+                    message: 'set-overlay',
                     handles
                 });
             });
@@ -87,9 +91,13 @@ export default class EllipseTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: handles.nodes[3], // se
-            selection: [item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -124,9 +132,13 @@ export default class EllipseTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -163,9 +175,13 @@ export default class EllipseTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -198,9 +214,13 @@ export default class EllipseTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 

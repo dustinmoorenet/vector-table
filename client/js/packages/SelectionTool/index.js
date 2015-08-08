@@ -25,7 +25,11 @@ export default class SelectionTool extends Package {
 
                 this.eventExport.trigger('export', {
                     message: 'set-selection',
-                    selection: event.selection,
+                    selection: event.selection
+                });
+
+                this.eventExport.trigger('export', {
+                    message: 'set-overlay',
                     handles
                 });
             });
@@ -59,7 +63,11 @@ export default class SelectionTool extends Package {
 
                 this.eventExport.trigger('export', {
                     message: 'set-selection',
-                    selection,
+                    selection
+                });
+
+                this.eventExport.trigger('export', {
+                    message: 'set-overlay',
                     handles
                 });
 
@@ -79,7 +87,11 @@ export default class SelectionTool extends Package {
 
                 this.eventExport.trigger('export', {
                     message: 'set-selection',
-                    selection,
+                    selection
+                });
+
+                this.eventExport.trigger('export', {
+                    message: 'set-overlay',
                     handles
                 });
             });
@@ -104,8 +116,12 @@ export default class SelectionTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: handles.nodes[0],
-            selection,
             handles
         });
     }
@@ -130,8 +146,12 @@ export default class SelectionTool extends Package {
 
                 this.eventExport.trigger('export', {
                     message: 'set-selection',
+                    selection
+                });
+
+                this.eventExport.trigger('export', {
+                    message: 'set-overlay',
                     activeHandle: handles.nodes[0],
-                    selection,
                     handles
                 });
             });
@@ -144,7 +164,11 @@ export default class SelectionTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
-            selection: event.selection,
+            selection: event.selection
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             handles
         });
     }

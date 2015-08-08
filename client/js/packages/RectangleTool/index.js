@@ -37,7 +37,11 @@ export default class RectangleTool extends Package {
 
                 this.eventExport.trigger('export', {
                     message: 'set-selection',
-                    selection: event.selection,
+                    selection: event.selection
+                });
+
+                this.eventExport.trigger('export', {
+                    message: 'set-overlay',
                     handles
                 });
             });
@@ -98,9 +102,13 @@ export default class RectangleTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
-            activeHandle: handles.nodes[3], // se
             selection: [item.id],
-            handles: handles
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
+            activeHandle: handles.nodes[3], // se
+            handles
         });
     }
 
@@ -139,9 +147,13 @@ export default class RectangleTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -174,9 +186,13 @@ export default class RectangleTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -212,9 +228,13 @@ export default class RectangleTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
             activeHandle: event.activeHandle,
-            selection: [event.item.id],
-            handles: handles
+            handles
         });
     }
 
@@ -255,8 +275,12 @@ export default class RectangleTool extends Package {
 
         this.eventExport.trigger('export', {
             message: 'set-selection',
-            selection: [event.item.id],
-            handles: handles
+            selection: [event.item.id]
+        });
+
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
+            handles
         });
     }
 
@@ -523,7 +547,8 @@ RectangleTool.resizeHandle = {
     routes: {
         'pointer-move': {
             func: 'resizeMove'
-        }
+        },
+        'pointer-end': 'pointerEnd'
     }
 };
 
@@ -537,6 +562,7 @@ RectangleTool.rotateHandle = {
     routes: {
         'pointer-move': {
             func: 'rotateMove'
-        }
+        },
+        'pointer-end': 'pointerEnd'
     }
 };
