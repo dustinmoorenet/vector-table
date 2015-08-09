@@ -32,6 +32,7 @@ export default class Table extends View {
         this.listenTo(global.app, 'update-item', this.updateItem);
         this.listenTo(global.app, 'set-selection', this.setSelection);
         this.listenTo(global.app, 'set-overlay', this.setOverlay);
+        this.listenTo(global.app, 'set-active-handle', this.setActiveHandle);
         this.listenTo(global.app, 'mark-history', this.markHistory);
         this.listenTo(global.app, 'get-item', this.getItem);
         this.listenTo(global.app, 'get-items-in-box', this.getItemsInBox);
@@ -267,13 +268,13 @@ export default class Table extends View {
     }
 
     setOverlay(event) {
-        if (event.activeHandle) {
-            this.activeHandle = event.activeHandle;
-        }
-
         var projectID = global.appStore.get('app').projectID;
 
-        global.dataStore.setProjectMeta(projectID, 'overlay', event.handles);
+        global.dataStore.setProjectMeta(projectID, 'overlay', event.overlay);
+    }
+
+    setActiveHandle(event) {
+        this.activeHandle = event.activeHandle;
     }
 
     markHistory(event) {

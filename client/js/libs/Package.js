@@ -61,16 +61,11 @@ export default class Package extends Events {
         var {current, full} = event.item;
         var handles = this.applyHandles(current, full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     moveMove(event) {
@@ -90,21 +85,13 @@ export default class Package extends Events {
 
         this.setFrame(current, currentFrame, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     degreesFromTwoPoints(point1, point2) {
@@ -126,36 +113,19 @@ export default class Package extends Events {
 
         var handles = this.applyHandles(current, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     pointerEnd(event) {
-        var {full} = event.item;
+        this.updateItem(event.item.full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full,
-            history: `${this.title} updated item`
-        });
-
-        this.eventExport.trigger('export', {
-            message: 'mark-history',
-            label: 'Some Event'
-        });
+        this.markHistory('Something generic happened');
     }
 
     applyHandles(rectangle, item) {
@@ -245,21 +215,11 @@ export default class Package extends Events {
 
         var handles = this.applyHandles(current, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
     }
 
     getItem(itemID) {
@@ -316,6 +276,48 @@ export default class Package extends Events {
                     reject(new Error(`Something bad happened while looking for the box of item: ${itemID}`));
                 }
             });
+        });
+    }
+
+    createItem(item) {
+        this.eventExport.trigger('export', {
+            message: 'create-item',
+            item
+        });
+    }
+
+    updateItem(item) {
+        this.eventExport.trigger('export', {
+            message: 'update-item',
+            item
+        });
+    }
+
+    markHistory(label) {
+        this.eventExport.trigger('export', {
+            message: 'mark-history',
+            label
+        });
+    }
+
+    setSelection(selection) {
+        this.eventExport.trigger('export', {
+            message: 'set-selection',
+            selection
+        });
+    }
+
+    setOverlay(overlay) {
+        this.eventExport.trigger('export', {
+            message: 'set-overlay',
+            overlay
+        });
+    }
+
+    setActiveHandle(activeHandle) {
+        this.eventExport.trigger('export', {
+            message: 'set-active-handle',
+            activeHandle
         });
     }
 }

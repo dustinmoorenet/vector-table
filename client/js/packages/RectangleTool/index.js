@@ -35,15 +35,9 @@ export default class RectangleTool extends Package {
                     nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
                 };
 
-                this.eventExport.trigger('export', {
-                    message: 'set-selection',
-                    selection: event.selection
-                });
+                this.setSelection(event.selection);
 
-                this.eventExport.trigger('export', {
-                    message: 'set-overlay',
-                    handles
-                });
+                this.setOverlay(handles);
             });
     }
 
@@ -90,26 +84,15 @@ export default class RectangleTool extends Package {
 
         var handles = this.applyHandles(item.timeLine[0], item);
 
-        this.eventExport.trigger('export', {
-            message: 'create-item',
-            item: item
-        });
+        this.createItem(item);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: focusGroup.full
-        });
+        this.updateItem(focusGroup.full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [item.id],
-        });
+        this.setSelection([item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: handles.nodes[3], // se
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(handles.nodes[3]);
     }
 
     moveEnd(event) {
@@ -140,21 +123,13 @@ export default class RectangleTool extends Package {
 
         var handles = this.applyHandles(current, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     rotateMove(handleIndex, event) {
@@ -179,21 +154,13 @@ export default class RectangleTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     resizeMove(handleIndex, buddyHandleIndex, event) {
@@ -221,21 +188,13 @@ export default class RectangleTool extends Package {
         // Determine new active handle
         event.activeHandle = handles.nodes.find((h) => h.cx === event.x && h.cy === event.y);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full,
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     onTap(event) {
@@ -268,20 +227,11 @@ export default class RectangleTool extends Package {
 
         var handles = this.applyHandles(current, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [event.item.id]
-        });
+        this.setSelection([event.item.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            handles
-        });
+        this.setOverlay(handles);
     }
 
     resizeHandles(rectangle, item) {

@@ -23,15 +23,9 @@ export default class SelectionTool extends Package {
                     nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
                 };
 
-                this.eventExport.trigger('export', {
-                    message: 'set-selection',
-                    selection: event.selection
-                });
+                this.setSelection(event.selection);
 
-                this.eventExport.trigger('export', {
-                    message: 'set-overlay',
-                    handles
-                });
+                this.setOverlay(handles);
             });
     }
 
@@ -61,15 +55,9 @@ export default class SelectionTool extends Package {
                     nodes.splice(indexOfNode, 1);
                 }
 
-                this.eventExport.trigger('export', {
-                    message: 'set-selection',
-                    selection
-                });
+                this.setSelection(selection);
 
-                this.eventExport.trigger('export', {
-                    message: 'set-overlay',
-                    handles
-                });
+                this.setOverlay(handles);
 
                 return;
             }
@@ -85,15 +73,9 @@ export default class SelectionTool extends Package {
                     handles = this.applyHandles({items: [{id: itemID, box}]});
                 }
 
-                this.eventExport.trigger('export', {
-                    message: 'set-selection',
-                    selection
-                });
+                this.setSelection(selection);
 
-                this.eventExport.trigger('export', {
-                    message: 'set-overlay',
-                    handles
-                });
+                this.setOverlay(handles);
             });
     }
 
@@ -114,16 +96,11 @@ export default class SelectionTool extends Package {
 
         handles = this.applyHandles({rectangle: box, items});
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection
-        });
+        this.setSelection(selection);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: handles.nodes[0],
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(handles.nodes[0]);
     }
 
     move(event) {
@@ -144,16 +121,11 @@ export default class SelectionTool extends Package {
                 var {items, selection} = this.addToSelection({oldHandles: handles, newItems});
                 handles = this.applyHandles({rectangle: box, items});
 
-                this.eventExport.trigger('export', {
-                    message: 'set-selection',
-                    selection
-                });
+                this.setSelection(selection);
 
-                this.eventExport.trigger('export', {
-                    message: 'set-overlay',
-                    activeHandle: handles.nodes[0],
-                    handles
-                });
+                this.setOverlay(handles);
+
+                this.setActiveHandle(handles.nodes[0]);
             });
     }
 
@@ -162,15 +134,9 @@ export default class SelectionTool extends Package {
 
         handles.nodes.shift();
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: event.selection
-        });
+        this.setSelection(event.selection);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            handles
-        });
+        this.setOverlay(handles);
     }
 
     applyHandles({rectangle, items=[]}) {

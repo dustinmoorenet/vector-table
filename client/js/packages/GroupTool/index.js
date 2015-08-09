@@ -37,15 +37,9 @@ export default class GroupTool extends Package {
 
         this.setFrame(current, event.currentFrame, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'create-item',
-            item: group
-        });
+        this.createItem(group);
 
         this.eventExport.trigger('select', {
             selection: [group.id]
@@ -74,10 +68,7 @@ export default class GroupTool extends Package {
 
                 this.setFrame(current, event.currentFrame, full);
 
-                this.eventExport.trigger('export', {
-                    message: 'update-item',
-                    item: full
-                });
+                this.updateItem(full);
 
                 this.eventExport.trigger('select', {
                     selection: ungroupedItems
@@ -98,10 +89,7 @@ export default class GroupTool extends Package {
 
                 this.setFrame(item.current, event.currentFrame, item.full);
 
-                this.eventExport.trigger('export', {
-                    message: 'update-item',
-                    item: item.full
-                });
+                this.updateItem(item.full);
 
                 return [itemID, nodes];
             });

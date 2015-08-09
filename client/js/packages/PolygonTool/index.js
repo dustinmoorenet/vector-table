@@ -31,15 +31,9 @@ export default class PolygonTool extends Package {
                     nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
                 };
 
-                this.eventExport.trigger('export', {
-                    message: 'set-selection',
-                    selection: event.selection
-                });
+                this.setSelection(event.selection);
 
-                this.eventExport.trigger('export', {
-                    message: 'set-overlay',
-                    handles
-                });
+                this.setOverlay(handles);
             });
     }
 
@@ -81,26 +75,15 @@ export default class PolygonTool extends Package {
 
         this.unfinishedItemID = full.id;
 
-        this.eventExport.trigger('export', {
-            message: 'create-item',
-            item: full
-        });
+        this.createItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: focusGroup.full
-        });
+        this.updateItem(focusGroup.full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [full.id]
-        });
+        this.setSelection([full.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     addHandle(event, item) {
@@ -131,21 +114,13 @@ export default class PolygonTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [full.id]
-        });
+        this.setSelection([full.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     itemSelect(event) {
@@ -153,16 +128,11 @@ export default class PolygonTool extends Package {
 
         var handles = this.applyHandles(current.d, full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [full.id]
-        });
+        this.setSelection([full.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     handleStart() {
@@ -188,21 +158,13 @@ export default class PolygonTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [full.id]
-        });
+        this.setSelection([full.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     handleEnd(event) {
@@ -220,21 +182,13 @@ export default class PolygonTool extends Package {
 
             this.setFrame(current, currentFrame, full);
 
-            this.eventExport.trigger('export', {
-                message: 'update-item',
-                item: full
-            });
+            this.updateItem(full);
 
-            this.eventExport.trigger('export', {
-                message: 'set-selection',
-                selection: [full.id]
-            });
+            this.setSelection([full.id]);
 
-            this.eventExport.trigger('export', {
-                message: 'set-overlay',
-                activeHandle: event.activeHandle,
-                handles
-            });
+            this.setOverlay(handles);
+
+            this.setActiveHandle(event.activeHandle);
         }
     }
 
@@ -262,21 +216,13 @@ export default class PolygonTool extends Package {
 
         var handles = this.applyHandles(current.d, full);
 
-        this.eventExport.trigger('export', {
-            message: 'update-item',
-            item: full
-        });
+        this.updateItem(full);
 
-        this.eventExport.trigger('export', {
-            message: 'set-selection',
-            selection: [full.id]
-        });
+        this.setSelection([full.id]);
 
-        this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            activeHandle: event.activeHandle,
-            handles
-        });
+        this.setOverlay(handles);
+
+        this.setActiveHandle(event.activeHandle);
     }
 
     applyHandles(moves, item) {
