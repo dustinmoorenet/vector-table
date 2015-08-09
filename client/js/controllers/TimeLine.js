@@ -187,4 +187,14 @@ export default class TimeLine extends Events {
             packageName: app.currentPackage
         });
     }
+
+    reselect() {
+        var app = global.appStore.get('app');
+
+        global.app.sendWork({
+            message: 'select',
+            packageName: app.currentPackage,
+            selection: global.dataStore.getProjectMeta(app.projectID, 'selection')
+        });
+    }
 }

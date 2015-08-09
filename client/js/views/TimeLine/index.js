@@ -104,6 +104,8 @@ export default class TimeLine extends View {
 
     setFrame(frame) {
         this.timeLine.currentFrame = frame;
+
+        this.timeLine.reselect();
     }
 
     onPlay() {
