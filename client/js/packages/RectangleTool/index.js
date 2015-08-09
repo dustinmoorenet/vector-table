@@ -7,12 +7,10 @@ export default class RectangleTool extends Package {
 
     setPackage(event) {
         super.setPackage(event);
+        this.stopListening(this.eventExport, 'double-size');
 
         if (event.packageName === this.constructor.name) {
             this.listenTo(this.eventExport, 'double-size', this.doubleSize, this);
-        }
-        else {
-            this.stopListening(this.eventExport, 'double-size');
         }
     }
 

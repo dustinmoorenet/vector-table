@@ -35,13 +35,11 @@ export default class Button extends View {
         var evt = {
             message: this.config.binding.onClick,
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
-            selection: [
-                {
-                    id: this.boundItemID,
-                    full: global.dataStore.get(this.boundItemID),
-                    current: global.app.user.projectStore.timeLine.get(this.boundItemID)
-                }
-            ],
+            item: {
+                id: this.boundItemID,
+                full: global.dataStore.get(this.boundItemID),
+                current: global.app.user.projectStore.timeLine.get(this.boundItemID)
+            },
             binding: this.config.binding
         };
 
