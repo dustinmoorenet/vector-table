@@ -220,6 +220,8 @@ export default class Package extends Events {
         this.setSelection([event.item.id]);
 
         this.setOverlay(handles);
+
+        this.markHistory('Set property value');
     }
 
     getItem(itemID) {

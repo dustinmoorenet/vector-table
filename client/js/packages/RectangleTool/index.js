@@ -128,6 +128,8 @@ export default class RectangleTool extends Package {
         this.setOverlay(handles);
 
         this.setActiveHandle(event.activeHandle);
+
+        this.markHistory('Moved Rectangle');
     }
 
     rotateMove(handleIndex, event) {
@@ -159,6 +161,12 @@ export default class RectangleTool extends Package {
         this.setOverlay(handles);
 
         this.setActiveHandle(event.activeHandle);
+    }
+
+    rotateEnd(event) {
+        this.updateItem(event.item.full);
+
+        this.markHistory('Rotated Rectangle');
     }
 
     resizeMove(handleIndex, buddyHandleIndex, event) {
@@ -193,6 +201,12 @@ export default class RectangleTool extends Package {
         this.setOverlay(handles);
 
         this.setActiveHandle(event.activeHandle);
+    }
+
+    resizeEnd(event) {
+        this.updateItem(event.item.full);
+
+        this.markHistory('Resized Rectangle');
     }
 
     onTap(event) {
@@ -230,6 +244,8 @@ export default class RectangleTool extends Package {
         this.setSelection([event.item.id]);
 
         this.setOverlay(handles);
+
+        this.markHistory('Doubled size of Rectangle');
     }
 
     resizeHandles(rectangle, item) {
@@ -496,7 +512,7 @@ RectangleTool.resizeHandle = {
         'pointer-move': {
             func: 'resizeMove'
         },
-        'pointer-end': 'pointerEnd'
+        'pointer-end': 'resizeEnd'
     }
 };
 
@@ -511,6 +527,6 @@ RectangleTool.rotateHandle = {
         'pointer-move': {
             func: 'rotateMove'
         },
-        'pointer-end': 'pointerEnd'
+        'pointer-end': 'rotateEnd'
     }
 };

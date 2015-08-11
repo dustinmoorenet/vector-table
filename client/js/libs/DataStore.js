@@ -52,6 +52,7 @@ export default class DataStore extends Events {
     }
 
     markHistory(label) {
+        console.log('markHistory', label);
         this.recordHistory = true;
         this.historyLabel = label;
     }

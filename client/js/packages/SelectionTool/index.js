@@ -76,6 +76,8 @@ export default class SelectionTool extends Package {
                 this.setSelection(selection);
 
                 this.setOverlay(handles);
+
+                this.markHistory('Item Selected');
             });
     }
 
@@ -137,6 +139,8 @@ export default class SelectionTool extends Package {
         this.setSelection(event.selection);
 
         this.setOverlay(handles);
+
+        this.markHistory('Items Selected');
     }
 
     applyHandles({rectangle, items=[]}) {

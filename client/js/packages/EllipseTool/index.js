@@ -115,6 +115,8 @@ export default class EllipseTool extends Package {
         this.setOverlay(handles);
 
         this.setActiveHandle(event.activeHandle);
+
+        this.markHistory('Moved Ellipse');
     }
 
     resizeMove(handleIndex, buddyHandleIndex, event) {
@@ -152,6 +154,12 @@ export default class EllipseTool extends Package {
         this.setActiveHandle(event.activeHandle);
     }
 
+    resizeEnd(event) {
+        this.updateItem(event.item.full);
+
+        this.markHistory('Resized Ellipse');
+    }
+
     rotateMove(handleIndex, event) {
         var {current, full} = event.item;
         var currentFrame = event.currentFrame;
@@ -183,6 +191,12 @@ export default class EllipseTool extends Package {
         this.setActiveHandle(event.activeHandle);
     }
 
+    rotateEnd(event) {
+        this.updateItem(event.item.full);
+
+        this.markHistory('Rotated Ellipse');
+    }
+
     onTap(event) {
         var object = event.object;
 
@@ -199,12 +213,6 @@ export default class EllipseTool extends Package {
                 stroke: 'black'
             });
         }
-    }
-
-    pointerEnd(event) {
-        this.updateItem(event.item.full);
-
-        this.markHistory('Created Ellipse');
     }
 
     resizeHandles(ellipse, item) {
@@ -464,7 +472,7 @@ EllipseTool.resizeHandle = {
         'pointer-move': {
             func: 'resizeMove'
         },
-        'pointer-end': 'pointerEnd'
+        'pointer-end': 'resizeEnd'
     }
 };
 
@@ -479,6 +487,6 @@ EllipseTool.rotateHandle = {
         'pointer-move': {
             func: 'rotateMove'
         },
-        'pointer-end': 'pointerEnd'
+        'pointer-end': 'rotateEnd'
     }
 };

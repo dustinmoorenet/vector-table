@@ -44,6 +44,8 @@ export default class GroupTool extends Package {
         this.eventExport.trigger('select', {
             selection: [group.id]
         });
+
+        this.markHistory('Grouped Selection');
     }
 
     ungroupSelection(event) {
@@ -73,6 +75,8 @@ export default class GroupTool extends Package {
                 this.eventExport.trigger('select', {
                     selection: ungroupedItems
                 });
+
+                this.markHistory('UnGrouped Selection');
             });
     }
 

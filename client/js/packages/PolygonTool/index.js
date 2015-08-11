@@ -84,6 +84,8 @@ export default class PolygonTool extends Package {
         this.setOverlay(handles);
 
         this.setActiveHandle(event.activeHandle);
+
+        this.markHistory('Created Polygon');
     }
 
     addHandle(event, item) {
@@ -121,6 +123,8 @@ export default class PolygonTool extends Package {
         this.setOverlay(handles);
 
         this.setActiveHandle(event.activeHandle);
+
+        this.markHistory('Added Handle to Polygon');
     }
 
     itemSelect(event) {
@@ -189,6 +193,8 @@ export default class PolygonTool extends Package {
             this.setOverlay(handles);
 
             this.setActiveHandle(event.activeHandle);
+
+            this.markHistory('Closed Polygon');
         }
     }
 
@@ -223,6 +229,8 @@ export default class PolygonTool extends Package {
         this.setOverlay(handles);
 
         this.setActiveHandle(event.activeHandle);
+
+        this.markHistory('Moved Polygon');
     }
 
     applyHandles(moves, item) {
