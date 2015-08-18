@@ -41,9 +41,7 @@ export default class GroupTool extends Package {
 
         this.createItem(group);
 
-        this.eventExport.trigger('select', {
-            selection: [group.id]
-        });
+        this.setSelection([group.id]);
 
         this.markHistory('Grouped Selection');
     }
@@ -72,11 +70,9 @@ export default class GroupTool extends Package {
 
                 this.updateItem(full);
 
-                this.eventExport.trigger('select', {
-                    selection: ungroupedItems
-                });
+                this.setSelection(ungroupedItems);
 
-                this.markHistory('UnGrouped Selection');
+                this.markHistory('Ungrouped Selection');
             });
     }
 

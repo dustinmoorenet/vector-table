@@ -1,6 +1,9 @@
+import uuid from 'node-uuid';
+
 import View from '../View';
 import SVG from '../../libs/svg';
 import Background from './Background';
+import Overlay from './Overlay';
 import Group from '../Shapes/Group';
 
 export default class Table extends View {
@@ -66,21 +69,9 @@ export default class Table extends View {
 
             this.rootItem.listenTo(global.app.user.projectStore.timeLine, project.id, this.rootItem.render);
 
-            this.overlay = new Group({
-                parentElement: this.svg
-            });
-
-            this.overlay.el.classList.add('overlay');
-
-            this.overlay.listenTo(global.dataStore, global.dataStore.getProjectMetaID(project.id, 'overlay'), (data) => {
-                if (!data) {
-                    data = {
-                        type: 'Group',
-                        nodes: []
-                    };
-                }
-
-                this.overlay.render(data);
+            this.overlay = new Overlay({
+                parentElement: this.svg,
+                projectID: project.id
             });
 
             setTimeout(this.resize.bind(this));
@@ -104,7 +95,10 @@ export default class Table extends View {
             pointer = event;
         }
 
+        this.active = {};
+
         var evt = {
+            id: uuid.v4(),
             message: 'pointer-start',
             x: pointer.offsetX,
             y: pointer.offsetY,
@@ -128,22 +122,13 @@ export default class Table extends View {
                 current: global.app.user.projectStore.timeLine.get(itemID)
             };
 
-            this.activeItemID = itemID;
+            this.active.itemID = itemID;
         }
 
-        evt.handles = global.dataStore.getProjectMeta(evt.projectID, 'overlay');
+        evt.handleID = handleID;
 
-        if (handleID) {
-            var handle = evt.handles.nodes.find((handle) => handle.id === handleID);
-
-            this.activeHandle = evt.activeHandle = handle;
-
-            if (handle.routes && handle.routes['pointer-start']) {
-                evt.route = handle.routes['pointer-start'];
-            }
-        }
-
-        this.activeOrigin = {x: evt.x, y: evt.y};
+        this.active.origin = {x: evt.x, y: evt.y};
+        this.active.id = evt.id;
 
         evt.selection = global.dataStore.getProjectMeta(evt.projectID, 'selection');
 
@@ -151,7 +136,7 @@ export default class Table extends View {
     }
 
     pointerMove(event) {
-        if (!this.activeOrigin) {
+        if (!this.active) {
             return;
         }
 
@@ -167,16 +152,16 @@ export default class Table extends View {
 
         var evt = {
             message: 'pointer-move',
+            id: this.active.id,
             x: pointer.offsetX,
             y: pointer.offsetY,
-            origin: this.activeOrigin,
+            origin: this.active.origin,
             keys: {
                 alt: event.altKey,
                 ctrl: event.ctrlKey,
                 shift: event.shiftKey,
                 meta: event.metaKey
             },
-            activeHandle: this.activeHandle,
             handles: global.dataStore.getProjectMeta(projectID, 'overlay'),
             currentFrame: global.app.user.projectStore.timeLine.currentFrame,
             focusGroup: global.app.user.projectStore.getFocusGroup(),
@@ -184,16 +169,12 @@ export default class Table extends View {
             selection: global.dataStore.getProjectMeta(projectID, 'selection')
         };
 
-        if (this.activeItemID) {
+        if (this.active.itemID) {
             evt.item = {
-                id: this.activeItemID,
-                full: global.dataStore.get(this.activeItemID),
-                current: global.app.user.projectStore.timeLine.get(this.activeItemID)
+                id: this.active.itemID,
+                full: global.dataStore.get(this.active.itemID),
+                current: global.app.user.projectStore.timeLine.get(this.active.itemID)
             };
-        }
-
-        if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-move']) {
-            evt.route = this.activeHandle.routes['pointer-move'];
         }
 
         global.app.sendWork(evt);
@@ -212,9 +193,10 @@ export default class Table extends View {
 
         var evt = {
             message: 'pointer-end',
+            id: this.active.id,
             x: pointer.offsetX,
             y: pointer.offsetY,
-            origin: this.activeOrigin,
+            origin: this.active.origin,
             keys: {
                 alt: event.altKey,
                 ctrl: event.ctrlKey,
@@ -228,23 +210,17 @@ export default class Table extends View {
             selection: global.dataStore.getProjectMeta(projectID, 'selection')
         };
 
-        if (this.activeHandle && this.activeHandle.routes && this.activeHandle.routes['pointer-end']) {
-            evt.route = this.activeHandle.routes['pointer-end'];
-        }
-
-        if (this.activeItemID) {
+        if (this.active.itemID) {
             evt.item = {
-                id: this.activeItemID,
-                full: global.dataStore.get(this.activeItemID),
-                current: global.app.user.projectStore.timeLine.get(this.activeItemID)
+                id: this.active.itemID,
+                full: global.dataStore.get(this.active.itemID),
+                current: global.app.user.projectStore.timeLine.get(this.active.itemID)
             };
         }
 
         global.app.sendWork(evt);
 
-        delete this.activeItemID;
-        delete this.activeHandle;
-        delete this.activeOrigin;
+        delete this.active;
     }
 
     createItem(event) {
@@ -252,7 +228,7 @@ export default class Table extends View {
 
         global.dataStore.set(item.id, item);
 
-        this.activeItemID = item.id;
+        this.active.itemID = item.id;
     }
 
     updateItem(event) {
@@ -347,7 +323,7 @@ export default class Table extends View {
                         box.x + box.width <= bigBox.x + bigBox.width &&
                         box.y + box.height <= bigBox.y + bigBox.height
                     ) {
-                        items.push({id, box});
+                        items.push(id);
                     }
 
                     return items;

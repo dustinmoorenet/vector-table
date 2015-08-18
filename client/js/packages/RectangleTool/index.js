@@ -5,8 +5,30 @@ import uuid from 'node-uuid';
 export default class RectangleTool extends Package {
     get title() { return 'Rectangle Tool'; }
 
+    get id() { return 'rectangle-tool'; }
+
+    get handleStartRoutes() {
+        if (!this._handleStartRoutes) {
+            this._handleStartRoutes = {
+                'rotate-nw': this.rotateStart.bind(this, 'nw'),
+                'rotate-ne': this.rotateStart.bind(this, 'ne'),
+                'rotate-se': this.rotateStart.bind(this, 'se'),
+                'rotate-sw': this.rotateStart.bind(this, 'sw'),
+                'resize-nw': this.resizeStart.bind(this, 'se'),
+                'resize-ne': this.resizeStart.bind(this, 'sw'),
+                'resize-se': this.resizeStart.bind(this, 'nw'),
+                'resize-sw': this.resizeStart.bind(this, 'ne'),
+                'body': this.moveStart.bind(this),
+                'toggle': this.toggleStart.bind(this)
+            };
+        }
+
+        return this._handleStartRoutes;
+    }
+
     setPackage(event) {
         super.setPackage(event);
+
         this.stopListening(this.eventExport, 'double-size');
 
         if (event.packageName === this.constructor.name) {
@@ -14,46 +36,37 @@ export default class RectangleTool extends Package {
         }
     }
 
-    select(event) {
-        Promise.all(event.selection.map((itemID) => {
-                return this.getItem(itemID)
-                    .then((item) => {
-                        if (item.full.type !== 'Rectangle') {
-                            return {
-                                nodes: []
-                            };
-                        }
-
-                        return this.applyHandles(item.current, item.full);
-                    });
-            }))
-            .then((handles) => {
-                handles = {
-                    type: 'Group',
-                    nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
-                };
-
-                this.setSelection(event.selection);
-
-                this.setOverlay(handles);
-            });
-    }
-
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
         }
 
-        super.routeEvent(event);
+        if (event.message === 'pointer-start') {
+            if (event.item && event.handleID) {
+                var startFunc = this.handleStartRoutes[event.handleID];
+
+                if (startFunc) {
+                    startFunc(event);
+                }
+            }
+            else if (event.item) {
+                this.selectItem(event);
+            }
+            else {
+                this.create(event);
+            }
+        }
+        else {
+            var routes = (this.eventCache[event.id] || {}).routes;
+
+            if (routes && routes[event.message]) {
+                routes[event.message].call(this, event);
+            }
+        }
     }
 
     defaultRoute(event) {
-        if (event.item) {
-            this.selectItem(event);
-        }
-        else {
-            this.create(event);
-        }
+
     }
 
     create(event) {
@@ -80,17 +93,36 @@ export default class RectangleTool extends Package {
 
         this.setFrame(focusGroup.current, event.currentFrame, focusGroup.full);
 
-        var handles = this.applyHandles(item.timeLine[0], item);
-
         this.createItem(item);
 
         this.updateItem(focusGroup.full);
 
         this.setSelection([item.id]);
 
-        this.setOverlay(handles);
+        this.eventCache[event.id] = {
+            anchor: {x: event.x, y: event.y},
+            routes: {
+                'pointer-move': this.resizeMove,
+                'pointer-end': this.createEnd
+            }
+        };
+    }
 
-        this.setActiveHandle(handles.nodes[3]);
+    createEnd(event) {
+        this.updateItem(event.item.full);
+
+        this.markHistory('Created Rectangle');
+
+        delete this.eventCache[event.id];
+    }
+
+    moveStart(event) {
+        this.eventCache[event.id] = {
+            routes: {
+                'pointer-move': this.moveMove,
+                'pointer-end': this.moveEnd
+            }
+        };
     }
 
     moveEnd(event) {
@@ -119,113 +151,96 @@ export default class RectangleTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        var handles = this.applyHandles(current, full);
-
         this.updateItem(full);
 
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
-
         this.markHistory('Moved Rectangle');
+
+        delete this.eventCache[event.id];
     }
 
-    rotateMove(handleIndex, event) {
+    rotateStart(anchorID, event) {
+        var {current} = event.item;
+
+        var anchor = this.pointFromAnchorID(current, anchorID);
+
+        this.eventCache[event.id] = {
+            anchor,
+            routes: {
+                'pointer-move': this.rotateMove,
+                'pointer-end': this.rotateEnd
+            }
+        };
+    }
+
+    rotateMove(event) {
         var {current, full} = event.item;
         var currentFrame = event.currentFrame;
-        var handles = event.handles;
+        var {anchor} = this.eventCache[event.id];
 
         var origin = {
             x: current.x + current.width / 2,
             y: current.y + current.height / 2
         };
-        var start = this.degreesFromTwoPoints(origin, {
-            x: handles.nodes[handleIndex].cx,
-            y: handles.nodes[handleIndex].cy
-        });
+        var start = this.degreesFromTwoPoints(origin, anchor);
         var degrees = this.degreesFromTwoPoints(origin, event);
 
         var transform = ['rotate', degrees - start, origin.x, origin.y];
 
-        this.applyTransform({transform, item: handles});
         this.applyTransform({transform, item: current});
 
         this.setFrame(current, currentFrame, full);
 
         this.updateItem(full);
-
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
     rotateEnd(event) {
         this.updateItem(event.item.full);
 
         this.markHistory('Rotated Rectangle');
+
+        delete this.eventCache[event.id];
     }
 
-    resizeMove(handleIndex, buddyHandleIndex, event) {
+    resizeStart(anchorID, event) {
+        var {current} = event.item;
+
+        var anchor = this.pointFromAnchorID(current, anchorID);
+
+        this.eventCache[event.id] = {
+            anchor,
+            routes: {
+                'pointer-move': this.resizeMove,
+                'pointer-end': this.resizeEnd
+            }
+        };
+    }
+
+    resizeMove(event) {
         var {current, full} = event.item;
         var currentFrame = event.currentFrame;
-        var handles = event.handles.nodes;
+        var {anchor} = this.eventCache[event.id];
 
-        // Find handle buddy
-        var handle = handles[buddyHandleIndex];
-
-        // Determine new rectangle from current position and handle buddy
+        // Determine new rectangle from current position and anchor
         var rectangle = {
-            x: Math.min(event.x, handle.cx),
-            y: Math.min(event.y, handle.cy),
-            width: Math.abs(event.x - handle.cx),
-            height: Math.abs(event.y - handle.cy)
+            x: Math.min(event.x, anchor.x),
+            y: Math.min(event.y, anchor.y),
+            width: Math.abs(event.x - anchor.x),
+            height: Math.abs(event.y - anchor.y)
         };
 
         _.extend(current, rectangle);
 
         this.setFrame(current, currentFrame, full);
 
-        handles = this.applyHandles(current, full);
-
-        // Determine new active handle
-        event.activeHandle = handles.nodes.find((h) => h.cx === event.x && h.cy === event.y);
-
         this.updateItem(full);
-
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
     resizeEnd(event) {
         this.updateItem(event.item.full);
 
         this.markHistory('Resized Rectangle');
-    }
 
-    onTap(event) {
-        var object = event.object;
-
-        if (object) {
-            this.objectTapped(object);
-        }
-        else {
-            this.create({
-                x: event.x,
-                y: event.y,
-                width: this.DEFAULT.width,
-                height: this.DEFAULT.height,
-                fill: 'blue',
-                stroke: 'black'
-            });
-        }
-
+        delete this.eventCache[event.id];
     }
 
     doubleSize(event) {
@@ -237,15 +252,38 @@ export default class RectangleTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        var handles = this.applyHandles(current, full);
-
         this.updateItem(full);
 
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
         this.markHistory('Doubled size of Rectangle');
+    }
+
+    buildOverlaySelectionItem(event) {
+        var {full, current} = event.item;
+
+        var handles = this.applyHandles(current, full);
+
+        handles.id = event.overlayItemID;
+
+        this.setOverlayItem(handles);
+    }
+
+    pointFromAnchorID(current, anchorID) {
+        var anchor;
+
+        if (anchorID === 'nw') {
+            anchor = {x: current.x, y: current.y};
+        }
+        else if (anchorID === 'ne') {
+            anchor = {x: current.x + current.width, y: current.y};
+        }
+        else if (anchorID === 'se') {
+            anchor = {x: current.x + current.width, y: current.y + current.width};
+        }
+        else if (anchorID === 'sw') {
+            anchor = {x: current.x, y: current.y + current.width};
+        }
+
+        return anchor;
     }
 
     resizeHandles(rectangle, item) {
@@ -260,11 +298,7 @@ export default class RectangleTool extends Package {
             height: rectangle.height,
             fill: 'rgba(0,0,0,0)',
             stroke: null,
-            forItem: item.id,
-            routes: {
-                'pointer-move': 'moveMove',
-                'pointer-end': 'moveEnd'
-            }
+            forItem: item.id
         });
 
         handles.push({
@@ -275,61 +309,37 @@ export default class RectangleTool extends Package {
             rx: RectangleTool.HANDLE_WIDTH,
             ry: RectangleTool.HANDLE_WIDTH,
             fill: 'green',
-            forItem: item.id,
-            routes: {
-                'pointer-start': 'toggleStart'
-            }
+            forItem: item.id
         });
 
         var type = RectangleTool.resizeHandle;
-        var offset = 2;
 
         handles.push(_.merge({}, type, {
-            id: 'nw',
+            id: 'resize-nw',
             cx: rectangle.x,
             cy: rectangle.y,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset, offset + 2]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'ne',
+            id: 'resize-ne',
             cx: rectangle.x + rectangle.width,
             cy: rectangle.y,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 1, offset + 3]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'se',
+            id: 'resize-se',
             cx: rectangle.x + rectangle.width,
             cy: rectangle.y + rectangle.height,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 2, offset]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'sw',
+            id: 'resize-sw',
             cx: rectangle.x,
             cy: rectangle.y + rectangle.height,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 3, offset + 1]
-                }
-            }
+            forItem: item.id
         }));
 
         return {
@@ -351,11 +361,7 @@ export default class RectangleTool extends Package {
             height: rectangle.height,
             fill: 'rgba(0,0,0,0)',
             stroke: null,
-            forItem: item.id,
-            routes: {
-                'pointer-move': 'moveMove',
-                'pointer-end': 'moveEnd'
-            }
+            forItem: item.id
         });
 
         handles.push({
@@ -366,61 +372,37 @@ export default class RectangleTool extends Package {
             rx: RectangleTool.HANDLE_WIDTH,
             ry: RectangleTool.HANDLE_WIDTH,
             fill: 'gray',
-            forItem: item.id,
-            routes: {
-                'pointer-start': 'toggleStart'
-            }
+            forItem: item.id
         });
 
         var type = RectangleTool.rotateHandle;
-        var offset = 2;
 
         handles.push(_.merge({}, type, {
-            id: 'nw',
+            id: 'rotate-nw',
             cx: rectangle.x,
             cy: rectangle.y,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'ne',
+            id: 'rotate-ne',
             cx: rectangle.x + rectangle.width,
             cy: rectangle.y,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 1]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'se',
+            id: 'rotate-se',
             cx: rectangle.x + rectangle.width,
             cy: rectangle.y + rectangle.height,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 2]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'sw',
+            id: 'rotate-sw',
             cx: rectangle.x,
             cy: rectangle.y + rectangle.height,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 3]
-                },
-            }
+            forItem: item.id
         }));
 
         return {
@@ -507,13 +489,7 @@ RectangleTool.resizeHandle = {
     cy: 0,
     rx: RectangleTool.HANDLE_WIDTH,
     ry: RectangleTool.HANDLE_WIDTH,
-    fill: 'red',
-    routes: {
-        'pointer-move': {
-            func: 'resizeMove'
-        },
-        'pointer-end': 'resizeEnd'
-    }
+    fill: 'red'
 };
 
 RectangleTool.rotateHandle = {
@@ -522,11 +498,5 @@ RectangleTool.rotateHandle = {
     cy: 0,
     rx: RectangleTool.HANDLE_WIDTH,
     ry: RectangleTool.HANDLE_WIDTH,
-    fill: 'green',
-    routes: {
-        'pointer-move': {
-            func: 'rotateMove'
-        },
-        'pointer-end': 'rotateEnd'
-    }
+    fill: 'green'
 };

@@ -2,45 +2,51 @@ import _ from 'lodash';
 import jsonQuery from 'json-query';
 import Events from './Events';
 
+/*
+TODO Need to rework the selection system
+pointer events change the shapes
+the selection system listens to selected shapes
+the selection system asked the current package to paint the overlay
+unselection updates the overlay too
+*/
 export default class Package extends Events {
     get title() { return 'Base Package'; }
 
     constructor(eventExport) {
         super();
         this.eventExport = eventExport;
+        this.eventCache = {};
 
         this.listenTo(eventExport, 'set-package', this.setPackage);
+        this.listenTo(eventExport, 'unset-package', this.unsetPackage);
     }
 
     setPackage(event) {
-        this.stopListening(this.eventExport, 'pointer-start');
-        this.stopListening(this.eventExport, 'pointer-move');
-        this.stopListening(this.eventExport, 'pointer-end');
-        this.stopListening(this.eventExport, 'control-init');
-        this.stopListening(this.eventExport, 'set-value');
-        this.stopListening(this.eventExport, 'select');
-
         if (event.packageName === this.constructor.name) {
             this.listenTo(this.eventExport, 'pointer-start', this.routeEvent);
             this.listenTo(this.eventExport, 'pointer-move', this.routeEvent);
             this.listenTo(this.eventExport, 'pointer-end', this.routeEvent);
             this.listenTo(this.eventExport, 'control-init', this.onControlInit);
             this.listenTo(this.eventExport, 'set-value', this.setValue);
-            this.listenTo(this.eventExport, 'select', this.select);
+            this.listenTo(this.eventExport, 'build-overlay-selection-item', this.buildOverlaySelectionItem);
+
+            this.setSelection(event.selection);
         }
     }
 
+    unsetPackage(event) {
+        this.stopListening(this.eventExport, 'pointer-start');
+        this.stopListening(this.eventExport, 'pointer-move');
+        this.stopListening(this.eventExport, 'pointer-end');
+        this.stopListening(this.eventExport, 'control-init');
+        this.stopListening(this.eventExport, 'set-value');
+        this.stopListening(this.eventExport, 'build-overlay-selection-item');
+
+        this.clearOverlaySet();
+    }
+
     routeEvent(event) {
-        if (!event.route && !event.activeHandle && event.message === 'pointer-start') {
-            this.defaultRoute(event);
-        }
-        else if (event.route) {
-            var func = typeof event.route === 'string' ? event.route : event.route.func;
 
-            var args = event.route.partial ? _.union(event.route.partial, [event]) : [event];
-
-            this[func].apply(this, args);
-        }
     }
 
     defaultRoute() { }
@@ -57,21 +63,17 @@ export default class Package extends Events {
 
     select() { }
 
+    buildOverlaySelectionItem() { }
+
     selectItem(event) {
         var {current, full} = event.item;
-        var handles = this.applyHandles(current, full);
 
         this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
     moveMove(event) {
         var {current, full} = event.item;
         var currentFrame = event.currentFrame;
-        var handles = event.handles;
 
         var delta = {
             x: event.x - event.origin.x,
@@ -81,17 +83,10 @@ export default class Package extends Events {
         var transform = ['translate', delta.x, delta.y];
 
         this.applyTransform({transform, item: current, prepend: true});
-        this.applyTransform({transform, item: handles, prepend: true});
 
         this.setFrame(current, currentFrame, full);
 
         this.updateItem(full);
-
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
     degreesFromTwoPoints(point1, point2) {
@@ -111,15 +106,7 @@ export default class Package extends Events {
 
         full.mode = full.mode === 'resize' ? 'rotate' : 'resize';
 
-        var handles = this.applyHandles(current, full);
-
         this.updateItem(full);
-
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
     pointerEnd(event) {
@@ -309,10 +296,25 @@ export default class Package extends Events {
         });
     }
 
-    setOverlay(overlay) {
+    setOverlayItem(overlayItem, setID=this.id) {
         this.eventExport.trigger('export', {
-            message: 'set-overlay',
-            overlay
+            message: 'set-overlay-item',
+            overlayItem,
+            setID
+        });
+    }
+
+    clearOverlayItem(overlayItemID) {
+        this.eventExport.trigger('export', {
+            message: 'clear-overlay-item',
+            overlayItemID
+        });
+    }
+
+    clearOverlaySet(setID=this.id) {
+        this.eventExport.trigger('export', {
+            message: 'clear-overlay-set',
+            setID
         });
     }
 

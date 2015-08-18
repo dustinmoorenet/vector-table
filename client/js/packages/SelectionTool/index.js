@@ -1,3 +1,5 @@
+import uuid from 'node-uuid';
+
 import Package from '../../libs/Package';
 
 export default class SelectionTool extends Package {
@@ -12,97 +14,90 @@ export default class SelectionTool extends Package {
         }
     }
 
-    select(event) {
-        Promise.all(event.selection.map((itemID) => {
-                return this.getBoxForItem(itemID)
-                    .then((box) => this.applyHandles({items: [{id: itemID, box}]}));
-            }))
-            .then((handles) => {
-                handles = {
-                    type: 'Group',
-                    nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
-                };
+    routeEvent(event) {
+        if (event.message === 'pointer-start') {
+            if (event.item && event.handleID) {
+                var startFunc = this.handleStartRoutes[event.handleID];
 
-                this.setSelection(event.selection);
+                if (startFunc) {
+                    startFunc(event);
+                }
+            }
+            else if (event.item) {
+                this.selectItem(event);
+            }
+            else {
+                this.startBoxSelection(event);
+            }
+        }
+        else {
+            var routes = (this.eventCache[event.id] || {}).routes;
 
-                this.setOverlay(handles);
-            });
+            if (routes && routes[event.message]) {
+                routes[event.message].call(this, event);
+            }
+        }
     }
 
-    itemSelect(event) {
+    select(event) {
+        // need to put all the item box overlays in one group so that
+        // they can be cleared easily
+        var {itemBoxOverlayIDs} = this.eventCache[event.id];
+
+        Promise.all(event.selection.map((itemID) => {
+                var overlayItemID = itemBoxOverlayIDs[itemID] || uuid.v4();
+
+                itemBoxOverlayIDs[itemID] = overlayItemID;
+
+                return this.getBoxForItem(itemID)
+                    .then((box) => {
+                        this.applyItemBoxOverlay(overlayItemID, itemID, box);
+                    });
+            }));
+    }
+
+    selectItem(event) {
         var itemID = event.item.id;
-        var selection = [];
-        var nodes = [];
-        var handles = event.handles;
+        var selection;
+        var history = 'Item Selected';
 
         if (event.keys.shift) {
             selection = event.selection;
 
             var indexOfItemID = selection.indexOf(itemID);
 
-            if (handles) {
-                nodes = handles.nodes[handles.nodes.length - 1].nodes;
-            }
-
             if (indexOfItemID !== -1) {
                 selection.splice(indexOfItemID, 1);
 
-                var indexOfNode = nodes.findIndex((node) => {
-                    return node.forItem === itemID;
-                });
-
-                if (indexOfNode !== -1) {
-                    nodes.splice(indexOfNode, 1);
-                }
-
-                this.setSelection(selection);
-
-                this.setOverlay(handles);
-
-                return;
+                history = 'Item Unselected';
+            }
+            else {
+                selection.push(itemID);
             }
         }
-
-        this.getBoxForItem(itemID)
-            .then((box) => {
-                selection.push(itemID);
-
-                if (nodes.length) {
-                    nodes.push(this.addBoxHandle({id: itemID, box}));
-                } else {
-                    handles = this.applyHandles({items: [{id: itemID, box}]});
-                }
-
-                this.setSelection(selection);
-
-                this.setOverlay(handles);
-
-                this.markHistory('Item Selected');
-            });
-    }
-
-    startBoxSelection(event) {
-        var box = {
-            x: event.x,
-            y: event.y,
-            width: 0,
-            height: 0
-        };
-        var handles;
-
-        if (event.keys.shift) {
-            handles = event.handles;
+        else {
+            selection = [itemID];
         }
-
-        var {items, selection} = this.addToSelection({oldHandles: handles});
-
-        handles = this.applyHandles({rectangle: box, items});
 
         this.setSelection(selection);
 
-        this.setOverlay(handles);
+        this.markHistory(history);
+    }
 
-        this.setActiveHandle(handles.nodes[0]);
+    startBoxSelection(event) {
+        var selection = event.keys.shift ? event.selection : [];
+
+        this.eventCache[event.id] = {
+            selectionBoxOverlayID: uuid.v4(),
+            initialSelection: selection,
+            itemBoxOverlayIDs: {},
+            routes: {
+                'pointer-move': this.move,
+                'pointer-end': this.end
+            }
+        };
+
+        this.setSelection(selection);
     }
 
     move(event) {
@@ -112,80 +107,61 @@ export default class SelectionTool extends Package {
             width: Math.abs(event.x - event.origin.x),
             height: Math.abs(event.y - event.origin.y)
         };
-        var handles;
-
-        if (event.keys.shift) {
-            handles = event.handles;
-        }
+        var {selectionBoxOverlayID} = this.eventCache[event.id];
 
         this.getItemsInBox(box)
             .then((newItems) => {
-                var {items, selection} = this.addToSelection({oldHandles: handles, newItems});
-                handles = this.applyHandles({rectangle: box, items});
-
-                this.setSelection(selection);
-
-                this.setOverlay(handles);
-
-                this.setActiveHandle(handles.nodes[0]);
+                this.setSelection(newItems);
             });
+
+        this.applySelectionBoxOverlay(selectionBoxOverlayID, box);
     }
 
     end(event) {
-        var handles = event.handles;
+        var {selectionBoxOverlayID} = this.eventCache[event.id];
 
-        handles.nodes.shift();
-
-        this.setSelection(event.selection);
-
-        this.setOverlay(handles);
+        this.clearOverlayItem(selectionBoxOverlayID);
 
         this.markHistory('Items Selected');
+
+        delete this.eventCache[event.id];
     }
 
-    applyHandles({rectangle, items=[]}) {
-        var nodes = [];
+    buildOverlaySelectionItem(event) {
+        var {full} = event.item;
 
-        if (rectangle) {
-            nodes.push({
-                id: 'selection_box',
-                type: 'Rectangle',
-                x: rectangle.x,
-                y: rectangle.y,
-                width: rectangle.width,
-                height: rectangle.height,
-                stroke: 'black',
-                fill: 'none',
-                routes: {
-                    'pointer-move': 'move',
-                    'pointer-end': 'end'
-                }
+        this.getBoxForItem(full.id)
+            .then((box) => {
+                this.applyItemBoxOverlay(event.overlayItemID, full.id, box);
             });
-        }
-
-        nodes.push({
-            type: 'Group',
-            nodes: items.map(this.addBoxHandle)
-        });
-
-        return {
-            type: 'Group',
-            nodes
-        };
     }
 
-    addBoxHandle(item) {
-        return {
+    applySelectionBoxOverlay(id, rectangle) {
+        this.setOverlayItem({
+            id: id,
             type: 'Rectangle',
-            x: item.box.x,
-            y: item.box.y,
-            width: item.box.width,
-            height: item.box.height,
+            x: rectangle.x,
+            y: rectangle.y,
+            width: rectangle.width,
+            height: rectangle.height,
+            stroke: 'black',
+            fill: 'none'
+        });
+    }
+
+    applyItemBoxOverlay(overlayItemID, itemID, box) {
+        this.setOverlayItem({
+            type: 'Rectangle',
+            id: overlayItemID,
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height,
             stroke: 'red',
             'stroke-width': 2,
             fill: 'none',
-            forItem: item.id
-        };
+            forItem: itemID
+        });
     }
 
     extractItemsFromNodes(nodes) {

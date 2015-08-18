@@ -19,18 +19,15 @@ export default class App extends Events {
         global.appStore.on('app', (app, previousApp) => {
             if (!previousApp || app.currentPackage !== previousApp.currentPackage) {
                 global.app.sendWork({
-                    message: 'set-package',
-                    packageName: app.currentPackage,
+                    message: 'unset-package',
+                    packageName: previousApp && previousApp.currentPackage
                 });
 
-                var selection = global.dataStore.getProjectMeta(app.projectID, 'selection');
-                if (selection) {
-                    global.app.sendWork({
-                        message: 'select',
-                        packageName: app.currentPackage,
-                        selection
-                    });
-                }
+                global.app.sendWork({
+                    message: 'set-package',
+                    packageName: app.currentPackage,
+                    selection: global.dataStore.getProjectMeta(app.projectID, 'selection')
+                });
             }
         });
 
