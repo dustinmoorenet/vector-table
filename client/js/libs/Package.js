@@ -86,7 +86,7 @@ export default class Package extends Events {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
     }
 
     degreesFromTwoPoints(point1, point2) {
@@ -106,11 +106,11 @@ export default class Package extends Events {
 
         full.mode = full.mode === 'resize' ? 'rotate' : 'resize';
 
-        this.updateItem(full);
+        this.setItem(full);
     }
 
     pointerEnd(event) {
-        this.updateItem(event.item.full);
+        this.setItem(event.item.full);
 
         this.markHistory('Something generic happened');
     }
@@ -202,7 +202,7 @@ export default class Package extends Events {
 
         var handles = this.applyHandles(current, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.setSelection([event.item.id]);
 
@@ -268,16 +268,16 @@ export default class Package extends Events {
         });
     }
 
-    createItem(item) {
+    setActiveItemID(itemID) {
         this.eventExport.trigger('export', {
-            message: 'create-item',
-            item
+            message: 'set-active-item-id',
+            itemID
         });
     }
 
-    updateItem(item) {
+    setItem(item) {
         this.eventExport.trigger('export', {
-            message: 'update-item',
+            message: 'set-item',
             item
         });
     }

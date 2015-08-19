@@ -31,8 +31,8 @@ export default class Table extends View {
     constructor(options) {
         super(options);
 
-        this.listenTo(global.app, 'create-item', this.createItem);
-        this.listenTo(global.app, 'update-item', this.updateItem);
+        this.listenTo(global.app, 'set-active-item-id', this.setActiveItemID);
+        this.listenTo(global.app, 'set-item', this.setItem);
         this.listenTo(global.app, 'set-selection', this.setSelection);
         this.listenTo(global.app, 'set-overlay', this.setOverlay);
         this.listenTo(global.app, 'set-active-handle', this.setActiveHandle);
@@ -223,15 +223,13 @@ export default class Table extends View {
         delete this.active;
     }
 
-    createItem(event) {
-        var item = event.item;
+    setActiveItemID(event) {
+        this.active = this.active || {};
 
-        global.dataStore.set(item.id, item);
-
-        this.active.itemID = item.id;
+        this.active.itemID = event.itemID;
     }
 
-    updateItem(event) {
+    setItem(event) {
         var item = event.item;
 
         global.dataStore.set(item.id, item);

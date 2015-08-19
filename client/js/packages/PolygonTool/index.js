@@ -75,9 +75,9 @@ export default class PolygonTool extends Package {
 
         this.unfinishedItemID = full.id;
 
-        this.createItem(full);
+        this.setItem(full);
 
-        this.updateItem(focusGroup.full);
+        this.setItem(focusGroup.full);
 
         this.setSelection([full.id]);
 
@@ -116,7 +116,7 @@ export default class PolygonTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.setSelection([full.id]);
 
@@ -162,7 +162,7 @@ export default class PolygonTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.setSelection([full.id]);
 
@@ -186,7 +186,7 @@ export default class PolygonTool extends Package {
 
             this.setFrame(current, currentFrame, full);
 
-            this.updateItem(full);
+            this.setItem(full);
 
             this.setSelection([full.id]);
 
@@ -222,7 +222,7 @@ export default class PolygonTool extends Package {
 
         var handles = this.applyHandles(current.d, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.setSelection([full.id]);
 

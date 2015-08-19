@@ -93,9 +93,11 @@ export default class RectangleTool extends Package {
 
         this.setFrame(focusGroup.current, event.currentFrame, focusGroup.full);
 
-        this.createItem(item);
+        this.setItem(item);
 
-        this.updateItem(focusGroup.full);
+        this.setActiveItemID(item.id);
+
+        this.setItem(focusGroup.full);
 
         this.setSelection([item.id]);
 
@@ -109,7 +111,7 @@ export default class RectangleTool extends Package {
     }
 
     createEnd(event) {
-        this.updateItem(event.item.full);
+        this.setItem(event.item.full);
 
         this.markHistory('Created Rectangle');
 
@@ -151,7 +153,7 @@ export default class RectangleTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.markHistory('Moved Rectangle');
 
@@ -190,11 +192,11 @@ export default class RectangleTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
     }
 
     rotateEnd(event) {
-        this.updateItem(event.item.full);
+        this.setItem(event.item.full);
 
         this.markHistory('Rotated Rectangle');
 
@@ -232,11 +234,11 @@ export default class RectangleTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
     }
 
     resizeEnd(event) {
-        this.updateItem(event.item.full);
+        this.setItem(event.item.full);
 
         this.markHistory('Resized Rectangle');
 
@@ -252,7 +254,7 @@ export default class RectangleTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.markHistory('Doubled size of Rectangle');
     }

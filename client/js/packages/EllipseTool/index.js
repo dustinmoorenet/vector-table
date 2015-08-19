@@ -73,9 +73,11 @@ export default class EllipseTool extends Package {
 
         var handles = this.applyHandles(item.timeLine[0], item);
 
-        this.createItem(item);
+        this.setItem(item);
 
-        this.updateItem(focusGroup.full);
+        this.setActiveItemID(item.id);
+
+        this.setItem(focusGroup.full);
 
         this.setSelection([item.id]);
 
@@ -108,7 +110,7 @@ export default class EllipseTool extends Package {
 
         var handles = this.applyHandles(current, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.setSelection([event.item.id]);
 
@@ -145,7 +147,7 @@ export default class EllipseTool extends Package {
         // Determine new active handle
         event.activeHandle = handles.nodes.find((h) => h.cx === event.x && h.cy === event.y);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.setSelection([event.item.id]);
 
@@ -155,7 +157,7 @@ export default class EllipseTool extends Package {
     }
 
     resizeEnd(event) {
-        this.updateItem(event.item.full);
+        this.setItem(event.item.full);
 
         this.markHistory('Resized Ellipse');
     }
@@ -182,7 +184,7 @@ export default class EllipseTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
         this.setSelection([event.item.id]);
 
@@ -192,7 +194,7 @@ export default class EllipseTool extends Package {
     }
 
     rotateEnd(event) {
-        this.updateItem(event.item.full);
+        this.setItem(event.item.full);
 
         this.markHistory('Rotated Ellipse');
     }

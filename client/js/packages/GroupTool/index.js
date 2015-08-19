@@ -37,9 +37,9 @@ export default class GroupTool extends Package {
 
         this.setFrame(current, event.currentFrame, full);
 
-        this.updateItem(full);
+        this.setItem(full);
 
-        this.createItem(group);
+        this.setItem(group);
 
         this.setSelection([group.id]);
 
@@ -68,7 +68,7 @@ export default class GroupTool extends Package {
 
                 this.setFrame(current, event.currentFrame, full);
 
-                this.updateItem(full);
+                this.setItem(full);
 
                 this.setSelection(ungroupedItems);
 
@@ -89,7 +89,7 @@ export default class GroupTool extends Package {
 
                 this.setFrame(item.current, event.currentFrame, item.full);
 
-                this.updateItem(item.full);
+                this.setItem(item.full);
 
                 return [itemID, nodes];
             });
