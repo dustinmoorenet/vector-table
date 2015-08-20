@@ -1,7 +1,6 @@
 import uuid from 'node-uuid';
 
 import Package from '../../libs/Package';
-import {routeToRegExp, extractParameters} from '../../libs/routeMatch';
 
 export default class PolygonTool extends Package {
     get title() { return 'Polygon Tool'; }
@@ -13,21 +12,6 @@ export default class PolygonTool extends Package {
         };
     }
 
-    constructor(...args) {
-        super(...args);
-
-        var startRoutes = this.handleStartRoutes;
-
-        this.startRoutes = Object.keys(startRoutes).map((route) => {
-            var func = startRoutes[route];
-            var reg = routeToRegExp(route);
-
-            func = this[func];
-
-            return [reg, func];
-        });
-    }
-
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
@@ -35,13 +19,7 @@ export default class PolygonTool extends Package {
 
         if (event.message === 'pointer-start') {
             if (event.item && event.handleID) {
-                var matchedRoutes = this.startRoutes.filter((route) => route[0].test(event.handleID));
-
-                matchedRoutes.forEach((route) => {
-                    var params = extractParameters(route[0], event.handleID);
-
-                    route[1].call(this, event, ...params);
-                });
+                this.handleStartRoute(event);
             }
             else if (event.selection[0] && this.unfinishedItemID === event.selection[0]) {
                 this.getItem(this.unfinishedItemID)

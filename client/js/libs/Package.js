@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import jsonQuery from 'json-query';
+
 import Events from './Events';
+import {routeToRegExp, extractParameters} from './routeMatch';
 
 /*
 TODO Need to rework the selection system
@@ -12,13 +14,20 @@ unselection updates the overlay too
 export default class Package extends Events {
     get title() { return 'Base Package'; }
 
+    get handleStartRoutes() {
+        return { };
+    }
+
     constructor(eventExport) {
         super();
+
         this.eventExport = eventExport;
         this.eventCache = {};
 
         this.listenTo(eventExport, 'set-package', this.setPackage);
         this.listenTo(eventExport, 'unset-package', this.unsetPackage);
+
+        this.initStartRoutes();
     }
 
     setPackage(event) {
@@ -50,6 +59,29 @@ export default class Package extends Events {
     }
 
     defaultRoute() { }
+
+    initStartRoutes() {
+        var startRoutes = this.handleStartRoutes;
+
+        this.startRoutes = Object.keys(startRoutes).map((route) => {
+            var func = startRoutes[route];
+            var reg = routeToRegExp(route);
+
+            func = this[func];
+
+            return [reg, func];
+        });
+    }
+
+    handleStartRoute(event) {
+        var matchedRoutes = this.startRoutes.filter((route) => route[0].test(event.handleID));
+
+        matchedRoutes.forEach((route) => {
+            var params = extractParameters(route[0], event.handleID);
+
+            route[1].call(this, event, ...params);
+        });
+    }
 
     onControlInit() {
         this.eventExport.trigger('export', {

@@ -8,22 +8,12 @@ export default class RectangleTool extends Package {
     get id() { return 'rectangle-tool'; }
 
     get handleStartRoutes() {
-        if (!this._handleStartRoutes) {
-            this._handleStartRoutes = {
-                'rotate-nw': this.rotateStart.bind(this, 'nw'),
-                'rotate-ne': this.rotateStart.bind(this, 'ne'),
-                'rotate-se': this.rotateStart.bind(this, 'se'),
-                'rotate-sw': this.rotateStart.bind(this, 'sw'),
-                'resize-nw': this.resizeStart.bind(this, 'se'),
-                'resize-ne': this.resizeStart.bind(this, 'sw'),
-                'resize-se': this.resizeStart.bind(this, 'nw'),
-                'resize-sw': this.resizeStart.bind(this, 'ne'),
-                'body': this.moveStart.bind(this),
-                'toggle': this.toggleStart.bind(this)
-            };
-        }
-
-        return this._handleStartRoutes;
+        return {
+            'rotate-:direction': 'rotateStart',
+            'resize-:direction': 'resizeStart',
+            'toggle': 'toggleStart',
+            'body': 'moveStart'
+        };
     }
 
     setPackage(event) {
@@ -43,11 +33,7 @@ export default class RectangleTool extends Package {
 
         if (event.message === 'pointer-start') {
             if (event.item && event.handleID) {
-                var startFunc = this.handleStartRoutes[event.handleID];
-
-                if (startFunc) {
-                    startFunc(event);
-                }
+                this.handleStartRoute(event);
             }
             else if (event.item) {
                 this.selectItem(event);
@@ -160,7 +146,7 @@ export default class RectangleTool extends Package {
         delete this.eventCache[event.id];
     }
 
-    rotateStart(anchorID, event) {
+    rotateStart(event, anchorID) {
         var {current} = event.item;
 
         var anchor = this.pointFromAnchorID(current, anchorID);
@@ -203,10 +189,10 @@ export default class RectangleTool extends Package {
         delete this.eventCache[event.id];
     }
 
-    resizeStart(anchorID, event) {
+    resizeStart(event, anchorID) {
         var {current} = event.item;
 
-        var anchor = this.pointFromAnchorID(current, anchorID);
+        var anchor = this.pointFromAnchorID(current, this.getBuddyAnchorID(anchorID));
 
         this.eventCache[event.id] = {
             anchor,
@@ -269,6 +255,21 @@ export default class RectangleTool extends Package {
         handles.id = event.overlayItemID;
 
         this.setOverlayItem(handles);
+    }
+
+    getBuddyAnchorID(anchorID) {
+        if (anchorID === 'ne') {
+            return 'sw';
+        }
+        else if (anchorID === 'se') {
+            return 'nw';
+        }
+        else if (anchorID === 'sw') {
+            return 'ne';
+        }
+        else {
+            return 'se';
+        }
     }
 
     pointFromAnchorID(current, anchorID) {
