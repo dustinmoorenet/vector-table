@@ -1,15 +1,66 @@
-import Package from '../../libs/Package';
 import uuid from 'node-uuid';
+
+import Package from '../../libs/Package';
+import {routeToRegExp, extractParameters} from '../../libs/routeMatch';
 
 export default class PolygonTool extends Package {
     get title() { return 'Polygon Tool'; }
+
+    get handleStartRoutes() {
+        return {
+            'handle-:id': 'handleStart',
+            'body': 'moveStart'
+        };
+    }
+
+    constructor(...args) {
+        super(...args);
+
+        var startRoutes = this.handleStartRoutes;
+
+        this.startRoutes = Object.keys(startRoutes).map((route) => {
+            var func = startRoutes[route];
+            var reg = routeToRegExp(route);
+
+            func = this[func];
+
+            return [reg, func];
+        });
+    }
 
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
         }
 
-        super.routeEvent(event);
+        if (event.message === 'pointer-start') {
+            if (event.item && event.handleID) {
+                var matchedRoutes = this.startRoutes.filter((route) => route[0].test(event.handleID));
+
+                matchedRoutes.forEach((route) => {
+                    var params = extractParameters(route[0], event.handleID);
+
+                    route[1].call(this, event, ...params);
+                });
+            }
+            else if (event.selection[0] && this.unfinishedItemID === event.selection[0]) {
+                this.getItem(this.unfinishedItemID)
+                    .then((item) => this.addPoint(event, item));
+            }
+            else if (event.item) {
+                this.selectItem(event);
+            }
+            else {
+                this.create(event);
+            }
+        }
+        else {
+            var routes = (this.eventCache[event.id] || {}).routes;
+
+            if (routes && routes[event.message]) {
+                routes[event.message].call(this, event);
+            }
+        }
     }
 
     select(event) {
@@ -51,8 +102,7 @@ export default class PolygonTool extends Package {
     }
 
     create(event) {
-        var currentFrame = event.currentFrame;
-
+        var {focusGroup, currentFrame} = event;
         var full = {
             id: uuid.v4(),
             tool: 'PolygonTool',
@@ -65,13 +115,10 @@ export default class PolygonTool extends Package {
                 fill: 'none'
             }]
         };
-        var focusGroup = event.focusGroup;
 
         focusGroup.current.nodes.push(full.id);
 
         this.setFrame(focusGroup.current, currentFrame, focusGroup.full);
-
-        var handles = this.applyHandles(full.timeLine[0].d, full);
 
         this.unfinishedItemID = full.id;
 
@@ -81,106 +128,57 @@ export default class PolygonTool extends Package {
 
         this.setSelection([full.id]);
 
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
-
         this.markHistory('Created Polygon');
     }
 
-    addHandle(event, item) {
+    addPoint(event, item) {
         var {current, full} = item;
         var currentFrame = event.currentFrame;
-        var handles = event.handles;
-        var dLength = current && current.d.length || 0;
 
         var move = ['L', event.x, event.y];
         current.d.push(move);
-        handles.nodes[0].d.push(move);
-
-        handles.nodes.push({
-            id: `handle-${dLength}`,
-            type: 'Ellipse',
-            cx: event.x,
-            cy: event.y,
-            rx: PolygonTool.HANDLE_WIDTH,
-            ry: PolygonTool.HANDLE_WIDTH,
-            fill: 'red',
-            forItem: full.id,
-            routes: {
-                'pointer-start': 'handleStart',
-                'pointer-move': 'handleMove',
-                'pointer-end': 'handleEnd'
-            }
-        });
 
         this.setFrame(current, currentFrame, full);
 
         this.setItem(full);
 
-        this.setSelection([full.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
-
         this.markHistory('Added Handle to Polygon');
     }
 
-    itemSelect(event) {
-        var {current, full} = event.item;
+    handleStart(event, handleIndex) {
+        this.moved = false;
 
-        var handles = this.applyHandles(current.d, full);
-
-        this.setSelection([full.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
-    }
-
-    handleStart() {
-        this.moveCount = 0;
+        this.eventCache[event.id] = {
+            handleIndex,
+            routes: {
+                'pointer-move': this.handleMove,
+                'pointer-end': this.handleEnd
+            }
+        };
     }
 
     handleMove(event) {
         var {current, full} = event.item || {};
         var currentFrame = event.currentFrame;
-        var handles = event.handles;
-        this.moveCount++;
+        var {handleIndex} = this.eventCache[event.id];
+        this.moved = true;
 
-        var handle = handles.nodes.find((handle) => handle.id === event.activeHandle.id);
-
-        var dIndex = handle.id.match(/handle-(\d+)/)[1];
-
-        var move = current.d[dIndex];
+        var move = current.d[handleIndex];
         move[1] = event.x;
         move[2] = event.y;
-        handles.nodes[0].d[dIndex] = move;
-        handle.cx = event.x;
-        handle.cy = event.y;
 
         this.setFrame(current, currentFrame, full);
 
         this.setItem(full);
-
-        this.setSelection([full.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
     handleEnd(event) {
         var {current, full} = event.item || {};
         var currentFrame = event.currentFrame;
-        var handles = event.handles;
 
-        if (this.unfinishedItemID && this.moveCount === 0 && current.d[current.d.length - 1][0] !== 'Z') {
+        if (this.unfinishedItemID && !this.moved && current.d[current.d.length - 1][0] !== 'Z') {
             current.d.push(['Z']);
             current.fill = 'blue';
-            handles.nodes[0].d.push(['Z']);
-            handles.nodes[0].fill = 'rgba(0,0,0,0)';
 
             delete this.unfinishedItemID;
 
@@ -188,14 +186,14 @@ export default class PolygonTool extends Package {
 
             this.setItem(full);
 
-            this.setSelection([full.id]);
-
-            this.setOverlay(handles);
-
-            this.setActiveHandle(event.activeHandle);
-
             this.markHistory('Closed Polygon');
         }
+
+        if (this.moved) {
+            this.markHistory('Moved Polygon Point');
+        }
+
+        delete this.eventCache[event.id];
     }
 
     moveEnd(event) {
@@ -233,6 +231,16 @@ export default class PolygonTool extends Package {
         this.markHistory('Moved Polygon');
     }
 
+    buildOverlaySelectionItem(event) {
+        var {full, current} = event.item;
+
+        var handles = this.applyHandles(current.d, full);
+
+        handles.id = event.overlayItemID;
+
+        this.setOverlayItem(handles);
+    }
+
     applyHandles(moves, item) {
         var handles = [{
             id: 'body',
@@ -262,12 +270,7 @@ export default class PolygonTool extends Package {
                 rx: PolygonTool.HANDLE_WIDTH,
                 ry: PolygonTool.HANDLE_WIDTH,
                 fill: 'red',
-                forItem: item.id,
-                routes: {
-                    'pointer-start': 'handleStart',
-                    'pointer-move': 'handleMove',
-                    'pointer-end': 'handleEnd'
-                }
+                forItem: item.id
             });
         }
 
