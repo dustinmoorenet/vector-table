@@ -262,6 +262,8 @@ export default class RectangleTool extends Package {
     buildOverlaySelectionItem(event) {
         var {full, current} = event.item;
 
+        if (full.type !== 'Rectangle') { return; }
+
         var handles = this.applyHandles(current, full);
 
         handles.id = event.overlayItemID;

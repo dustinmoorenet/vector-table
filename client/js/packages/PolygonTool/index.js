@@ -73,7 +73,7 @@ export default class PolygonTool extends Package {
                             };
                         }
 
-                        return this.applyHandles(item.current.d, item.full);
+                        return this.applyHandles(item.current, item.full);
                     });
             }))
             .then((handles) => {
@@ -196,6 +196,15 @@ export default class PolygonTool extends Package {
         delete this.eventCache[event.id];
     }
 
+    moveStart(event) {
+        this.eventCache[event.id] = {
+            routes: {
+                'pointer-move': this.moveMove,
+                'pointer-end': this.moveEnd
+            }
+        };
+    }
+
     moveEnd(event) {
         var {current, full} = event.item;
         var currentFrame = event.currentFrame;
@@ -218,15 +227,7 @@ export default class PolygonTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        var handles = this.applyHandles(current.d, full);
-
         this.setItem(full);
-
-        this.setSelection([full.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
 
         this.markHistory('Moved Polygon');
     }
@@ -234,31 +235,29 @@ export default class PolygonTool extends Package {
     buildOverlaySelectionItem(event) {
         var {full, current} = event.item;
 
-        var handles = this.applyHandles(current.d, full);
+        if (full.type !== 'Polygon') { return; }
+
+        var handles = this.applyHandles(current, full);
 
         handles.id = event.overlayItemID;
 
         this.setOverlayItem(handles);
     }
 
-    applyHandles(moves, item) {
+    applyHandles({d, transform}, item) {
         var handles = [{
             id: 'body',
             type: 'Polygon',
-            d: moves,
+            d,
             forItem: item.id,
-            fill: moves[moves.length - 1][0] === 'Z' ? 'rgba(0,0,0,0)' : 'none',
+            fill: d[d.length - 1][0] === 'Z' ? 'rgba(0,0,0,0)' : 'none',
             stroke: 'rgba(0,0,0,0)',
             'stroke-linecap': 'round',
-            'stroke-width': 20,
-            routes: {
-                'pointer-move': 'moveMove',
-                'pointer-end': 'moveEnd'
-            }
+            'stroke-width': 20
         }];
 
-        for (var i = 0; i < moves.length; i++) {
-            var move = moves[i];
+        for (var i = 0; i < d.length; i++) {
+            var move = d[i];
 
             if (move[0] === 'Z') { break; }
 
@@ -276,7 +275,8 @@ export default class PolygonTool extends Package {
 
         return {
             type: 'Group',
-            nodes: handles
+            nodes: handles,
+            transform
         };
     }
 }
