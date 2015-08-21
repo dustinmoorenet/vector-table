@@ -5,45 +5,39 @@ import Package from '../../libs/Package';
 export default class EllipseTool extends Package {
     get title() { return 'Ellipse Tool'; }
 
+    get id() { return 'ellipse-tool'; }
+
+    get handleStartRoutes() {
+        return {
+            'rotate-:direction': 'rotateStart',
+            'resize-:direction': 'resizeStart',
+            'toggle': 'toggleStart',
+            'body': 'moveStart'
+        };
+    }
+
     routeEvent(event) {
         if (event.item && event.item.full.tool !== this.constructor.name) {
             return;
         }
 
-        super.routeEvent(event);
-    }
-
-    select(event) {
-        Promise.all(event.selection.map((itemID) => {
-                return this.getItem(itemID)
-                    .then((item) => {
-                        if (item.full.type !== 'Ellipse') {
-                            return {
-                                nodes: []
-                            };
-                        }
-
-                        return this.applyHandles(item.current, item.full);
-                    });
-            }))
-            .then((handles) => {
-                handles = {
-                    type: 'Group',
-                    nodes: handles.reduce((nodes, handle) => nodes.concat(handle.nodes), [])
-                };
-
-                this.setSelection(event.selection);
-
-                this.setOverlay(handles);
-            });
-    }
-
-    defaultRoute(event) {
-        if (event.item) {
-            this.selectItem(event);
+        if (event.message === 'pointer-start') {
+            if (event.item && event.handleID) {
+                this.handleStartRoute(event);
+            }
+            else if (event.item) {
+                this.selectItem(event);
+            }
+            else {
+                this.create(event);
+            }
         }
         else {
-            this.create(event);
+            var routes = (this.eventCache[event.id] || {}).routes;
+
+            if (routes && routes[event.message]) {
+                routes[event.message].call(this, event);
+            }
         }
     }
 
@@ -71,8 +65,6 @@ export default class EllipseTool extends Package {
 
         this.setFrame(focusGroup.current, event.currentFrame, focusGroup.full);
 
-        var handles = this.applyHandles(item.timeLine[0], item);
-
         this.setItem(item);
 
         this.setActiveItemID(item.id);
@@ -81,16 +73,36 @@ export default class EllipseTool extends Package {
 
         this.setSelection([item.id]);
 
-        this.setOverlay(handles);
+        this.eventCache[event.id] = {
+            anchor: {x: event.x, y: event.y},
+            routes: {
+                'pointer-move': this.resizeMove,
+                'pointer-end': this.createEnd
+            }
+        };
+    }
 
-        this.setActiveHandle(handles.nodes[3]);
+    createEnd(event) {
+        this.setItem(event.item.full);
+
+        this.markHistory('Created Ellipse');
+
+        delete this.eventCache[event.id];
+    }
+
+    moveStart(event) {
+        this.eventCache[event.id] = {
+            routes: {
+                'pointer-move': this.moveMove,
+                'pointer-end': this.moveEnd
+            }
+        };
     }
 
     moveEnd(event) {
         var {current, full} = event.item;
         var currentFrame = event.currentFrame;
 
-        full.complete = true;
         var ellipse = {
             cx: current.cx + (event.x - event.origin.x),
             cy: current.cy + (event.y - event.origin.y)
@@ -108,113 +120,130 @@ export default class EllipseTool extends Package {
 
         this.setFrame(current, currentFrame, full);
 
-        var handles = this.applyHandles(current, full);
-
         this.setItem(full);
-
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
 
         this.markHistory('Moved Ellipse');
+
+        delete this.eventCache[event.id];
     }
 
-    resizeMove(handleIndex, buddyHandleIndex, event) {
-        var {current, full} = event.item;
-        var currentFrame = event.currentFrame;
-        var handles = event.handles.nodes;
+    rotateStart(event, anchorID) {
+        var {current} = event.item;
 
-        // Find handle buddy
-        var handle = handles[buddyHandleIndex];
+        var anchor = this.pointFromAnchorID(current, anchorID);
 
-        // Determine new rectangle from current position and handle buddy
-        var ellipse = {
-            rx: Math.abs(event.x - handle.cx) / 2,
-            ry: Math.abs(event.y - handle.cy) / 2
+        this.eventCache[event.id] = {
+            anchor,
+            routes: {
+                'pointer-move': this.rotateMove,
+                'pointer-end': this.rotateEnd
+            }
         };
-
-        ellipse.cx = Math.min(event.x, handle.cx) + ellipse.rx;
-        ellipse.cy = Math.min(event.y, handle.cy) + ellipse.ry;
-
-        _.extend(current, ellipse);
-
-        this.setFrame(current, currentFrame, full);
-
-        handles = this.applyHandles(current, full);
-
-        // Determine new active handle
-        event.activeHandle = handles.nodes.find((h) => h.cx === event.x && h.cy === event.y);
-
-        this.setItem(full);
-
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
-    resizeEnd(event) {
-        this.setItem(event.item.full);
-
-        this.markHistory('Resized Ellipse');
-    }
-
-    rotateMove(handleIndex, event) {
+    rotateMove(event) {
         var {current, full} = event.item;
         var currentFrame = event.currentFrame;
-        var handles = event.handles;
+        var {anchor} = this.eventCache[event.id];
 
         var origin = {
             x: current.cx,
             y: current.cy
         };
-        var start = this.degreesFromTwoPoints(origin, {
-            x: handles.nodes[handleIndex].cx,
-            y: handles.nodes[handleIndex].cy
-        });
+        var start = this.degreesFromTwoPoints(origin, anchor);
         var degrees = this.degreesFromTwoPoints(origin, event);
 
         var transform = ['rotate', degrees - start, origin.x, origin.y];
 
-        this.applyTransform({transform, item: handles});
         this.applyTransform({transform, item: current});
 
         this.setFrame(current, currentFrame, full);
 
         this.setItem(full);
-
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
-        this.setActiveHandle(event.activeHandle);
     }
 
     rotateEnd(event) {
         this.setItem(event.item.full);
 
         this.markHistory('Rotated Ellipse');
+
+        delete this.eventCache[event.id];
     }
 
-    onTap(event) {
-        var object = event.object;
+    resizeStart(event, anchorID) {
+        var {current} = event.item;
 
-        if (object) {
-            this.objectTapped(object);
+console.log('resizeStart', anchorID, this.getBuddyAnchorID(anchorID));
+        var anchor = this.pointFromAnchorID(current, this.getBuddyAnchorID(anchorID));
+
+        this.eventCache[event.id] = {
+            anchor,
+            routes: {
+                'pointer-move': this.resizeMove,
+                'pointer-end': this.resizeEnd
+            }
+        };
+    }
+
+    resizeMove(event) {
+        var {current, full} = event.item;
+        var currentFrame = event.currentFrame;
+        var {anchor} = this.eventCache[event.id];
+
+        // Determine new rectangle from current position and anchor
+        var ellipse = {
+            rx: Math.abs(event.x - anchor.x) / 2,
+            ry: Math.abs(event.y - anchor.y) / 2
+        };
+
+        ellipse.cx = Math.min(event.x, anchor.x) + ellipse.rx;
+        ellipse.cy = Math.min(event.y, anchor.y) + ellipse.ry;
+console.log('resizeMove', anchor, ellipse);
+
+        _.extend(current, ellipse);
+
+        this.setFrame(current, currentFrame, full);
+
+        this.setItem(full);
+    }
+
+    resizeEnd(event) {
+        this.setItem(event.item.full);
+
+        this.markHistory('Resized Ellipse');
+
+        delete this.eventCache[event.id];
+    }
+
+    buildOverlaySelectionItem(event) {
+        var {full, current} = event.item;
+
+        if (full.type !== 'Ellipse') { return; }
+
+        var handles = this.applyHandles(current, full);
+
+        handles.id = event.overlayItemID;
+
+        this.setOverlayItem(handles);
+    }
+
+    pointFromAnchorID(current, anchorID) {
+        var anchor;
+
+        if (anchorID === 'nw') {
+            anchor = {x: current.cx - current.rx, y: current.cy - current.ry};
         }
-        else {
-            this.create({
-                cx: event.x + EllipseTool.DEFAULT.rx,
-                cy: event.y + EllipseTool.DEFAULT.ry,
-                rx: EllipseTool.DEFAULT.rx,
-                ry: EllipseTool.DEFAULT.ry,
-                fill: 'blue',
-                stroke: 'black'
-            });
+        else if (anchorID === 'ne') {
+            anchor = {x: current.cx + current.rx, y: current.cy - current.ry};
         }
+        else if (anchorID === 'se') {
+            anchor = {x: current.cx + current.rx, y: current.cy + current.ry};
+        }
+        else if (anchorID === 'sw') {
+            anchor = {x: current.cx - current.rx, y: current.cy + current.ry};
+        }
+
+        return anchor;
     }
 
     resizeHandles(ellipse, item) {
@@ -229,11 +258,7 @@ export default class EllipseTool extends Package {
             ry: ellipse.ry,
             fill: 'rgba(0,0,0,0)',
             stroke: null,
-            forItem: item.id,
-            routes: {
-                'pointer-move': 'moveMove',
-                'pointer-end': 'moveEnd'
-            }
+            forItem: item.id
         });
 
         handles.push({
@@ -244,61 +269,38 @@ export default class EllipseTool extends Package {
             rx: EllipseTool.HANDLE_WIDTH,
             ry: EllipseTool.HANDLE_WIDTH,
             fill: 'green',
-            forItem: item.id,
-            routes: {
-                'pointer-start': 'toggleStart'
-            }
+            forItem: item.id
         });
 
         var type = EllipseTool.resizeHandle;
         var offset = 2;
 
         handles.push(_.merge({}, type, {
-            id: 'nw',
+            id: 'resize-nw',
             cx: ellipse.cx - ellipse.rx,
             cy: ellipse.cy - ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset, offset + 2]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'ne',
+            id: 'resize-ne',
             cx: ellipse.cx + ellipse.rx,
             cy: ellipse.cy - ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 1, offset + 3]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'se',
+            id: 'resize-se',
             cx: ellipse.cx + ellipse.rx,
             cy: ellipse.cy + ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 2, offset]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'sw',
+            id: 'resize-sw',
             cx: ellipse.cx - ellipse.rx,
             cy: ellipse.cy + ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 3, offset + 1]
-                }
-            }
+            forItem: item.id
         }));
 
         return {
@@ -320,11 +322,7 @@ export default class EllipseTool extends Package {
             ry: ellipse.ry,
             fill: 'rgba(0,0,0,0)',
             stroke: null,
-            forItem: item.id,
-            routes: {
-                'pointer-move': 'moveMove',
-                'pointer-end': 'moveEnd'
-            }
+            forItem: item.id
         });
 
         handles.push({
@@ -335,61 +333,38 @@ export default class EllipseTool extends Package {
             rx: EllipseTool.HANDLE_WIDTH,
             ry: EllipseTool.HANDLE_WIDTH,
             fill: 'gray',
-            forItem: item.id,
-            routes: {
-                'pointer-start': 'toggleStart'
-            }
+            forItem: item.id
         });
 
         var type = EllipseTool.rotateHandle;
         var offset = 2;
 
         handles.push(_.merge({}, type, {
-            id: 'nw',
+            id: 'rotate-nw',
             cx: ellipse.cx - ellipse.rx,
             cy: ellipse.cy - ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'ne',
+            id: 'rotate-ne',
             cx: ellipse.cx + ellipse.rx,
             cy: ellipse.cy - ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 1]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'se',
+            id: 'rotate-se',
             cx: ellipse.cx + ellipse.rx,
             cy: ellipse.cy + ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 2]
-                }
-            }
+            forItem: item.id
         }));
 
         handles.push(_.merge({}, type, {
-            id: 'sw',
+            id: 'rotate-sw',
             cx: ellipse.cx - ellipse.rx,
             cy: ellipse.cy + ellipse.ry,
-            forItem: item.id,
-            routes: {
-                'pointer-move': {
-                    partial: [offset + 3]
-                },
-            }
+            forItem: item.id
         }));
 
         return {
@@ -469,13 +444,7 @@ EllipseTool.resizeHandle = {
     cy: 0,
     rx: EllipseTool.HANDLE_WIDTH,
     ry: EllipseTool.HANDLE_WIDTH,
-    fill: 'red',
-    routes: {
-        'pointer-move': {
-            func: 'resizeMove'
-        },
-        'pointer-end': 'resizeEnd'
-    }
+    fill: 'red'
 };
 
 EllipseTool.rotateHandle = {
@@ -484,11 +453,5 @@ EllipseTool.rotateHandle = {
     cy: 0,
     rx: EllipseTool.HANDLE_WIDTH,
     ry: EllipseTool.HANDLE_WIDTH,
-    fill: 'green',
-    routes: {
-        'pointer-move': {
-            func: 'rotateMove'
-        },
-        'pointer-end': 'rotateEnd'
-    }
+    fill: 'green'
 };

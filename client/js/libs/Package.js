@@ -54,11 +54,7 @@ export default class Package extends Events {
         this.clearOverlaySet();
     }
 
-    routeEvent(event) {
-
-    }
-
-    defaultRoute() { }
+    routeEvent() { }
 
     initStartRoutes() {
         var startRoutes = this.handleStartRoutes;
@@ -98,8 +94,6 @@ export default class Package extends Events {
     buildOverlaySelectionItem() { }
 
     selectItem(event) {
-        var {current, full} = event.item;
-
         this.setSelection([event.item.id]);
     }
 
@@ -134,7 +128,7 @@ export default class Package extends Events {
     }
 
     toggleStart(event) {
-        var {full, current} = event.item;
+        var {full} = event.item;
 
         full.mode = full.mode === 'resize' ? 'rotate' : 'resize';
 
@@ -232,15 +226,24 @@ export default class Package extends Events {
 
         lookUp.references[0][lookUp.key] = value;
 
-        var handles = this.applyHandles(current, full);
-
         this.setItem(full);
 
-        this.setSelection([event.item.id]);
-
-        this.setOverlay(handles);
-
         this.markHistory('Set property value');
+    }
+
+    getBuddyAnchorID(anchorID) {
+        if (anchorID === 'ne') {
+            return 'sw';
+        }
+        else if (anchorID === 'se') {
+            return 'nw';
+        }
+        else if (anchorID === 'sw') {
+            return 'ne';
+        }
+        else {
+            return 'se';
+        }
     }
 
     getItem(itemID) {

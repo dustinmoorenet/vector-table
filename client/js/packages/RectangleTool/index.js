@@ -51,10 +51,6 @@ export default class RectangleTool extends Package {
         }
     }
 
-    defaultRoute(event) {
-
-    }
-
     create(event) {
         var item = {
             id: uuid.v4(),
@@ -255,21 +251,6 @@ export default class RectangleTool extends Package {
         handles.id = event.overlayItemID;
 
         this.setOverlayItem(handles);
-    }
-
-    getBuddyAnchorID(anchorID) {
-        if (anchorID === 'ne') {
-            return 'sw';
-        }
-        else if (anchorID === 'se') {
-            return 'nw';
-        }
-        else if (anchorID === 'sw') {
-            return 'ne';
-        }
-        else {
-            return 'se';
-        }
     }
 
     pointFromAnchorID(current, anchorID) {
