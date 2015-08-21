@@ -169,32 +169,15 @@ export default class TimeLine extends Events {
 
     saveSelection() {
         var app = global.appStore.get('app');
+
         this.savedSelection = global.dataStore.getProjectMeta(app.projectID, 'selection');
 
-        global.app.sendWork({
-            message: 'select',
-            packageName: app.currentPackage,
-            selection: []
-        });
+        global.dataStore.setProjectMeta(app.projectID, 'selection', []);
     }
 
     restoreSelection() {
         var app = global.appStore.get('app');
 
-        global.app.sendWork({
-            message: 'select',
-            selection: this.savedSelection || [],
-            packageName: app.currentPackage
-        });
-    }
-
-    reselect() {
-        var app = global.appStore.get('app');
-
-        global.app.sendWork({
-            message: 'select',
-            packageName: app.currentPackage,
-            selection: global.dataStore.getProjectMeta(app.projectID, 'selection')
-        });
+        global.dataStore.setProjectMeta(app.projectID, 'selection', this.savedSelection || []);
     }
 }
