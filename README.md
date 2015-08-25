@@ -7,7 +7,7 @@ npm install
 
 ## Dev
 ```
-node server.js &; npm run watch
+node server &; npm run watch
 ```
 
 ## Docs
