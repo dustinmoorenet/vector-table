@@ -1,15 +1,14 @@
-var knex = require('knex')({
-    dialect: 'pg',
-    connection: 'postgres://vector:DCiW0A3zeu5eyFoinT01WAD3H2LyrKtl@localhost:5432/vector'
-});
+var uuid = require('node-uuid');
+
+var db = require('../libs/db');
 
 module.exports = {
     getAll: function() {
-        return knex('item');
+        return db('item');
     },
 
     getByID: function(id) {
-        return knex('item')
+        return db('item')
             .where('id', id)
             .then(function(items) {
                 if (items.length === 0) {
@@ -20,15 +19,26 @@ module.exports = {
             });
     },
 
-    insert: function() {
+    insert: function(item) {
+        if (!item.id) {
+            item.id = uuid.v4();
+        }
+
+        return db
+            .insert(item)
+            .into('item');
 
     },
 
-    update: function() {
-
+    update: function(id, item) {
+        return db('item')
+            .where('id', id)
+            .update(item);
     },
 
-    delete: function() {
-
+    delete: function(id) {
+        return db('item')
+            .where('id', id)
+            .del();
     }
 };

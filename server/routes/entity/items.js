@@ -11,7 +11,7 @@ What can a entity do to an individual item
  - change visiblity
 */
 
-var itemsRouter = express.Router();
+var itemsRouter = express.Router({mergeParams: true});
 
 itemsRouter.get('/', function(req, res) {
     // return all items associated with entity (paginate)
