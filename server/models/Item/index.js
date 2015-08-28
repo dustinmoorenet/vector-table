@@ -1,8 +1,11 @@
 var uuid = require('node-uuid');
 
-var db = require('../libs/db');
+var db = require('../../libs/db');
+var Entities = require('./Entities');
 
 module.exports = {
+    Entities: Entities,
+
     getAll: function() {
         return db('item');
     },

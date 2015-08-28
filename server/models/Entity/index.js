@@ -2,9 +2,15 @@ var uuid = require('node-uuid');
 
 var db = require('../../libs/db');
 var Children = require('./Children');
+var Parents = require('./Parents');
+var Items = require('./Items');
 
 module.exports = {
     Children: Children,
+
+    Parents: Parents,
+
+    Items: Items,
 
     getAll: function() {
         return db('entity');

@@ -1,6 +1,7 @@
 var express = require('express');
 
-var Item = require('../models/Item');
+var Item = require('../../models/Item');
+var entitiesRouter = require('./entities');
 
 var itemRouter = express.Router({mergeParams: true});
 
@@ -56,5 +57,7 @@ itemRouter.delete('/:id', function(req, res) {
             res.status(404).json({error: err.message});
         });
 });
+
+itemRouter.use('/:id/entities', entitiesRouter);
 
 module.exports = itemRouter;

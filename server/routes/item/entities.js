@@ -1,12 +1,12 @@
 var express = require('express');
 
-var Entity = require('../../models/Entity');
+var Item = require('../../models/Item');
 
-var parentsRouter = express.Router({mergeParams: true});
+var entitiesRouter = express.Router({mergeParams: true});
 
-parentsRouter.get('/', function(req, res) {
-    // get all parent entities of entity (paginate)
-    Entity.Parents.getAll(req.params.id)
+entitiesRouter.get('/', function(req, res) {
+    // get all parent entities of item (paginate)
+    Item.Entities.getAll(req.params.id)
         .then(function(entities) {
             res.json({
                 count: entities.length,
@@ -18,4 +18,4 @@ parentsRouter.get('/', function(req, res) {
         });
 });
 
-module.exports = parentsRouter;
+module.exports = entitiesRouter;

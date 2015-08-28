@@ -173,7 +173,6 @@ export default class EllipseTool extends Package {
     resizeStart(event, anchorID) {
         var {current} = event.item;
 
-console.log('resizeStart', anchorID, this.getBuddyAnchorID(anchorID));
         var anchor = this.pointFromAnchorID(current, this.getBuddyAnchorID(anchorID));
 
         this.eventCache[event.id] = {
@@ -198,7 +197,6 @@ console.log('resizeStart', anchorID, this.getBuddyAnchorID(anchorID));
 
         ellipse.cx = Math.min(event.x, anchor.x) + ellipse.rx;
         ellipse.cy = Math.min(event.y, anchor.y) + ellipse.ry;
-console.log('resizeMove', anchor, ellipse);
 
         _.extend(current, ellipse);
 
