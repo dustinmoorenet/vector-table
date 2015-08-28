@@ -35,3 +35,8 @@ CREATE TABLE entity_item_bridge (
     updated_on timestamp with time zone,
     PRIMARY KEY (entity_id, item_id)
 );
+
+CREATE TABLE session (
+    id char(100) PRIMARY KEY,
+    entity_id uuid REFERENCES entity (id) ON DELETE CASCADE
+);
