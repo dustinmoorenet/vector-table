@@ -37,6 +37,6 @@ CREATE TABLE entity_item_bridge (
 );
 
 CREATE TABLE session (
-    id char(100) PRIMARY KEY,
+    id text PRIMARY KEY,
     entity_id uuid REFERENCES entity (id) ON DELETE CASCADE
 );

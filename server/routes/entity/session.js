@@ -21,17 +21,17 @@ sessionsRouter.get('/', function(req, res) {
 sessionsRouter.post('/', function(req, res) {
     // create a session for an entity
     Entity.Sessions.add(req.params.id, req.body)
-        .then(function() {
-            res.json({});
+        .then(function(value) {
+            res.json(value);
         })
         .catch(function(err) {
             res.status(500).json({error: err.message});
         });
 });
 
-sessionsRouter.delete('/', function(req, res) {
+sessionsRouter.delete('/:session_id', function(req, res) {
     // delete a session for an entity
-    Entity.Sessions.remove(req.params.id)
+    Entity.Sessions.remove(req.params.id, req.params.session_id)
         .then(function() {
             res.json({});
         })

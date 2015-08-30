@@ -30,7 +30,6 @@ module.exports = {
         return db
             .insert(item)
             .into('item');
-
     },
 
     update: function(id, item) {

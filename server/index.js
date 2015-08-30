@@ -1,14 +1,10 @@
 var express = require('express');
-var bodyParser = require('body-parser');
 
-var itemRouter = require('./routes/item');
-var entityRouter = require('./routes/entity');
+var rootRouter = require('./routes');
 
 var app = express();
 app.use(express.static('client'));
-app.use(bodyParser.json());
-app.use('/item', itemRouter);
-app.use('/entity', entityRouter);
+app.use(rootRouter);
 
 var server = app.listen(8077, function () {
     var host = server.address().address;

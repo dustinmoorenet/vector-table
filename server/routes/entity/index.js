@@ -1,31 +1,57 @@
 var express = require('express');
 
+var Errors = require('../../Errors');
 var itemsRouter = require('./items');
 var childrenRouter = require('./children');
 var parentsRouter = require('./parents');
+var sessionsRouter = require('./session');
 var Entity = require('../../models/Entity');
 
 var entityRouter = express.Router({mergeParams: true});
 
+function sessionCheck(req, res, next) {
+    var sessionID = req.headers['x-sessionid'];
+
+    if (!sessionID) {
+        next(new Errors.UnauthorizedError('No sessionID found in header'));
+    }
+
+    Entity.Sessions.getByID(sessionID)
+        .then(function(session) {
+            if (session) {
+                req.session = session;
+
+                next();
+            }
+            else {
+                next(new Errors.UnauthorizedError('SessionID is not valid'));
+            }
+        });
+}
+
+function entityCheck(req, res, next) {
+    if (req.session && req.params.id === req.session.entity_id) {
+        next();
+    }
+    else {
+        next(new Errors.UnauthorizedError('Entity not authorized for session'));
+    }
+}
+
+// TODO remove me
 entityRouter.get('/', function(req, res) {
     // return all entities (pagniate)
     Entity.getAll()
         .then(function(entities) {
             res.json(entities);
-        })
-        .catch(function(err) {
-            res.status(500).json({error: err.message});
         });
 });
 
-entityRouter.get('/:id', function(req, res) {
-    // return current entity info or if not logged in return appropreate error
+entityRouter.get('/:id', sessionCheck, entityCheck, function(req, res) {
+    // return current entity info
     Entity.getByID(req.params.id)
         .then(function(entity) {
             res.json(entity);
-        })
-        .catch(function(err) {
-            res.status(404).json({error: err.message});
         });
 });
 
@@ -41,7 +67,7 @@ entityRouter.post('/', function(req, res) {
         });
 });
 
-entityRouter.put('/:id', function(req, res) {
+entityRouter.put('/:id', sessionCheck, entityCheck, function(req, res) {
     // update entity info
     Entity.update(req.params.id, req.body)
         .then(function(entity) {
@@ -52,7 +78,7 @@ entityRouter.put('/:id', function(req, res) {
         });
 });
 
-entityRouter.delete('/:id', function(req, res) {
+entityRouter.delete('/:id', sessionCheck, entityCheck, function(req, res) {
     // mark entity to be deleted in 1 week
     Entity.delete(req.params.id)
         .then(function(entity) {
@@ -63,8 +89,9 @@ entityRouter.delete('/:id', function(req, res) {
         });
 });
 
-entityRouter.use('/:id/items', itemsRouter);
-entityRouter.use('/:id/children', childrenRouter);
-entityRouter.use('/:id/parents', parentsRouter);
+entityRouter.use('/:id/items', sessionCheck, entityCheck, itemsRouter);
+entityRouter.use('/:id/children', sessionCheck, entityCheck, childrenRouter);
+entityRouter.use('/:id/parents', sessionCheck, entityCheck, parentsRouter);
+entityRouter.use('/:id/sessions', sessionsRouter);
 
 module.exports = entityRouter;

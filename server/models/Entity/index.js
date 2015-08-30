@@ -4,6 +4,7 @@ var db = require('../../libs/db');
 var Children = require('./Children');
 var Parents = require('./Parents');
 var Items = require('./Items');
+var Sessions = require('./Sessions');
 
 module.exports = {
     Children: Children,
@@ -11,6 +12,8 @@ module.exports = {
     Parents: Parents,
 
     Items: Items,
+
+    Sessions: Sessions,
 
     getAll: function() {
         return db('entity');
