@@ -6,6 +6,21 @@ module.exports = {
             .where('entity_id', entityID);
     },
 
+    getByID: function(entityID, itemID) {
+        return db('entity_items')
+            .where({
+                entity_id: entityID,
+                id: itemID
+            })
+            .then(function(items) {
+                if (items.length === 0) {
+                    throw new Error('Item not found');
+                }
+
+                return items[0];
+            });
+    },
+
     add: function(entityID, itemID, data) {
         data = data || {};
 

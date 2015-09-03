@@ -34,7 +34,7 @@ function entityCheck(req, res, next) {
         next();
     }
     else {
-        next(new Errors.UnauthorizedError('Entity not authorized for session'));
+        next(new Errors.UnauthorizedError('Entity not authorized for this session'));
     }
 }
 
@@ -88,6 +88,13 @@ entityRouter.delete('/:id', sessionCheck, entityCheck, function(req, res) {
             res.status(404).json({error: err.message});
         });
 });
+
+entityRouter.get('/:id/itempermissions/:item_id', (req, res) => {
+    Entity.getPermissionsForItem(req.params.id, req.params.item_id)
+        .then((permissions) => {
+            res.json(permissions);
+        });
+})
 
 entityRouter.use('/:id/items', sessionCheck, entityCheck, itemsRouter);
 entityRouter.use('/:id/children', sessionCheck, entityCheck, childrenRouter);
