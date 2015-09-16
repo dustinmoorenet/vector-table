@@ -30,12 +30,35 @@ function sessionCheck(req, res, next) {
 }
 
 function entityCheck(req, res, next) {
-    if (req.session && req.params.id === req.session.entity_id) {
+    var entityID = req.params.id;
+
+    if (entityID === req.session.entity_id) {
+        req.entityPermissions = {read: true, write: true, update: true, delete: true};
+
         next();
+
+        return;
     }
-    else {
-        next(new Errors.UnauthorizedError('Entity not authorized for this session'));
-    }
+
+    Entity.Parents.getParentByChild(req.session.entity_id, entityID)
+        .then(function(parent) {
+            if (parent) {
+                return parent;
+            }
+            else {
+                return Entity.Children.getChildByParent(req.session.entity_id, entityID);
+            }
+        })
+        .then(function(entity) {
+            if (entity) {
+                req.entityPermissions = entity.entity_entity_bridge_meta.permissions;
+            }
+            else {
+                req.entityPermissions = {read: true};
+            }
+
+            next();
+        });
 }
 
 // TODO remove me

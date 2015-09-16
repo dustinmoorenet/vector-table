@@ -2,12 +2,14 @@ var db = require('../../libs/db');
 
 module.exports = {
     getAll: function(entityID) {
-        return db('entity_items')
+        // TODO expand out to get all items that are owned by parents
+        // where permissions are at least read === true
+        return db('item')
             .where('entity_id', entityID);
     },
 
     getByID: function(entityID, itemID) {
-        return db('entity_items')
+        return db('item')
             .where({
                 entity_id: entityID,
                 id: itemID
@@ -21,7 +23,33 @@ module.exports = {
             });
     },
 
-    add: function(entityID, itemID, data) {
+    insert: function(item) {
+        if (!item.id) {
+            item.id = uuid.v4();
+        }
+
+        return db
+            .insert(item)
+            .into('item');
+    },
+
+    update: function(item) {
+        if (!item.id) {
+            return Promise.reject(new Error('Item ID is required to update'));
+        }
+
+        return db('item')
+            .where('id', item.id)
+            .update(item);
+    },
+
+    delete: function(id) {
+        return db('item')
+            .where('id', id)
+            .del();
+    },
+
+    addShare: function(entityID, itemID, data) {
         data = data || {};
 
         return db.insert({
@@ -31,7 +59,7 @@ module.exports = {
             }).into('entity_item_bridge');
     },
 
-    update: function(entityID, itemID, data) {
+    updateShare: function(entityID, itemID, data) {
         return db('entity_item_bridge')
             .where({
                 entity_id: entityID,
@@ -40,7 +68,7 @@ module.exports = {
             .update(data);
     },
 
-    remove: function(entityID, itemID) {
+    removeShare: function(entityID, itemID) {
         return db('entity_item_bridge')
             .where({
                 entity_id: entityID,

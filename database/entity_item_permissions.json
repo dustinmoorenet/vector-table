@@ -1,0 +1,11 @@
+{
+    "permissions": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+    },
+    "restrictions": {
+        "privateOnly": true
+    }
+}

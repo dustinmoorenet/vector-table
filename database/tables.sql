@@ -11,8 +11,8 @@ CREATE TABLE item (
     id uuid PRIMARY KEY,
     name text,
     data jsonb,
-    is_top_level boolean,
     is_public boolean,
+    entity_id uuid REFERENCES entity (id) ON DELETE CASCADE,
     created_on timestamp with time zone,
     updated_on timestamp with time zone,
     deleted_on timestamp with time zone

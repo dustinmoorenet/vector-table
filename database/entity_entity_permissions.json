@@ -1,0 +1,25 @@
+{
+    "entityPermissions": {
+        "createParent": true,
+        "updateParent": true,
+        "deleteParent": true,
+        "createSibilings": true,
+        "updateSibilings": true,
+        "deleteSibilings": true
+    },
+    "entityRestrictions": {
+        "preventEntityCreation": true,
+        "preventEntityDeletion": true
+    },
+    "itemPermissions": {
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": true
+    },
+    "itemRestrictions": {
+        "privateOnly": true,
+        "preventItemCreation": true,
+        "preventItemDeletion": true
+    }
+}

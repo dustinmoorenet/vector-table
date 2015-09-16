@@ -6,6 +6,17 @@ module.exports = {
             .where('parent_entity_id', parentID);
     },
 
+    getChildByParent: function(childID, parentID) {
+        return db('entity_children')
+            .where({
+                id: childID,
+                parent_entity_id: parentID
+            })
+            .then(function(children) {
+                return children[0];
+            })
+    },
+
     add: function(parentID, childID, data) {
         data = data || {};
 

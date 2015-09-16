@@ -20,27 +20,5 @@ module.exports = {
 
                 return items[0];
             });
-    },
-
-    insert: function(item) {
-        if (!item.id) {
-            item.id = uuid.v4();
-        }
-
-        return db
-            .insert(item)
-            .into('item');
-    },
-
-    update: function(id, item) {
-        return db('item')
-            .where('id', id)
-            .update(item);
-    },
-
-    delete: function(id) {
-        return db('item')
-            .where('id', id)
-            .del();
     }
 };
