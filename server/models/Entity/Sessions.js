@@ -36,7 +36,7 @@ module.exports = {
                 entity_id: entityID
             })
             .then(function(rows) {
-                return {sessionID: rows[0]}
+                return {sessionID: rows[0]};
             });
     },
 
